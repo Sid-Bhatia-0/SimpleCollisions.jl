@@ -8,6 +8,7 @@ const GB = GeometryBasics
 import LinearAlgebra
 const LA = LinearAlgebra
 import Requires
+import MacroTools
 
 include("collision_detection.jl")
 include("shapes.jl")
