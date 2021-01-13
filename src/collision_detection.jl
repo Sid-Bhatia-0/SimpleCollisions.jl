@@ -7,3 +7,8 @@ function is_intersecting(a::GB.Rect2D, b::GB.Rect2D)
     end
     return true
 end
+
+function is_intersecting(a::GB.Circle, b::GB.Circle)
+    ba = b.center .- a.center
+    return LA.dot(ba, ba) <= (a.r + b.r) ^ 2
+end
