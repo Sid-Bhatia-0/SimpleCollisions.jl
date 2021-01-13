@@ -12,6 +12,7 @@ import Requires
 include("collision_detection.jl")
 include("shapes.jl")
 include("rigid_body.jl")
+include("world.jl")
 
 function __init__()
     Requires.@require Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a" include("rendering.jl")
