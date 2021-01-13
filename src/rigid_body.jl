@@ -7,10 +7,10 @@ struct MassData{T}
     inv_mass::T
 end
 
-function MassData(density::T, shape::GB.GeometryPrimitive{2}) where {T<:Number}
+function MassData(density::T, shape::GB.GeometryPrimitive{2}) where {T<:AbstractFloat}
     mass = get_mass(density, shape)
     inv_mass = 1 / mass
-    MassData(mass, inv_mass)
+    MassData(convert(T, mass), convert(T, inv_mass))
 end
 
 MassData{T}() where {T} = MassData(one(T), one(T))
@@ -24,10 +24,10 @@ struct InertiaData{T}
     inv_inertia::T
 end
 
-function InertiaData(density::T, shape::GB.GeometryPrimitive{2}) where {T<:Number}
+function InertiaData(density::T, shape::GB.GeometryPrimitive{2}) where {T<:AbstractFloat}
     inertia = get_inertia(density, shape)
     inv_inertia = 1 / inertia
-    InertiaData(inertia, inv_inertia)
+    InertiaData(convert(T, inertia), convert(T, inv_inertia))
 end
 
 InertiaData{T}() where {T} = InertiaData(one(T), one(T))
@@ -44,10 +44,10 @@ end
 LinearMotionData{T}() where {T} = LinearMotionData(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
 
 get_velocity(linear_motion_data::LinearMotionData) = linear_motion_data.velocity
-set_velocity!(linear_motion_data::LinearMotionData, velocity::GB.Vec2) = linear_motion_data.velocity = velocity
+set_velocity!(linear_motion_data::LinearMotionData, velocity) = linear_motion_data.velocity = velocity
 
 get_position(linear_motion_data::LinearMotionData) = linear_motion_data.position
-set_position!(linear_motion_data::LinearMotionData, position::GB.Vec2) = linear_motion_data.position = position
+set_position!(linear_motion_data::LinearMotionData, position) = linear_motion_data.position = position
 
 #####
 # AngularMotionData
@@ -61,10 +61,10 @@ end
 AngularMotionData{T}() where {T} = AngularMotionData(zero(T), zero(T))
 
 get_angle(angular_motion_data::AngularMotionData) = angular_motion_data.angle
-set_angle!(angular_motion_data::AngularMotionData, angle::AbstractFloat) = angular_motion_data.angle = angle
+set_angle!(angular_motion_data::AngularMotionData, angle) = angular_motion_data.angle = angle
 
 get_angular_velocity(angular_motion_data::AngularMotionData) = angular_motion_data.angular_velocity
-set_angular_velocity!(angular_motion_data::AngularMotionData, angular_velocity::AbstractFloat) = angular_motion_data.angular_velocity = angular_velocity
+set_angular_velocity!(angular_motion_data::AngularMotionData, angular_velocity) = angular_motion_data.angular_velocity = angular_velocity
 
 #####
 # MaterialData
