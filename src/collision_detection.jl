@@ -1,4 +1,4 @@
-function is_intersecting(a::GB.Rect2D, b::GB.Rect2D)
+function is_colliding(a::GB.Rect2D, b::GB.Rect2D)
     if (a.origin[1] + a.widths[1] < b.origin[1]) || (b.origin[1] + b.widths[1] < a.origin[1])
         return false
     end
@@ -8,7 +8,7 @@ function is_intersecting(a::GB.Rect2D, b::GB.Rect2D)
     return true
 end
 
-function is_intersecting(a::GB.Circle, b::GB.Circle)
+function is_colliding(a::GB.Circle, b::GB.Circle)
     ba = b.center .- a.center
     return LA.dot(ba, ba) <= (a.r + b.r) ^ 2
 end
