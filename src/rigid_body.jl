@@ -36,23 +36,35 @@ InertiaData{T}() where {T} = InertiaData(one(T), one(T))
 # LinearMotionData
 #####
 
-struct LinearMotionData{T}
+mutable struct LinearMotionData{T}
     position::GB.Vec2{T}
     velocity::GB.Vec2{T}
 end
 
 LinearMotionData{T}() where {T} = LinearMotionData(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
 
+get_velocity(linear_motion_data::LinearMotionData) = linear_motion_data.velocity
+set_velocity!(linear_motion_data::LinearMotionData, velocity::GB.Vec2) = linear_motion_data.velocity = velocity
+
+get_position(linear_motion_data::LinearMotionData) = linear_motion_data.position
+set_position!(linear_motion_data::LinearMotionData, position::GB.Vec2) = linear_motion_data.position = position
+
 #####
 # AngularMotionData
 #####
 
-struct AngularMotionData{T}
+mutable struct AngularMotionData{T}
     angle::T
     angular_velocity::T
 end
 
 AngularMotionData{T}() where {T} = AngularMotionData(zero(T), zero(T))
+
+get_angle(angular_motion_data::AngularMotionData) = angular_motion_data.angle
+set_angle!(angular_motion_data::AngularMotionData, angle::AbstractFloat) = angular_motion_data.angle = angle
+
+get_angular_velocity(angular_motion_data::AngularMotionData) = angular_motion_data.angular_velocity
+set_angular_velocity!(angular_motion_data::AngularMotionData, angular_velocity::AbstractFloat) = angular_motion_data.angular_velocity = angular_velocity
 
 #####
 # MaterialData
@@ -92,3 +104,6 @@ function RigidBody{T}() where {T<:AbstractFloat}
 
     return RigidBody(shape, material_data, mass_data, inertia_data, linear_motion_data, angular_motion_data, force, torque)
 end
+
+MacroTools.@forward RigidBody.linear_motion_data get_position, set_position!, get_velocity, set_velocity!
+MacroTools.@forward RigidBody.angular_motion_data get_angle, set_angle!, get_angular_velocity, set_angular_velocity!
