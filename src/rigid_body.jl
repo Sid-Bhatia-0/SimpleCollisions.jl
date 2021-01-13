@@ -15,6 +15,9 @@ end
 
 MassData{T}() where {T} = MassData(one(T), one(T))
 
+get_mass(mass_data::MassData) = mass_data.mass
+get_inv_mass(mass_data::MassData) = mass_data.inv_mass
+
 #####
 # IntertiaData
 #####
@@ -31,6 +34,9 @@ function InertiaData(density::T, shape::GB.GeometryPrimitive{2}) where {T<:Abstr
 end
 
 InertiaData{T}() where {T} = InertiaData(one(T), one(T))
+
+get_inertia(inertia_data::InertiaData) = inertia_data.inertia
+get_inv_inertia(inertia_data::InertiaData) = inertia_data.inv_inertia
 
 #####
 # LinearMotionData
@@ -77,6 +83,9 @@ end
 
 MaterialData{T}() where {T} = MaterialData(one(T), one(T))
 
+get_density(material_data::MaterialData) = material_data.density
+get_restitution(material_data::MaterialData) = material_data.restitution
+
 #####
 # RigidBody
 #####
@@ -107,3 +116,6 @@ end
 
 MacroTools.@forward RigidBody.linear_motion_data get_position, set_position!, get_velocity, set_velocity!
 MacroTools.@forward RigidBody.angular_motion_data get_angle, set_angle!, get_angular_velocity, set_angular_velocity!
+MacroTools.@forward RigidBody.mass_data get_mass, get_inv_mass
+MacroTools.@forward RigidBody.inertia_data get_inertia, get_inv_inertia
+MacroTools.@forward RigidBody.material_data get_density, get_restitution
