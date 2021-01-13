@@ -48,4 +48,10 @@ using Test
         b = Circle(Point2(3, 0), 1)
         @test PE2D.is_colliding(a, b) == false
     end
+
+    @testset "RigidBody instantiation" begin
+        body = PE2D.RigidBody{Float64}()
+        body = PE2D.RigidBody{Float32}()
+        body = PE2D.RigidBody{Float16}()
+    end
 end
