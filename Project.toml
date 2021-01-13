@@ -3,8 +3,12 @@ uuid = "d729ae0c-1800-48d6-acb4-45c0ca3cb041"
 authors = ["Sid-Bhatia-0 <sidb60200@gmail.com> and contributors"]
 version = "0.0.1"
 
+[deps]
+GeometryBasics = "5c1252a2-5f33-56bf-86c9-59e7332b4326"
+
 [compat]
 julia = "1.5"
+GeometryBasics = "0.3.5"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

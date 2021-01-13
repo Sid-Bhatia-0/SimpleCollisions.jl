@@ -1,5 +1,12 @@
 module PhysicsEngine2D
 
-# Write your package code here.
+export PE2D
+const PE2D = PhysicsEngine2D
+
+import GeometryBasics
+
+const GB = GeometryBasics
+
+include("collision_detection.jl")
 
 end
