@@ -9,5 +9,6 @@ import LinearAlgebra
 const LA = LinearAlgebra
 
 include("collision_detection.jl")
+include("shapes.jl")
 
 end
