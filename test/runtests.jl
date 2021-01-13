@@ -24,4 +24,18 @@ using Test
         b = Rect2D(-2, -2, 1, 2)
         @test PE2D.is_intersecting(a, b) == false
     end
+
+    @testset "Circle intersection" begin
+        a = Circle(Point2(0, 0), 1)
+        b = Circle(Point2(0, 0), 1)
+        @test PE2D.is_intersecting(a, b) == true
+
+        a = Circle(Point2(0, 0), 1)
+        b = Circle(Point2(2, 0), 1)
+        @test PE2D.is_intersecting(a, b) == true
+
+        a = Circle(Point2(0, 0), 1)
+        b = Circle(Point2(3, 0), 1)
+        @test PE2D.is_intersecting(a, b) == false
+    end
 end
