@@ -1,3 +1,3 @@
-mutable struct World{T}
-    bodies::Vector{RigidBody{T}}
+mutable struct World
+    bodies::Vector{RigidBody}
 end
