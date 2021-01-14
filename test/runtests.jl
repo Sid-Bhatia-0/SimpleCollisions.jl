@@ -58,4 +58,12 @@ using Test
     @testset "World instantiation" begin
         world = PE2D.World([])
     end
+
+    @testset "World run" begin
+        body = PE2D.RigidBody{Float32}()
+        PE2D.set_velocity!(body, Vec2(1.0f0, 0.0f0))
+
+        world = PE2D.World([body])
+        run(world, 5, 0.2)
+    end
 end
