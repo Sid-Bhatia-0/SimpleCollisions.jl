@@ -54,4 +54,8 @@ using Test
         body = PE2D.RigidBody{Float32}()
         body = PE2D.RigidBody{Float16}()
     end
+
+    @testset "World instantiation" begin
+        world = PE2D.World([])
+    end
 end
