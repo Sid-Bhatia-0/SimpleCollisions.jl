@@ -90,8 +90,8 @@ get_restitution(material_data::MaterialData) = material_data.restitution
 # RigidBody
 #####
 
-mutable struct RigidBody{T<:AbstractFloat}
-    shape::GB.GeometryPrimitive{2, T}
+mutable struct RigidBody{T<:AbstractFloat, S<:GB.AbstractGeometry{2, T}}
+    shape::S
     material_data::MaterialData{T}
     mass_data::MassData{T}
     inertia_data::InertiaData{T}
