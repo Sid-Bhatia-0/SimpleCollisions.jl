@@ -121,3 +121,31 @@ MacroTools.@forward RigidBody.angular_motion_data get_angle, set_angle!, get_ang
 MacroTools.@forward RigidBody.mass_data get_mass, get_inv_mass
 MacroTools.@forward RigidBody.inertia_data get_inertia, get_inv_inertia
 MacroTools.@forward RigidBody.material_data get_density, get_restitution
+
+get_shape(body::RigidBody) = body.shape
+set_shape!(body::RigidBody, shape) = body.shape = shape
+get_shape(shape::GB.HyperSphere, position) = typeof(shape)(GB.Point(position), shape.r)
+get_shape(shape::GB.HyperRectangle, position) = typeof(shape)(position..., shape.widths)
+
+get_force(body::RigidBody) = body.force
+set_force!(body::RigidBody, force) = body.force = force
+get_torque(body::RigidBody) = body.torque
+set_torque!(body::RigidBody, torque) = body.torque = torque
+
+function update!(body::RigidBody, dt)
+    inv_mass = get_inv_mass(body)
+    force = get_force(body)
+    velocity = get_velocity(body)
+    new_velocity = velocity + inv_mass * force * dt
+    set_velocity!(body, new_velocity)
+
+    position = get_position(body)
+    new_position = position + new_velocity * dt
+    set_position!(body, new_position)
+
+    shape = get_shape(body)
+    new_shape = get_shape(shape, new_position)
+    set_shape!(body, new_shape)
+
+    return body
+end
