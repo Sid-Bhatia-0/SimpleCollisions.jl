@@ -4,6 +4,8 @@ end
 
 get_bodies(world::World) = world.bodies
 
+@pretty_print World
+
 function update!(world::World, dt)
     for body in world.bodies
         update!(body, dt)

@@ -149,3 +149,5 @@ function update!(body::RigidBody, dt)
 
     return body
 end
+
+@pretty_print RigidBody
