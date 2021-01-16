@@ -25,6 +25,12 @@ end
     end
 
     @testset "Collision detection" begin
+        @testset "Point2 vs. Point2" begin
+            collision_list = [(GB.Point(0, 0), GB.Point(0, 0), true),
+                              (GB.Point(0, 0), GB.Point(1, 0), false)]
+            test_collision_list(collision_list)
+        end
+
         @testset "Circle vs. Point2" begin
             collision_list = [(GB.HyperSphere(GB.Point(0, 0), 1), GB.Point(0, 0), true),
                               (GB.HyperSphere(GB.Point(0, 0), 1), GB.Point(1, 0), true),
