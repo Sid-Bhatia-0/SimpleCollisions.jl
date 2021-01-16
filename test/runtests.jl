@@ -38,6 +38,14 @@ end
             test_collision_list(collision_list)
         end
 
+        @testset "Rect2D vs. Point" begin
+            collision_list = [(Rect(1, 2, 5, 6), Point(3, 3), true),
+                              (Rect(1, 2, 5, 6), Point(1, 3), true),
+                              (Rect(1, 2, 5, 6), Point(1, 2), true),
+                              (Rect(1, 2, 5, 6), Point(1, 1), false)]
+            test_collision_list(collision_list)
+        end
+
         @testset "Rect2D vs. Circle" begin
             collision_list = [(Rect(1, 2, 5, 6), HyperSphere(Point(3, 3), 1), true),
                               (Rect(1, 2, 5, 6), HyperSphere(Point(4, 4), 1), true),
