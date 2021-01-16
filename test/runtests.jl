@@ -63,6 +63,28 @@ using Test
         @test PE2D.is_colliding(a, b) == false
     end
 
+    @testset "Rect2D vs. Circle collision" begin
+        a = Rect2D(1, 2, 5, 6)
+        b = Circle(Point2(3, 3), 1)
+        @test PE2D.is_colliding(a, b) == true
+
+        a = Rect2D(1, 2, 5, 6)
+        b = Circle(Point2(4, 4), 1)
+        @test PE2D.is_colliding(a, b) == true
+
+        a = Rect2D(1, 2, 5, 6)
+        b = Circle(Point2(4, 4), 10)
+        @test PE2D.is_colliding(a, b) == true
+
+        a = Rect2D(1, 2, 5, 6)
+        b = Circle(Point2(0, 0), 3)
+        @test PE2D.is_colliding(a, b) == true
+
+        a = Rect2D(1, 2, 5, 6)
+        b = Circle(Point2(0, 0), 1)
+        @test PE2D.is_colliding(a, b) == false
+    end
+
     @testset "RigidBody instantiation" begin
         body = PE2D.RigidBody{Float64}()
         body = PE2D.RigidBody{Float32}()

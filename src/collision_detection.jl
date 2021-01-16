@@ -16,3 +16,15 @@ function is_colliding(a::GB.HyperSphere{N}, b::GB.HyperSphere{N}) where {N}
     ba = b.center .- a.center
     return LA.dot(ba, ba) <= (a.r + b.r) ^ 2
 end
+
+function is_colliding(a::GB.HyperRectangle{N}, b::GB.HyperSphere{N}) where {N}
+    a_center = get_center(a)
+    ba = b.center .- a_center
+
+    half_widths = get_half_widths(a)
+    ba_clamped = clamp(ba, -half_widths, half_widths)
+
+    closest_point = GB.Point(a_center .+ ba_clamped)
+
+    return is_colliding(b, closest_point)
+end

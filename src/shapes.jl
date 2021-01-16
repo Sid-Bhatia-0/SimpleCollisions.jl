@@ -1,3 +1,6 @@
+get_center(a::GB.HyperRectangle) = a.origin .+ a.widths ./ 2
+get_half_widths(a::GB.HyperRectangle) = a.widths ./ 2
+
 GB.area(a::GB.Rect2D) = prod(a.widths)
 GB.area(a::GB.Circle) = π * a.r * a.r
 
