@@ -14,6 +14,7 @@ include("printing.jl")
 include("collision_detection.jl")
 include("shapes.jl")
 include("rigid_body.jl")
+include("manifold.jl")
 include("world.jl")
 
 function __init__()
