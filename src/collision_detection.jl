@@ -12,6 +12,8 @@ function is_colliding(a::GB.HyperSphere{N}, b::GB.Point{N}) where {N}
     return LA.dot(ba, ba) <= a.r ^ 2
 end
 
+is_colliding(a::GB.Point{N}, b::GB.HyperSphere{N}) where {N} = is_colliding(b, a)
+
 function is_colliding(a::GB.HyperSphere{N}, b::GB.HyperSphere{N}) where {N}
     ba = b.center .- a.center
     return LA.dot(ba, ba) <= (a.r + b.r) ^ 2
@@ -28,3 +30,5 @@ function is_colliding(a::GB.HyperRectangle{N}, b::GB.HyperSphere{N}) where {N}
 
     return is_colliding(b, closest_point)
 end
+
+is_colliding(a::GB.HyperSphere{N}, b::GB.HyperRectangle{N}) where {N} = is_colliding(b, a)
