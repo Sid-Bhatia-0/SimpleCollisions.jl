@@ -37,13 +37,14 @@ is_colliding(a::GB.Point{N}, b::GB.HyperRectangle{N}) where {N} = is_colliding(b
 #####
 
 function is_colliding(a::GB.HyperRectangle{N}, b::GB.HyperSphere{N}) where {N}
-    a_center = get_center(a)
-    ba = b.center .- a_center
+    center_a = get_center(a)
+    center_b = get_center(b)
+    ba = GB.Vec(center_b .- center_a)
 
     half_widths = get_half_widths(a)
-    ba_clamped = clamp(ba, -half_widths, half_widths)
+    ba_clamped = clamp.(ba, -half_widths, half_widths)
 
-    closest_point = GB.Point(a_center .+ ba_clamped)
+    closest_point = GB.Point(center_a .+ ba_clamped)
 
     return is_colliding(b, closest_point)
 end
