@@ -2,90 +2,59 @@ using PhysicsEngine2D
 using GeometryBasics
 using Test
 
+function test_collision_list(collision_list)
+    for (a, b, value) in collision_list
+        @test PE2D.is_colliding(a, b) == value
+        @test PE2D.is_colliding(b, a) == value
+    end
+end
+
 @testset "PhysicsEngine2D.jl" begin
     @testset "area computation" begin
         @testset "Rect2D" begin
-            a = Rect2D(1, 2, 3, 4)
+            a = Rect(1, 2, 3, 4)
             @test area(a) == 12
         end
 
         @testset "Circle" begin
-            a = Circle(Point2(0, 0), 1)
+            a = HyperSphere(Point(0, 0), 1)
             @test area(a) ≈ π
         end
     end
 
-    @testset "area computation" begin
+    @testset "collision detection" begin
         @testset "Circle vs. Point" begin
-            a = Circle(Point2(0, 0), 1)
-            b = Point(0, 0)
-            @test PE2D.is_colliding(a, b) == true
-
-            a = Circle(Point2(0, 0), 1)
-            b = Point(1, 0)
-            @test PE2D.is_colliding(a, b) == true
-
-            a = Circle(Point2(0, 0), 1)
-            b = Point(2, 0)
-            @test PE2D.is_colliding(a, b) == false
+            collision_list = [(HyperSphere(Point(0, 0), 1), Point(0, 0), true),
+                              (HyperSphere(Point(0, 0), 1), Point(1, 0), true),
+                              (HyperSphere(Point(0, 0), 1), Point(2, 0), false)]
+            test_collision_list(collision_list)
         end
 
         @testset "Circle vs. Circle" begin
-            a = Circle(Point2(0, 0), 1)
-            b = Circle(Point2(0, 0), 1)
-            @test PE2D.is_colliding(a, b) == true
-
-            a = Circle(Point2(0, 0), 1)
-            b = Circle(Point2(2, 0), 1)
-            @test PE2D.is_colliding(a, b) == true
-
-            a = Circle(Point2(0, 0), 1)
-            b = Circle(Point2(3, 0), 1)
-            @test PE2D.is_colliding(a, b) == false
+            collision_list = [(HyperSphere(Point(0, 0), 1), HyperSphere(Point(0, 0), 1), true),
+                              (HyperSphere(Point(0, 0), 1), HyperSphere(Point(1, 0), 1), true),
+                              (HyperSphere(Point(0, 0), 1), HyperSphere(Point(2, 0), 1), true),
+                              (HyperSphere(Point(0, 0), 1), HyperSphere(Point(3, 0), 1), false)]
+            test_collision_list(collision_list)
         end
 
         @testset "Rect2D vs. Circle" begin
-            a = Rect2D(1, 2, 5, 6)
-            b = Circle(Point2(3, 3), 1)
-            @test PE2D.is_colliding(a, b) == true
-
-            a = Rect2D(1, 2, 5, 6)
-            b = Circle(Point2(4, 4), 1)
-            @test PE2D.is_colliding(a, b) == true
-
-            a = Rect2D(1, 2, 5, 6)
-            b = Circle(Point2(4, 4), 10)
-            @test PE2D.is_colliding(a, b) == true
-
-            a = Rect2D(1, 2, 5, 6)
-            b = Circle(Point2(0, 0), 3)
-            @test PE2D.is_colliding(a, b) == true
-
-            a = Rect2D(1, 2, 5, 6)
-            b = Circle(Point2(0, 0), 1)
-            @test PE2D.is_colliding(a, b) == false
+            collision_list = [(Rect(1, 2, 5, 6), HyperSphere(Point(3, 3), 1), true),
+                              (Rect(1, 2, 5, 6), HyperSphere(Point(4, 4), 1), true),
+                              (Rect(1, 2, 5, 6), HyperSphere(Point(4, 4), 10), true),
+                              (Rect(1, 2, 5, 6), HyperSphere(Point(0, 0), 3), true),
+                              (Rect(0, 1, 1, 1), HyperSphere(Point(0, 0), 1), true),
+                              (Rect(1, 2, 5, 6), HyperSphere(Point(0, 0), 1), false)]
+            test_collision_list(collision_list)
         end
 
         @testset "Rect2D vs. Rect2D" begin
-            a = Rect2D(1, 2, 3, 4)
-            b = Rect2D(3, 4, 5, 6)
-            @test PE2D.is_colliding(a, b) == true
-
-            a = Rect2D(1, 2, 3, 4)
-            b = Rect2D(4, 6, 1, 2)
-            @test PE2D.is_colliding(a, b) == true
-
-            a = Rect2D(1, 2, 3, 4)
-            b = Rect2D(0, 0, 6, 6)
-            @test PE2D.is_colliding(a, b) == true
-
-            a = Rect2D(1, 2, 3, 4)
-            b = Rect2D(4, 2, 1, 2)
-            @test PE2D.is_colliding(a, b) == true
-
-            a = Rect2D(1, 2, 3, 4)
-            b = Rect2D(5, 6, 7, 8)
-            @test PE2D.is_colliding(a, b) == false
+            collision_list = [(Rect(1, 2, 3, 4), Rect(3, 4, 5, 6), true),
+                              (Rect(1, 2, 3, 4), Rect(4, 6, 1, 2), true),
+                              (Rect(1, 2, 3, 4), Rect(0, 0, 6, 6), true),
+                              (Rect(1, 2, 3, 4), Rect(4, 2, 1, 2), true),
+                              (Rect(1, 2, 3, 4), Rect(5, 6, 7, 8), false)]
+            test_collision_list(collision_list)
         end
     end
 
