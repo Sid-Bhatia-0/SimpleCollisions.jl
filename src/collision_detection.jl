@@ -25,6 +25,14 @@ function is_colliding(a::GB.HyperSphere{N}, b::GB.HyperSphere{N}) where {N}
 end
 
 #####
+# HyperRectangle vs. Point
+#####
+
+is_colliding(a::GB.HyperRectangle{N}, b::GB.Point{N}) where {N} = minimum(a) <= b <= maximum(a)
+
+is_colliding(a::GB.Point{N}, b::GB.HyperRectangle{N}) where {N} = is_colliding(b, a)
+
+#####
 # HyperRectangle vs. HyperSphere
 #####
 
