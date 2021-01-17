@@ -13,8 +13,8 @@ import MacroTools
 include("printing.jl")
 include("shapes.jl")
 include("collision_detection.jl")
-include("rigid_body.jl")
 include("manifold.jl")
+include("rigid_body.jl")
 include("collision_resolution.jl")
 include("world.jl")
 
