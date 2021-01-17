@@ -82,14 +82,27 @@ end
         end
     end
 
-    @testset "RigidBody instantiation" begin
-        body = PE2D.RigidBody{Float64}()
-        body = PE2D.RigidBody{Float32}()
-        body = PE2D.RigidBody{Float16}()
-    end
+    @testset "Manifold generation" begin
+        @testset "Circle vs. Circle" begin
+            manifold_list = [(GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), PE2D.Manifold(2.0f0, GB.Vec(1.0f0, 0.0f0))),
+                             (GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(1.0f0, 0.0f0), 1.0f0), PE2D.Manifold(1.0f0, GB.Vec(1.0f0, 0.0f0))),
+                             (GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(2.0f0, 0.0f0), 1.0f0), PE2D.Manifold(0.0f0, GB.Vec(1.0f0, 0.0f0)))]
+            test_manifold_list(manifold_list)
+        end
 
-    @testset "World instantiation" begin
-        world = PE2D.World([])
+        @testset "Rect2D vs. Circle" begin
+            manifold_list = [(GB.HyperRectangle(0.0f0, -1.0f0, 5.0f0, 2.0f0), GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), PE2D.Manifold(1.0f0, GB.Vec(-1.0f0, 0.0f0))),
+                             (GB.HyperRectangle(0.5f0, -0.5f0, 1.0f0, 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), PE2D.Manifold(0.5f0, GB.Vec(-1.0f0, 0.0f0))),
+                             (GB.HyperRectangle(0.5f0, 0.5f0, 1.0f0, 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), PE2D.Manifold(1.0f0 - Float32(0.5 * sqrt(2)), GB.Vec(Float32(-0.5 * sqrt(2)), Float32(-0.5 * sqrt(2)))))]
+            test_manifold_list(manifold_list)
+        end
+
+        @testset "Rect2D vs. Rect2D" begin
+            manifold_list = [(GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(0.0f0, 0.0f0, 1.1f0, 5.0f0), PE2D.Manifold(0.1f0, GB.Vec(-1.0f0, 0.0f0))),
+                             (GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(2.0f0, 0.0f0, 5.0f0, 2.1f0), PE2D.Manifold(0.1f0, GB.Vec(0.0f0, -1.0f0))),
+                             (GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(2.0f0, 0.0f0, 5.0f0, 2.0f0), PE2D.Manifold(0.0f0, GB.Vec(0.0f0, -1.0f0)))]
+            test_manifold_list(manifold_list)
+        end
     end
 
     @testset "World simulation" begin
@@ -119,26 +132,4 @@ end
         run(world, 500, 0.01)
     end
 
-    @testset "Manifold generation" begin
-        @testset "Circle vs. Circle" begin
-            manifold_list = [(GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), PE2D.Manifold(2.0f0, GB.Vec(1.0f0, 0.0f0))),
-                             (GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(1.0f0, 0.0f0), 1.0f0), PE2D.Manifold(1.0f0, GB.Vec(1.0f0, 0.0f0))),
-                             (GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(2.0f0, 0.0f0), 1.0f0), PE2D.Manifold(0.0f0, GB.Vec(1.0f0, 0.0f0)))]
-            test_manifold_list(manifold_list)
-        end
-
-        @testset "Rect2D vs. Circle" begin
-            manifold_list = [(GB.HyperRectangle(0.0f0, -1.0f0, 5.0f0, 2.0f0), GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), PE2D.Manifold(1.0f0, GB.Vec(-1.0f0, 0.0f0))),
-                             (GB.HyperRectangle(0.5f0, -0.5f0, 1.0f0, 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), PE2D.Manifold(0.5f0, GB.Vec(-1.0f0, 0.0f0))),
-                             (GB.HyperRectangle(0.5f0, 0.5f0, 1.0f0, 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), PE2D.Manifold(1.0f0 - Float32(0.5 * sqrt(2)), GB.Vec(Float32(-0.5 * sqrt(2)), Float32(-0.5 * sqrt(2)))))]
-            test_manifold_list(manifold_list)
-        end
-
-        @testset "Rect2D vs. Rect2D" begin
-            manifold_list = [(GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(0.0f0, 0.0f0, 1.1f0, 5.0f0), PE2D.Manifold(0.1f0, GB.Vec(-1.0f0, 0.0f0))),
-                             (GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(2.0f0, 0.0f0, 5.0f0, 2.1f0), PE2D.Manifold(0.1f0, GB.Vec(0.0f0, -1.0f0))),
-                             (GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(2.0f0, 0.0f0, 5.0f0, 2.0f0), PE2D.Manifold(0.0f0, GB.Vec(0.0f0, -1.0f0)))]
-            test_manifold_list(manifold_list)
-        end
-    end
 end
