@@ -3,6 +3,9 @@ struct Manifold{T}
     normal::GB.Vec2{T}
 end
 
+get_penetration(manifold::Manifold) = manifold.penetration
+get_normal(manifold::Manifold) = manifold.normal
+
 #####
 # HyperSphere vs. HyperSphere
 #####
