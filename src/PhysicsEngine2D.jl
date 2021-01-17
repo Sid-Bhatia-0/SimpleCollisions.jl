@@ -11,10 +11,11 @@ import Requires
 import MacroTools
 
 include("printing.jl")
-include("collision_detection.jl")
 include("shapes.jl")
+include("collision_detection.jl")
 include("rigid_body.jl")
 include("manifold.jl")
+include("collision_resolution.jl")
 include("world.jl")
 
 function __init__()
