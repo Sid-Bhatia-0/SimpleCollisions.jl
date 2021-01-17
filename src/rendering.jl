@@ -16,7 +16,7 @@ function render!(world::World; num_iter = 100, dt = 0.01, frame_rate = 24)
     scene = init_screen(world_node)
     Makie.display(scene)
     for i in 1:num_iter
-        world_node[] = update!(world_node[], dt)
+        world_node[] = step!(world_node[], dt)
         sleep(1 / frame_rate)
     end
     return scene

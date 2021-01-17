@@ -6,7 +6,7 @@ get_bodies(world::World) = world.bodies
 
 @pretty_print World
 
-function update!(world::World, dt)
+function step!(world::World, dt)
     bodies = get_bodies(world)
     num_bodies = length(bodies)
 
@@ -50,9 +50,9 @@ function update!(world::World, dt)
     return world
 end
 
-function Base.run(world::World, num_iter, dt)
+function simulate!(world::World, num_iter, dt)
     for i in 1:num_iter
-        update!(world, dt)
+        step!(world, dt)
     end
 
     return world

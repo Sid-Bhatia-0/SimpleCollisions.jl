@@ -129,7 +129,7 @@ end
 
         bodies = [body1, body2]
         world = PE2D.World(bodies)
-        run(world, 500, 0.01)
+        PE2D.simulate!(world, 500, 0.01)
     end
 
 end
