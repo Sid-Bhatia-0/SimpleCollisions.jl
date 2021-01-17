@@ -87,6 +87,7 @@ mutable struct RigidBody{T<:AbstractFloat, S<:GB.AbstractGeometry{2, T}}
     position_accumulator::Accumulator{GB.Vec2{T}}
     velocity_accumulator::Accumulator{GB.Vec2{T}}
     force_accumulator::Accumulator{GB.Vec2{T}}
+    inertia_data::InertiaData{T}
     angle_accumulator::Accumulator{T}
     angular_velocity_accumulator::Accumulator{T}
     torque_accumulator::Accumulator{T}
@@ -99,11 +100,12 @@ function RigidBody{T}() where {T<:AbstractFloat}
     position_accumulator = Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
     velocity_accumulator = Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
     force_accumulator = Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
+    inertia_data = InertiaData(material_data.density, shape)
     angle_accumulator = Accumulator(zero(T))
     angular_velocity_accumulator = Accumulator(zero(T))
     torque_accumulator = Accumulator(zero(T))
 
-    return RigidBody(shape, material_data, mass_data, position_accumulator, velocity_accumulator, force_accumulator, angle_accumulator, angular_velocity_accumulator, torque_accumulator)
+    return RigidBody(shape, material_data, mass_data, position_accumulator, velocity_accumulator, force_accumulator, inertia_data, angle_accumulator, angular_velocity_accumulator, torque_accumulator)
 end
 
 get_shape(body::RigidBody) = body.shape
@@ -127,6 +129,8 @@ apply_force_change!(body::RigidBody) = apply_change!(body.force_accumulator)
 
 translated(shape::GB.HyperSphere, position) = typeof(shape)(GB.Point(position), shape.r)
 translated(shape::GB.HyperRectangle, position) = typeof(shape)(position..., shape.widths...)
+
+MacroTools.@forward RigidBody.inertia_data get_inertia, get_inv_inertia
 
 get_angle(body::RigidBody) = get_value(body.angle_accumulator)
 add_angle_change!(body::RigidBody, change) = add_change!(body.angle_accumulator, change)
