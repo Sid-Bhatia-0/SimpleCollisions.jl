@@ -1,11 +1,13 @@
 import .Makie
 
-function init_screen(world_node::Makie.Observable{<:World}; resolution = (720, 720))
+function init_screen(world_node::Makie.Observable{<:World}; resolution = (720, 720), xlims = (0, 10), ylims = (0, 10))
     scene = Makie.Scene(resolution = resolution)
     shapes_node = Makie.lift(world_node) do world
         shapes = get_shape.(get_bodies(world))
     end
     Makie.poly!(shapes_node)
+    Makie.xlims!(scene, xlims)
+    Makie.ylims!(scene, ylims)
     return scene
 end
 
