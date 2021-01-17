@@ -33,6 +33,26 @@ function MassData(density::T, shape::GB.AbstractGeometry) where {T<:AbstractFloa
 end
 
 #####
+# IntertiaData
+#####
+
+struct InertiaData{T}
+    inertia::T
+    inv_inertia::T
+end
+
+InertiaData{T}() where {T} = InertiaData(one(T), one(T))
+
+get_inertia(inertia_data::InertiaData) = inertia_data.inertia
+get_inv_inertia(inertia_data::InertiaData) = inertia_data.inv_inertia
+
+function InertiaData(density::T, shape::GB.AbstractGeometry) where {T<:AbstractFloat}
+    inertia = get_inertia(density, shape)
+    inv_inertia = 1 / inertia
+    InertiaData(convert(T, inertia), convert(T, inv_inertia))
+end
+
+#####
 # Accumulator
 #####
 
@@ -67,6 +87,10 @@ mutable struct RigidBody{T<:AbstractFloat, S<:GB.AbstractGeometry{2, T}}
     position_accumulator::Accumulator{GB.Vec2{T}}
     velocity_accumulator::Accumulator{GB.Vec2{T}}
     force_accumulator::Accumulator{GB.Vec2{T}}
+    inertia_data::InertiaData{T}
+    angle_accumulator::Accumulator{T}
+    angular_velocity_accumulator::Accumulator{T}
+    torque_accumulator::Accumulator{T}
 end
 
 function RigidBody{T}() where {T<:AbstractFloat}
@@ -76,8 +100,12 @@ function RigidBody{T}() where {T<:AbstractFloat}
     position_accumulator = Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
     velocity_accumulator = Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
     force_accumulator = Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
+    inertia_data = InertiaData(material_data.density, shape)
+    angle_accumulator = Accumulator(zero(T))
+    angular_velocity_accumulator = Accumulator(zero(T))
+    torque_accumulator = Accumulator(zero(T))
 
-    return RigidBody(shape, material_data, mass_data, position_accumulator, velocity_accumulator, force_accumulator)
+    return RigidBody(shape, material_data, mass_data, position_accumulator, velocity_accumulator, force_accumulator, inertia_data, angle_accumulator, angular_velocity_accumulator, torque_accumulator)
 end
 
 get_shape(body::RigidBody) = body.shape
@@ -101,5 +129,19 @@ apply_force_change!(body::RigidBody) = apply_change!(body.force_accumulator)
 
 translated(shape::GB.HyperSphere, position) = typeof(shape)(GB.Point(position), shape.r)
 translated(shape::GB.HyperRectangle, position) = typeof(shape)(position..., shape.widths...)
+
+MacroTools.@forward RigidBody.inertia_data get_inertia, get_inv_inertia
+
+get_angle(body::RigidBody) = get_value(body.angle_accumulator)
+add_angle_change!(body::RigidBody, change) = add_change!(body.angle_accumulator, change)
+apply_angle_change!(body::RigidBody) = apply_change!(body.angle_accumulator)
+
+get_angular_velocity(body::RigidBody) = get_value(body.angular_velocity_accumulator)
+add_angular_velocity_change!(body::RigidBody, change) = add_change!(body.angular_velocity_accumulator, change)
+apply_angular_velocity_change!(body::RigidBody) = apply_change!(body.angular_velocity_accumulator)
+
+get_torque(body::RigidBody) = get_value(body.torque_accumulator)
+add_torque_change!(body::RigidBody, change) = add_change!(body.torque_accumulator, change)
+apply_torque_change!(body::RigidBody) = apply_change!(body.torque_accumulator)
 
 @pretty_print RigidBody

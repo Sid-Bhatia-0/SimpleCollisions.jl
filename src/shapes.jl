@@ -1,5 +1,5 @@
 get_center(a::GB.HyperSphere) = a.center
-get_center(a::GB.HyperRectangle) = a.origin .+ a.widths ./ 2
+get_center(a::GB.HyperRectangle) = GB.Point(a.origin .+ a.widths ./ 2)
 get_half_widths(a::GB.HyperRectangle) = a.widths ./ 2
 
 GB.area(a::GB.Rect2D) = prod(a.widths)

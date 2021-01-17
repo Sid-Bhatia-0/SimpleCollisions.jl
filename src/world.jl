@@ -36,15 +36,28 @@ function step!(world::World, dt)
         add_velocity_change!(body, inv_mass * force * dt)
         apply_velocity_change!(body)
 
+        # accumulate angular velocity change caused by net torque
+        inv_inertia = get_inv_inertia(body)
+        torque = get_torque(body)
+        add_angular_velocity_change!(body, inv_inertia * torque * dt)
+        apply_angular_velocity_change!(body)
+
         # accumulate position change caused by net velocity
         velocity = get_velocity(body)
         add_position_change!(body, velocity * dt)
         apply_position_change!(body)
 
+        # accumulate angle change caused by net angular velocity
+        angular_velocity = get_angular_velocity(body)
+        add_angle_change!(body, angular_velocity * dt)
+        apply_angle_change!(body)
+
         # update shape caused by change in position
         shape = get_shape(body)
         position = get_position(body)
         set_shape!(body, translated(shape, position))
+
+        # TODO: update shape caused by change in angle
     end
 
     return world
