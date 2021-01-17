@@ -93,11 +93,30 @@ end
     end
 
     @testset "World simulation" begin
-        body = PE2D.RigidBody{Float32}()
-        PE2D.set_velocity!(body, GB.Vec(1.0f0, 0.0f0))
+        T = Float32
+        NUM_ITER = 500
+        DT = 0.01
+        FRAME_RATE = 1 / DT
 
-        world = PE2D.World([body])
-        run(world, 5, 0.2)
+        shape1 = GB.HyperSphere(GB.Point2{T}(5.0f0, 1.0f0), one(T))
+        material_data1 = PE2D.MaterialData{T}()
+        mass_data1 = PE2D.MassData(material_data1.density, shape1)
+        position_accumulator1 = PE2D.Accumulator(GB.Vec2{T}(5.0f0, 1.0f0), zero(GB.Vec2{T}))
+        velocity_accumulator1 = PE2D.Accumulator(GB.Vec2{T}(0.0f0, 1.0f0), zero(GB.Vec2{T}))
+        force_accumulator1 = PE2D.Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
+        body1 = PE2D.RigidBody(shape1, material_data1, mass_data1, position_accumulator1, velocity_accumulator1, force_accumulator1)
+
+        shape2 = GB.HyperSphere(GB.Point2{T}(1.0f0, 5.0f0), one(T))
+        material_data2 = PE2D.MaterialData{T}()
+        mass_data2 = PE2D.MassData(material_data2.density, shape2)
+        position_accumulator2 = PE2D.Accumulator(GB.Vec2{T}(1.0f0, 5.0f0), zero(GB.Vec2{T}))
+        velocity_accumulator2 = PE2D.Accumulator(GB.Vec2{T}(1.0f0, 0.0f0), zero(GB.Vec2{T}))
+        force_accumulator2 = PE2D.Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
+        body2 = PE2D.RigidBody(shape2, material_data2, mass_data2, position_accumulator2, velocity_accumulator2, force_accumulator2)
+
+        bodies = [body1, body2]
+        world = PE2D.World(bodies)
+        run(world, 500, 0.01)
     end
 
     @testset "Manifold generation" begin
