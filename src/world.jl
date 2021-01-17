@@ -18,7 +18,6 @@ function update!(world::World, dt)
             b = bodies[j]
             shape_b = get_shape(b)
             if is_colliding(shape_a, shape_b)
-                display(world)
                 manifold_ba = Manifold(shape_a, shape_b)
                 velocity_change_a, velocity_change_b = resolve_collision!(a, b, manifold_ba)
                 add_velocity_change!(a, velocity_change_a)

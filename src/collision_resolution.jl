@@ -9,7 +9,6 @@ function resolve_collision!(a::RigidBody, b::RigidBody, manifold_ba::Manifold)
     if velocity_ba_normal_ba > zero(eltype(velocity_a))
         return (zero(velocity_a), zero(velocity_b))
     else
-        println("Need to resolve collision!")
         e = min(get_restitution(a), get_restitution(b))
 
         inv_mass_a = get_inv_mass(a)
