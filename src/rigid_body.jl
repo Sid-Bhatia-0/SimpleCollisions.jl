@@ -2,15 +2,19 @@
 # MaterialData
 #####
 
-struct MaterialData{T}
+struct MaterialData{T<:AbstractFloat}
     density::T
     restitution::T
+    static_friction_coeff::T
+    dynamic_friction_coeff::T
 end
 
-MaterialData{T}() where {T} = MaterialData(one(T), one(T))
+MaterialData{T}() where {T<:AbstractFloat} = MaterialData(one(T), one(T), convert(T, 0.6), convert(T, 0.4))
 
 get_density(material_data::MaterialData) = material_data.density
 get_restitution(material_data::MaterialData) = material_data.restitution
+get_static_friction_coeff(material_data::MaterialData) = material_data.static_friction_coeff
+get_dynamic_friction_coeff(material_data::MaterialData) = material_data.dynamic_friction_coeff
 
 #####
 # MassData
@@ -111,7 +115,7 @@ end
 get_shape(body::RigidBody) = body.shape
 set_shape!(body::RigidBody, shape) = body.shape = shape
 
-MacroTools.@forward RigidBody.material_data get_density, get_restitution
+MacroTools.@forward RigidBody.material_data get_density, get_restitution, get_static_friction_coeff, get_dynamic_friction_coeff
 
 MacroTools.@forward RigidBody.mass_data get_mass, get_inv_mass
 
