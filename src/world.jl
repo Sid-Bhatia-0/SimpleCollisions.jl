@@ -21,9 +21,7 @@ function step!(world::World, dt)
                 manifold_ba = Manifold(shape_a, shape_b)
                 velocity_change_a, velocity_change_b = resolve_collision!(a, b, manifold_ba)
                 add_velocity_change!(a, velocity_change_a)
-                apply_velocity_change!(a)
                 add_velocity_change!(b, velocity_change_b)
-                apply_velocity_change!(b)
             end
         end
     end
