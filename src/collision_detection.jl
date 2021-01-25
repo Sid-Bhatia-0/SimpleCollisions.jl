@@ -5,6 +5,24 @@
 is_colliding(a::GB.Point{N}, b::GB.Point{N}) where {N} = a == b
 
 #####
+# Line vs. Point
+#####
+
+function is_colliding(a::GB.Line{N}, b::GB.Point{N}) where {N}
+    p1 = a.points[1]
+    p2 = a.points[2]
+    p1_p2 = p1 .- p2
+    b_p1 = p1 .- b
+    b_p2 = p2 .- b
+    d1_squared = LA.dot(b_p1, b_p1)
+    d2_squared = LA.dot(b_p2, b_p2)
+    d3_squared = LA.dot(p1_p2, p1_p2)
+    return (d1_squared + d2_squared - d3_squared) ^ 2 ≈ 4 * d1_squared * d2_squared
+end
+
+is_colliding(a::GB.Point{N}, b::GB.Line{N}) where {N} = is_colliding(b, a)
+
+#####
 # HyperSphere vs. Point
 #####
 
