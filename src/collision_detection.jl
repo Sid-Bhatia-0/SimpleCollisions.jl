@@ -9,15 +9,12 @@ is_colliding(a::GB.Point{N}, b::GB.Point{N}) where {N} = a == b
 #####
 
 function is_colliding(a::GB.Line{N}, b::GB.Point{N}) where {N}
+    T = eltype(b)
     p1 = a.points[1]
     p2 = a.points[2]
-    p1_p2 = p1 .- p2
     b_p1 = p1 .- b
     b_p2 = p2 .- b
-    d1_squared = LA.dot(b_p1, b_p1)
-    d2_squared = LA.dot(b_p2, b_p2)
-    d3_squared = LA.dot(p1_p2, p1_p2)
-    return (d1_squared + d2_squared - d3_squared) ^ 2 ≈ 4 * d1_squared * d2_squared
+    return LA.dot(b_p1, b_p2) <= zero(T) && get_area(b, p1, p2) ≈ zero(T)
 end
 
 is_colliding(a::GB.Point{N}, b::GB.Line{N}) where {N} = is_colliding(b, a)
@@ -32,6 +29,32 @@ function is_colliding(a::GB.HyperSphere{N}, b::GB.Point{N}) where {N}
 end
 
 is_colliding(a::GB.Point{N}, b::GB.HyperSphere{N}) where {N} = is_colliding(b, a)
+
+#####
+# HyperSphere vs. Line
+#####
+
+function is_colliding(a::GB.HyperSphere{N}, b::GB.Line{N}) where {N}
+    p1 = b.points[1]
+    p2 = b.points[2]
+    if is_colliding(a, p1) || is_colliding(a, p2)
+        return true
+    else
+        center_a = get_center(a)
+        area = get_area(center_a, p1, p2)
+        p1_p2 = p2 .- p1
+        height_squared = 4 * area ^ 2 / LA.dot(p1_p2, p1_p2)
+        if height_squared > a.r ^ 2
+            return false
+        else
+            p1_a = center_a .- p1
+            p2_a = center_a .- p2
+            return LA.dot(p1_a, p1_p2) * LA.dot(p2_a, p1_p2) < zero(eltype(p1_a))
+        end
+    end
+end
+
+is_colliding(a::GB.Line{N}, b::GB.HyperSphere{N}) where {N} = is_colliding(b, a)
 
 #####
 # HyperSphere vs. HyperSphere
