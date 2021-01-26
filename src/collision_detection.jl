@@ -30,13 +30,16 @@ function is_colliding(a::GB.Line{2}, b::GB.Line{2})
     q2 = b.points[2]
     p1_p2 = p2 .- p1
     q1_q2 = q2 .- q1
-    r = GB.Vec(-p1_p2[2], p1_p2[1])
-    x = LA.dot(q1_q2, r)
+    p1_p2_perp = GB.Vec(-p1_p2[2], p1_p2[1])
+    x = LA.dot(q1_q2, p1_p2_perp)
     if x ≈ zero(x)
         return is_colliding(a, q1) || is_colliding(a, q2)
     else
-        h = LA.dot(p1 .- q1, r) / x
-        if 0 < h < 1
+        q1_q1_perp = GB.Vec(-q1_q2[2], q1_q2[1])
+        y = LA.dot(p1_p2, q1_q1_perp)
+        g = LA.dot(q1 .- p1, q1_q1_perp) / y
+        h = LA.dot(p1 .- q1, p1_p2_perp) / x
+        if zero(g) <= g <= one(g) && zero(h) <= h <= one(h)
             return true
         else
             return false
@@ -97,6 +100,21 @@ end
 is_colliding(a::GB.HyperRectangle{N}, b::GB.Point{N}) where {N} = minimum(a) <= b <= maximum(a)
 
 is_colliding(a::GB.Point{N}, b::GB.HyperRectangle{N}) where {N} = is_colliding(b, a)
+
+#####
+# HyperRectangle vs. Line
+#####
+
+function is_colliding(a::GB.HyperRectangle{N}, b::GB.Line{N}) where {N}
+    if is_colliding(a, b.points[1]) || is_colliding(a, b.points[2])
+        return true
+    else
+        lines = get_lines(a)
+        return any(line -> is_colliding(line, b), lines)
+    end
+end
+
+is_colliding(a::GB.Line{N}, b::GB.HyperRectangle{N}) where {N} = is_colliding(b, a)
 
 #####
 # HyperRectangle vs. HyperSphere

@@ -93,6 +93,16 @@ end
             test_collision_list(collision_list)
         end
 
+        @testset "Rect2D vs. Line segment" begin
+            collision_list = [(GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(5, 5)), true),
+                              (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(2, 0), GB.Point(4, 5)), true),
+                              (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(2, 3), GB.Point(4, 5)), true),
+                              (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(1, 1)), false),
+                              (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(1, 0)), false),
+                              (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(10, 1)), false)]
+            test_collision_list(collision_list)
+        end
+
         @testset "Rect2D vs. Circle" begin
             collision_list = [(GB.Rect(1, 2, 5, 6), GB.HyperSphere(GB.Point(3, 3), 1), true),
                               (GB.Rect(1, 2, 5, 6), GB.HyperSphere(GB.Point(4, 4), 1), true),

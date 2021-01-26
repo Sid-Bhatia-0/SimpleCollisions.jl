@@ -14,6 +14,19 @@ function get_area(p1::GB.Point2, p2::GB.Point2, p3::GB.Point2)
     return abs(x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2
 end
 
+function get_lines(a::GB.Rect{2, T}) where {T}
+    bottom_left = GB.Point(minimum(a))
+    bottom_right = GB.Point(bottom_left .+ GB.Vec(a.widths[1], zero(T)))
+    top_right = GB.Point(maximum(a))
+    top_left = GB.Point(bottom_left .+ GB.Vec(zero(T), a.widths[2]))
+
+    l1 = GB.Line(bottom_left, bottom_right)
+    l2 = GB.Line(bottom_right, top_right)
+    l3 = GB.Line(top_right, top_left)
+    l4 = GB.Line(top_left, bottom_left)
+    return (l1, l2, l3, l4)
+end
+
 get_mass(density::Number, shape::GB.GeometryPrimitive{2}) = density * GB.area(shape)
 
 get_inertia(density::Number, shape::GB.Circle) = get_mass(density, shape) * shape.r * shape.r / 2
