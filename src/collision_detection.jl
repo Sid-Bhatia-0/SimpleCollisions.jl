@@ -20,6 +20,31 @@ end
 is_colliding(a::GB.Point{N}, b::GB.Line{N}) where {N} = is_colliding(b, a)
 
 #####
+# Line vs. Line
+#####
+
+function is_colliding(a::GB.Line{2}, b::GB.Line{2})
+    p1 = a.points[1]
+    p2 = a.points[2]
+    q1 = b.points[1]
+    q2 = b.points[2]
+    p1_p2 = p2 .- p1
+    q1_q2 = q2 .- q1
+    r = GB.Vec(-p1_p2[2], p1_p2[1])
+    x = LA.dot(q1_q2, r)
+    if x ≈ zero(x)
+        return is_colliding(a, q1) || is_colliding(a, q2)
+    else
+        h = LA.dot(p1 .- q1, r) / x
+        if 0 < h < 1
+            return true
+        else
+            return false
+        end
+    end
+end
+
+#####
 # HyperSphere vs. Point
 #####
 

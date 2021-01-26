@@ -48,6 +48,18 @@ end
             test_collision_list(collision_list)
         end
 
+        @testset "Line segment vs. Line segment" begin
+            collision_list = [(GB.Line(GB.Point2f0(0, 0), GB.Point2f0(1, 0)), GB.Line(GB.Point2f0(0, 0), GB.Point2f0(1, 0)), true),
+                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(1, -1), GB.Point2f0(1, 1)), true),
+                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(1, 0), GB.Point2f0(3, 0)), true),
+                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(0, 1), GB.Point2f0(2, -1)), true),
+                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(2, 0), GB.Point2f0(3, 0)), true),
+                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(1, 2), GB.Point2f0(3, 4)), false),
+                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(3, 0), GB.Point2f0(5, 0)), false),
+                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(1, -1), GB.Point2f0(3, -1)), false)]
+            test_collision_list(collision_list)
+        end
+
         @testset "Circle vs. Point2" begin
             collision_list = [(GB.HyperSphere(GB.Point(0, 0), 1), GB.Point(0, 0), true),
                               (GB.HyperSphere(GB.Point(0, 0), 1), GB.Point(1, 0), true),
