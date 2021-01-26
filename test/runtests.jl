@@ -39,10 +39,41 @@ end
             test_collision_list(collision_list)
         end
 
+        @testset "Line segment vs. Point2" begin
+            collision_list = [(GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Point(2, 3), true),
+                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Point(1, 2), true),
+                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Point(3, 4), true),
+                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Point(2, 2), false),
+                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Point(0, 0), false)]
+            test_collision_list(collision_list)
+        end
+
+        @testset "Line segment vs. Line segment" begin
+            collision_list = [(GB.Line(GB.Point2f0(0, 0), GB.Point2f0(1, 0)), GB.Line(GB.Point2f0(0, 0), GB.Point2f0(1, 0)), true),
+                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(1, -1), GB.Point2f0(1, 1)), true),
+                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(1, 0), GB.Point2f0(3, 0)), true),
+                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(0, 1), GB.Point2f0(2, -1)), true),
+                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(2, 0), GB.Point2f0(3, 0)), true),
+                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(1, 2), GB.Point2f0(3, 4)), false),
+                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(3, 0), GB.Point2f0(5, 0)), false),
+                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(1, -1), GB.Point2f0(3, -1)), false)]
+            test_collision_list(collision_list)
+        end
+
         @testset "Circle vs. Point2" begin
             collision_list = [(GB.HyperSphere(GB.Point(0, 0), 1), GB.Point(0, 0), true),
                               (GB.HyperSphere(GB.Point(0, 0), 1), GB.Point(1, 0), true),
                               (GB.HyperSphere(GB.Point(0, 0), 1), GB.Point(2, 0), false)]
+            test_collision_list(collision_list)
+        end
+
+        @testset "Circle vs. Line segment" begin
+            collision_list = [(GB.HyperSphere(GB.Point(0, 0), 1), GB.Line(GB.Point(0, 0), GB.Point(1, 0)), true),
+                              (GB.HyperSphere(GB.Point(0, 0), 1), GB.Line(GB.Point(0, 0), GB.Point(1, 1)), true),
+                              (GB.HyperSphere(GB.Point(0, 0), 2), GB.Line(GB.Point(1, 1), GB.Point(3, 4)), true),
+                              (GB.HyperSphere(GB.Point(0, 0), 2), GB.Line(GB.Point(1, -3), GB.Point(1, 4)), true),
+                              (GB.HyperSphere(GB.Point(0, 0), 2), GB.Line(GB.Point(-3, 3), GB.Point(3, 5)), false),
+                              (GB.HyperSphere(GB.Point(0, 0), 1), GB.Line(GB.Point(2, 3), GB.Point(3, 4)), false)]
             test_collision_list(collision_list)
         end
 
@@ -59,6 +90,16 @@ end
                               (GB.Rect(1, 2, 5, 6), GB.Point(1, 3), true),
                               (GB.Rect(1, 2, 5, 6), GB.Point(1, 2), true),
                               (GB.Rect(1, 2, 5, 6), GB.Point(1, 1), false)]
+            test_collision_list(collision_list)
+        end
+
+        @testset "Rect2D vs. Line segment" begin
+            collision_list = [(GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(5, 5)), true),
+                              (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(2, 0), GB.Point(4, 5)), true),
+                              (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(2, 3), GB.Point(4, 5)), true),
+                              (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(1, 1)), false),
+                              (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(1, 0)), false),
+                              (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(10, 1)), false)]
             test_collision_list(collision_list)
         end
 
