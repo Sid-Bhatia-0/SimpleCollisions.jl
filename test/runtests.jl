@@ -2,6 +2,8 @@ import PhysicsEngine2D
 import PhysicsEngine2D: PE2D
 import GeometryBasics
 const GB = GeometryBasics
+import LinearAlgebra
+const LA = LinearAlgebra
 using Test
 
 function test_collision_list(collision_list)
@@ -34,17 +36,17 @@ end
 
     @testset "Collision detection" begin
         @testset "Point2 vs. Point2" begin
-            collision_list = [(GB.Point(0, 0), GB.Point(0, 0), true),
-                              (GB.Point(0, 0), GB.Point(1, 0), false)]
+            collision_list = [(GB.Vec(0, 0), GB.Vec(0, 0), true),
+                              (GB.Vec(0, 0), GB.Vec(1, 0), false)]
             test_collision_list(collision_list)
         end
 
         @testset "Line segment vs. Point2" begin
-            collision_list = [(GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Point(2, 3), true),
-                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Point(1, 2), true),
-                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Point(3, 4), true),
-                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Point(2, 2), false),
-                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Point(0, 0), false)]
+            collision_list = [(GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Vec(2, 3), true),
+                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Vec(1, 2), true),
+                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Vec(3, 4), true),
+                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Vec(2, 2), false),
+                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Vec(0, 0), false)]
             test_collision_list(collision_list)
         end
 
@@ -61,9 +63,9 @@ end
         end
 
         @testset "Circle vs. Point2" begin
-            collision_list = [(GB.HyperSphere(GB.Point(0, 0), 1), GB.Point(0, 0), true),
-                              (GB.HyperSphere(GB.Point(0, 0), 1), GB.Point(1, 0), true),
-                              (GB.HyperSphere(GB.Point(0, 0), 1), GB.Point(2, 0), false)]
+            collision_list = [(GB.HyperSphere(GB.Point(0, 0), 1), GB.Vec(0, 0), true),
+                              (GB.HyperSphere(GB.Point(0, 0), 1), GB.Vec(1, 0), true),
+                              (GB.HyperSphere(GB.Point(0, 0), 1), GB.Vec(2, 0), false)]
             test_collision_list(collision_list)
         end
 
@@ -86,10 +88,10 @@ end
         end
 
         @testset "Rect2D vs. Point2" begin
-            collision_list = [(GB.Rect(1, 2, 5, 6), GB.Point(3, 3), true),
-                              (GB.Rect(1, 2, 5, 6), GB.Point(1, 3), true),
-                              (GB.Rect(1, 2, 5, 6), GB.Point(1, 2), true),
-                              (GB.Rect(1, 2, 5, 6), GB.Point(1, 1), false)]
+            collision_list = [(GB.Rect(1, 2, 5, 6), GB.Vec(3, 3), true),
+                              (GB.Rect(1, 2, 5, 6), GB.Vec(1, 3), true),
+                              (GB.Rect(1, 2, 5, 6), GB.Vec(1, 2), true),
+                              (GB.Rect(1, 2, 5, 6), GB.Vec(1, 1), false)]
             test_collision_list(collision_list)
         end
 
@@ -125,23 +127,24 @@ end
 
     @testset "Manifold generation" begin
         @testset "Circle vs. Circle" begin
-            manifold_list = [(GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), PE2D.Manifold(2.0f0, GB.Vec(1.0f0, 0.0f0))),
-                             (GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(1.0f0, 0.0f0), 1.0f0), PE2D.Manifold(1.0f0, GB.Vec(1.0f0, 0.0f0))),
-                             (GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(2.0f0, 0.0f0), 1.0f0), PE2D.Manifold(0.0f0, GB.Vec(1.0f0, 0.0f0)))]
+            manifold_list = [(GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 2.0f0), PE2D.Manifold(3.0f0, GB.Vec(1.0f0, 0.0f0), GB.Vec(0.0f0, 0.0f0))),
+                             (GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 1.0f0), 1.0f0), PE2D.Manifold(1.0f0, GB.Vec(0.0f0, 1.0f0), GB.Vec(0.0f0, 0.5f0))),
+                             (GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 2.0f0), 1.0f0), PE2D.Manifold(0.0f0, GB.Vec(0.0f0, 1.0f0), GB.Vec(0.0f0, 1.0f0)))]
             test_manifold_list(manifold_list)
         end
 
         @testset "Rect2D vs. Circle" begin
-            manifold_list = [(GB.HyperRectangle(0.0f0, -1.0f0, 5.0f0, 2.0f0), GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), PE2D.Manifold(1.0f0, GB.Vec(-1.0f0, 0.0f0))),
-                             (GB.HyperRectangle(0.5f0, -0.5f0, 1.0f0, 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), PE2D.Manifold(0.5f0, GB.Vec(-1.0f0, 0.0f0))),
-                             (GB.HyperRectangle(0.5f0, 0.5f0, 1.0f0, 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), PE2D.Manifold(1.0f0 - Float32(0.5 * sqrt(2)), GB.Vec(Float32(-0.5 * sqrt(2)), Float32(-0.5 * sqrt(2)))))]
+            manifold_list = [(GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperSphere(GB.Point(0.5f0, 1.75f0), 1.0f0), PE2D.Manifold(1.0f0 - sqrt(0.5f0^2 + 0.25f0^2), LA.normalize(GB.Vec(-0.5f0, -0.25f0)), GB.Vec(1.0f0, 2.0f0))),
+                             (GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperSphere(GB.Point(0.5f0, 2.25f0), 1.0f0), PE2D.Manifold(0.5f0, GB.Vec(-1.0f0, 0.0f0), GB.Vec(1.0f0, 2.25f0))),
+                             (GB.HyperRectangle(1.0f0, 2.0f0, 4.0f0, 5.0f0), GB.HyperSphere(GB.Point(3.0f0, 3.0f0), 0.5f0), PE2D.Manifold(1.5f0, GB.Vec(0.0f0, -1.0f0), GB.Vec(3.0f0, 2.75f0))),
+                             (GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperSphere(GB.Point(1.5f0, 2.25f0), 1.0f0), PE2D.Manifold(1.25f0, GB.Vec(0.0f0, -1.0f0), GB.Vec(1.5f0, 2.25f0 + 1.0f0 - 0.25f0 / 2)))]
             test_manifold_list(manifold_list)
         end
 
         @testset "Rect2D vs. Rect2D" begin
-            manifold_list = [(GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(0.0f0, 0.0f0, 1.1f0, 5.0f0), PE2D.Manifold(0.1f0, GB.Vec(-1.0f0, 0.0f0))),
-                             (GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(2.0f0, 0.0f0, 5.0f0, 2.1f0), PE2D.Manifold(0.1f0, GB.Vec(0.0f0, -1.0f0))),
-                             (GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(2.0f0, 0.0f0, 5.0f0, 2.0f0), PE2D.Manifold(0.0f0, GB.Vec(0.0f0, -1.0f0)))]
+            manifold_list = [(GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(0.0f0, 0.0f0, 1.1f0, 5.0f0), PE2D.Manifold(0.1f0, GB.Vec(-1.0f0, 0.0f0), GB.Vec(1.05f0, 3.5f0))),
+                             (GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(2.0f0, 0.0f0, 5.0f0, 2.1f0), PE2D.Manifold(0.1f0, GB.Vec(0.0f0, -1.0f0), GB.Vec(3.0f0, 2.05f0))),
+                             (GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(2.0f0, 0.0f0, 5.0f0, 2.0f0), PE2D.Manifold(0.0f0, GB.Vec(0.0f0, -1.0f0), GB.Vec(3.0f0, 2.0f0)))]
             test_manifold_list(manifold_list)
         end
     end
