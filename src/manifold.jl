@@ -1,3 +1,5 @@
+const SQRT_2 = sqrt(2)
+
 struct Manifold{T}
     penetration::T
     normal::GB.Vec2{T}
@@ -13,44 +15,153 @@ get_contact(manifold::Manifold) = manifold.contact
 #####
 
 function Manifold(a::GB.HyperSphere{N}, b::GB.HyperSphere{N}) where {N}
-    ba = GB.Vec(b.center .- a.center)
-    d = LA.norm(ba)
-    penetration = a.r + b.r - d
+    center_a = get_center(a)
+    center_b = get_center(b)
+    ba = center_b .- center_a
+    norm_ba = LA.norm(ba)
+    penetration = a.r + b.r - norm_ba
 
-    # assuming ba is not the zero vector
-    normal = ba ./ d
-
-    return Manifold(penetration, normal, a.center .+ (a.r - d/2) * normal)
+    if norm_ba ≈ zero(norm_ba)
+        return Manifold(penetration, GB.unit(typeof(ba), 1), center_a)
+    else
+        normal = ba ./ norm_ba
+        return Manifold(penetration, normal, center_a .+ (a.r - norm_ba / 2) .* normal)
+    end
 end
 
 #####
 # HyperRectangle vs. HyperSphere
 #####
 
-function Manifold(a::GB.HyperRectangle{N}, b::GB.HyperSphere{N}) where {N}
-    center_a = get_center(a)
-    center_b = get_center(b)
-    # assuming ba is not the zero vector
-    ba = GB.Vec(center_b .- center_a)
-
-    if !is_colliding(a, center_b)
-        half_widths = get_half_widths(a)
-        ba_clamped = clamp.(ba, -half_widths, half_widths)
-
-        closest_point = center_a .+ ba_clamped
-        normal = GB.Vec(center_b .- closest_point)
-        d = LA.norm(normal)
-        penetration = b.r - d # max penetration possible is b.r since d >= 0
-        normal = normal ./ d # assuming d is not zero
-        contact = closest_point .+ (d / 2) * normal
-
-        return Manifold(penetration, normal, contact)
+function get_region(a, b, c)
+    if c <= a
+        return 1
+    elseif c >= b
+        return 3
     else
-        penetration = b.r
-        d = LA.norm(ba)
-        normal = normal ./ d # assuming d is not zero
-        contact = center_a .+ (d - b.r/2) * normal
-        return Manifold(b.r, LA.normalize(ba), contact)
+        return 2
+    end
+end
+
+function get_penetration(a::GB.HyperRectangle{N}, b::GB.Vec{N}) where {N}
+    bottom_left = minimum(a)
+    top_right = maximum(a)
+    min_penetration = Inf
+    min_penetration_dim = -1
+    min_penetration_dir = 0
+
+    for i in 1:N
+        penetration, dir = findmin((b[i] - bottom_left[i], top_right[i] - b[i]))
+        if penetration < min_penetration
+            min_penetration = penetration
+            min_penetration_dim = i
+            min_penetration_dir = dir == 1 ? -1 : 1
+        end
+    end
+
+    return (min_penetration, min_penetration_dim, min_penetration_dir)
+end
+
+function Manifold(a::GB.HyperRectangle{2}, b::GB.HyperSphere{2})
+    center_b = get_center(b)
+    bottom_left = minimum(a)
+    top_right = maximum(a)
+    region = get_region.(bottom_left, top_right, center_b)
+
+    if region === GB.Vec(1, 2)
+        penetration = b.r - (bottom_left[1] - center_b[1])
+        normal = -GB.unit(typeof(center_b), 1)
+        contact = center_b .+ (b.r - penetration / 2) .* -normal
+        return Manifold(penetration, normal, contact)
+
+    elseif region === GB.Vec(2, 1)
+        penetration = b.r - (bottom_left[2] - center_b[2])
+        normal = -GB.unit(typeof(center_b), 2)
+        contact = center_b .+ (b.r - penetration / 2) .* -normal
+        return Manifold(penetration, normal, contact)
+
+    elseif region === GB.Vec(2, 3)
+        penetration = b.r - (center_b[2] - top_right[2])
+        normal = GB.unit(typeof(center_b), 2)
+        contact = center_b .+ (b.r - penetration / 2) .* -normal
+        return Manifold(penetration, normal, contact)
+
+    elseif region === GB.Vec(3, 2)
+        penetration = b.r - (center_b[1] - top_right[1])
+        normal = GB.unit(typeof(center_b), 1)
+        contact = center_b .+ (b.r - penetration / 2) .* -normal
+        return Manifold(penetration, normal, contact)
+
+    elseif region === GB.Vec(1, 1)
+        closest_point = bottom_left
+        if center_b ≈ closest_point
+            penetration = b.r
+            normal = typeof(center_b)(-SQRT_2, -SQRT_2)
+            contact = closest_point
+            return Manifold(penetration, normal, contact)
+        else
+            vec = center_b .- closest_point
+            d = LA.norm(vec) # this won't be zero coz we already checked for it
+            penetration = b.r - d
+            normal = vec ./ d
+            contact = center_b .+ (b.r - penetration / 2) .* -normal
+            return Manifold(penetration, normal, contact)
+        end
+
+    elseif region === GB.Vec(1, 3)
+        closest_point = get_top_left(a)
+        if center_b ≈ closest_point
+            penetration = b.r
+            normal = typeof(center_b)(-SQRT_2, SQRT_2)
+            contact = closest_point
+            return Manifold(penetration, normal, contact)
+        else
+            vec = center_b .- closest_point
+            d = LA.norm(vec) # this won't be zero coz we already checked for it
+            penetration = b.r - d
+            normal = vec ./ d
+            contact = center_b .+ (b.r - penetration / 2) .* -normal
+            return Manifold(penetration, normal, contact)
+        end
+
+    elseif region === GB.Vec(3, 1)
+        closest_point = get_bottom_right(a)
+        if center_b ≈ closest_point
+            penetration = b.r
+            normal = typeof(center_b)(SQRT_2, -SQRT_2)
+            contact = closest_point
+            return Manifold(penetration, normal, contact)
+        else
+            vec = center_b .- closest_point
+            d = LA.norm(vec) # this won't be zero coz we already checked for it
+            penetration = b.r - d
+            normal = vec ./ d
+            contact = center_b .+ (b.r - penetration / 2) .* -normal
+            return Manifold(penetration, normal, contact)
+        end
+
+    elseif region === GB.Vec(3, 3)
+        closest_point = get_bottom_right(a)
+        if center_b ≈ closest_point
+            penetration = b.r
+            normal = typeof(center_b)(SQRT_2, SQRT_2)
+            contact = closest_point
+            return Manifold(penetration, normal, contact)
+        else
+            vec = center_b .- closest_point
+            d = LA.norm(vec) # this won't be zero coz we already checked for it
+            penetration = b.r - d
+            normal = vec ./ d
+            contact = center_b .+ (b.r - penetration / 2) .* -normal
+            return Manifold(penetration, normal, contact)
+        end
+
+    elseif region === GB.Vec(2, 2)
+        penetration, dim, dir = get_penetration(a, center_b)
+        penetration = penetration + b.r
+        normal = dir * GB.unit(typeof(center_b), dim)
+        contact = center_b .+ (b.r - penetration / 2) * -normal
+        return Manifold(penetration, normal, contact)
     end
 end
 
@@ -69,7 +180,7 @@ function Manifold(a::GB.HyperRectangle{N}, b::GB.HyperRectangle{N}) where {N}
     contact = get_center(intersection)
 
     normal = GB.unit(typeof(a.origin), dim)
-    if a.origin[dim] <= b.origin[dim]
+    if a.origin[dim] > b.origin[dim]
         normal = -normal
     end
     
