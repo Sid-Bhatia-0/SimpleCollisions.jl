@@ -1,6 +1,10 @@
 get_center(a::GB.HyperSphere) = convert(GB.Vec, a.center)
 get_center(a::GB.HyperRectangle) = convert(GB.Vec, a.origin .+ a.widths ./ 2)
 get_half_widths(a::GB.HyperRectangle) = convert(GB.Vec, a.widths ./ 2)
+get_bottom_left(a::GB.HyperRectangle) = minimum(a)
+get_bottom_right(a::GB.HyperRectangle) = minimum(a) .+ GB.Vec(GB.widths[1], zero(eltype(a.origin)))
+get_top_right(a::GB.HyperRectangle) = maximum(a)
+get_top_left(a::GB.HyperRectangle) = minimum(a) .+ GB.Vec(zero(eltype(a.origin)), GB.widths[2])
 
 GB.area(a::GB.Rect2D) = prod(a.widths)
 GB.area(a::GB.Circle) = π * a.r * a.r
