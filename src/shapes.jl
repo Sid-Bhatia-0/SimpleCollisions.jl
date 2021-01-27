@@ -1,10 +1,10 @@
-get_center(a::GB.HyperSphere) = a.center
-get_center(a::GB.HyperRectangle) = GB.Point(a.origin .+ a.widths ./ 2)
-get_half_widths(a::GB.HyperRectangle) = a.widths ./ 2
+get_center(a::GB.HyperSphere) = convert(GB.Vec, a.center)
+get_center(a::GB.HyperRectangle) = convert(GB.Vec, a.origin .+ a.widths ./ 2)
+get_half_widths(a::GB.HyperRectangle) = convert(GB.Vec, a.widths ./ 2)
 
 GB.area(a::GB.Rect2D) = prod(a.widths)
 GB.area(a::GB.Circle) = π * a.r * a.r
-function get_area(p1::GB.Point2, p2::GB.Point2, p3::GB.Point2)
+function get_area(p1, p2, p3)
     x1 = p1[1]
     y1 = p1[2]
     x2 = p2[1]
@@ -15,10 +15,10 @@ function get_area(p1::GB.Point2, p2::GB.Point2, p3::GB.Point2)
 end
 
 function get_lines(a::GB.Rect{2, T}) where {T}
-    bottom_left = GB.Point(minimum(a))
-    bottom_right = GB.Point(bottom_left .+ GB.Vec(a.widths[1], zero(T)))
-    top_right = GB.Point(maximum(a))
-    top_left = GB.Point(bottom_left .+ GB.Vec(zero(T), a.widths[2]))
+    bottom_left = convert(GB.Point, minimum(a))
+    bottom_right = convert(GB.Point, bottom_left .+ GB.Point(a.widths[1], zero(T)))
+    top_right = convert(GB.Point, maximum(a))
+    top_left = convert(GB.Point, bottom_left .+ GB.Point(zero(T), a.widths[2]))
 
     l1 = GB.Line(bottom_left, bottom_right)
     l2 = GB.Line(bottom_right, top_right)
