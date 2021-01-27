@@ -19,7 +19,7 @@ function step!(world::World, dt)
             shape_b = get_shape(b)
             if is_colliding(shape_a, shape_b)
                 manifold_ba = Manifold(shape_a, shape_b)
-                velocity_change_a, velocity_change_b = resolve_collision!(a, b, manifold_ba)
+                velocity_change_a, velocity_change_b = resolve_collision(a, b, manifold_ba)
                 add_velocity_change!(a, velocity_change_a)
                 add_velocity_change!(b, velocity_change_b)
             end
