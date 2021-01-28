@@ -1,3 +1,4 @@
+get_point(a::GB.Line, i) = convert(GB.Vec, a.points[i])
 get_center(a::GB.HyperSphere) = convert(GB.Vec, a.center)
 get_center(a::GB.HyperRectangle) = convert(GB.Vec, a.origin .+ a.widths ./ 2)
 get_half_widths(a::GB.HyperRectangle) = convert(GB.Vec, a.widths ./ 2)
