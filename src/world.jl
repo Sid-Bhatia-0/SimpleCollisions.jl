@@ -50,6 +50,12 @@ function step!(world::World, dt)
         add_angle_change!(body, angular_velocity * dt)
         apply_angle_change!(body)
 
+        # update direction using angle
+        angle = get_angle(body)
+        direction = get_direction(body)
+        new_direction = typeof(direction)(cos(angle), sin(angle))
+        set_direction!(body, new_direction)
+
         # update shape caused by change in position
         shape = get_shape(body)
         position = get_position(body)

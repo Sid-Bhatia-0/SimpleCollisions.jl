@@ -152,5 +152,6 @@ add_torque_change!(body::RigidBody, change) = add_change!(body.torque_accumulato
 apply_torque_change!(body::RigidBody) = apply_change!(body.torque_accumulator)
 
 get_direction(body::RigidBody) = body.direction
+set_direction!(body::RigidBody, direction) = body.direction = direction
 
 @pretty_print RigidBody
