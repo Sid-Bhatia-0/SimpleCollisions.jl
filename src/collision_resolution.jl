@@ -1,4 +1,4 @@
-function resolve_collision!(a::RigidBody, b::RigidBody, manifold_ba::Manifold)
+function resolve_collision(a::RigidBody, b::RigidBody, manifold_ba::Manifold)
     velocity_a = get_velocity(a)
     velocity_b = get_velocity(b)
     velocity_ba = velocity_b .- velocity_a

@@ -1,15 +1,15 @@
 import .Makie
 
-get_angle_reference(angle::T) where {T} = GB.Point2{T}(cos(angle), sin(angle))
+get_angle_reference(angle::T) where {T} = GB.Vec2{T}(cos(angle), sin(angle))
 
 function get_angle_reference(shape::GB.Circle, angle)
     center = get_center(shape)
-    return [center, center .+ shape.r .* get_angle_reference(angle)]
+    return [convert(GB.Point, center), convert(GB.Point, center .+ shape.r .* get_angle_reference(angle))]
 end
 
 get_angle_reference(body::RigidBody) = get_angle_reference(get_shape(body), get_angle(body))
 
-function init_screen(world_node::Makie.Observable{<:World}; resolution = (720, 720), xlims = (0, 10), ylims = (0, 10))
+function init_screen(world_node::Makie.Observable{<:World}; resolution = (720, 720), xlims = (-1, 11), ylims = (-1, 11))
     scene = Makie.Scene(resolution = resolution)
 
     shapes_node = Makie.lift(world_node) do world
@@ -34,13 +34,15 @@ function init_screen(world_node::Makie.Observable{<:World}; resolution = (720, 7
     return scene
 end
 
-function render!(world::World; num_iter = 100, dt = 0.01, frame_rate = 24)
+function render!(world::World; num_iter = 100, dt = 1 / 60, frame_rate = Int(1 / dt))
     world_node = Makie.Node(world)
     scene = init_screen(world_node)
     Makie.display(scene)
+
     for i in 1:num_iter
         world_node[] = step!(world_node[], dt)
         sleep(1 / frame_rate)
     end
+
     return scene
 end
