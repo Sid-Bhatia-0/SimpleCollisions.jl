@@ -16,7 +16,7 @@ function is_colliding(a::GB.Line{N}, b::GB.Vec{N}) where {N}
     p2 = a.points[2]
     p1_b = p1 .- b
     p2_b = p2 .- b
-    return LA.dot(p1_b, p2_b) <= zero(T) && get_area(b, p1, p2) ≈ zero(T)
+    return LA.dot(p1_b, p2_b) <= zero(T) && isapprox(get_area(b, p1, p2), zero(T), atol = ATOL)
 end
 
 is_colliding(a::GB.Vec{N}, b::GB.Line{N}) where {N} = is_colliding(b, a)
@@ -37,7 +37,7 @@ function is_colliding(a::GB.Line{2}, b::GB.Line{2})
 
     normal_a = GB.Vec(-p2_p1[2], p2_p1[1])
     x = LA.dot(q2_q1, normal_a)
-    if x ≈ zero(x)
+    if isapprox(x, zero(x), atol = ATOL)
         return is_colliding(a, q1) || is_colliding(a, q2)
     else
         normal_b = GB.Vec(-q2_q1[2], q2_q1[1])
