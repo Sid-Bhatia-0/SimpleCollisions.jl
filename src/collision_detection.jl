@@ -1,8 +1,10 @@
+const ATOL = 1e-7
+
 #####
 # Point vs. Point
 #####
 
-is_colliding(a::GB.Vec{N}, b::GB.Vec{N}) where {N} = a ≈ b
+is_colliding(a::GB.Vec{N}, b::GB.Vec{N}) where {N} = all(ab -> isapprox(ab[1], ab[2], atol = ATOL), zip(a, b))
 
 #####
 # Line vs. Point
