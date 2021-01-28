@@ -95,6 +95,7 @@ mutable struct RigidBody{T<:AbstractFloat, S<:GB.AbstractGeometry{2, T}}
     angle_accumulator::Accumulator{T}
     angular_velocity_accumulator::Accumulator{T}
     torque_accumulator::Accumulator{T}
+    direction::GB.Vec2{T}
 end
 
 function RigidBody{T}() where {T<:AbstractFloat}
@@ -105,11 +106,13 @@ function RigidBody{T}() where {T<:AbstractFloat}
     velocity_accumulator = Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
     force_accumulator = Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
     inertia_data = InertiaData(material_data.density, shape)
-    angle_accumulator = Accumulator(zero(T))
+    angle = zero(T)
+    angle_accumulator = Accumulator(angle)
     angular_velocity_accumulator = Accumulator(zero(T))
     torque_accumulator = Accumulator(zero(T))
+    direction = GB.Vec2{T}(cos(angle), sin(angle))
 
-    return RigidBody(shape, material_data, mass_data, position_accumulator, velocity_accumulator, force_accumulator, inertia_data, angle_accumulator, angular_velocity_accumulator, torque_accumulator)
+    return RigidBody(shape, material_data, mass_data, position_accumulator, velocity_accumulator, force_accumulator, inertia_data, angle_accumulator, angular_velocity_accumulator, torque_accumulator, direction)
 end
 
 get_shape(body::RigidBody) = body.shape
@@ -147,5 +150,7 @@ apply_angular_velocity_change!(body::RigidBody) = apply_change!(body.angular_vel
 get_torque(body::RigidBody) = get_value(body.torque_accumulator)
 add_torque_change!(body::RigidBody, change) = add_change!(body.torque_accumulator, change)
 apply_torque_change!(body::RigidBody) = apply_change!(body.torque_accumulator)
+
+get_direction(body::RigidBody) = body.direction
 
 @pretty_print RigidBody

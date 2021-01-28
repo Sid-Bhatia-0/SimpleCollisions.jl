@@ -152,36 +152,40 @@ end
     @testset "Simulation: frictionless collision of rotating circles" begin
         T = Float32
         NUM_ITER = 500
-        DT = 0.01
+        DT = 1 / 60
         FRAME_RATE = 1 / DT
 
-        shape1 = GB.HyperSphere(GB.Point2{T}(5.0f0, 1.0f0), one(T))
+        shape1 = GB.HyperSphere(GB.Point2{T}(5, 1), one(T))
         material_data1 = PE2D.MaterialData{T}()
         mass_data1 = PE2D.MassData(material_data1.density, shape1)
-        position_accumulator1 = PE2D.Accumulator(GB.Vec2{T}(5.0f0, 1.0f0), zero(GB.Vec2{T}))
-        velocity_accumulator1 = PE2D.Accumulator(GB.Vec2{T}(0.0f0, 1.0f0), zero(GB.Vec2{T}))
+        position_accumulator1 = PE2D.Accumulator(GB.Vec2{T}(5, 1), zero(GB.Vec2{T}))
+        velocity_accumulator1 = PE2D.Accumulator(GB.Vec2{T}(0, 1), zero(GB.Vec2{T}))
         force_accumulator1 = PE2D.Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
         inertia_data1 = PE2D.InertiaData(material_data1.density, shape1)
-        angle_accumulator1 = PE2D.Accumulator(zero(T), zero(T))
+        angle1 = zero(T)
+        angle_accumulator1 = PE2D.Accumulator(angle1, zero(T))
         angular_velocity_accumulator1 = PE2D.Accumulator(one(T), zero(T))
         torque_accumulator1 = PE2D.Accumulator(zero(T), zero(T))
-        body1 = PE2D.RigidBody(shape1, material_data1, mass_data1, position_accumulator1, velocity_accumulator1, force_accumulator1, inertia_data1, angle_accumulator1, angular_velocity_accumulator1, torque_accumulator1)
+        direction1 = GB.Vec2{T}(cos(angle1), sin(angle1))
+        body1 = PE2D.RigidBody(shape1, material_data1, mass_data1, position_accumulator1, velocity_accumulator1, force_accumulator1, inertia_data1, angle_accumulator1, angular_velocity_accumulator1, torque_accumulator1, direction1)
 
-        shape2 = GB.HyperSphere(GB.Point2{T}(1.0f0, 5.0f0), one(T))
+        shape2 = GB.HyperSphere(GB.Point2{T}(1, 5), one(T))
         material_data2 = PE2D.MaterialData{T}()
         mass_data2 = PE2D.MassData(material_data2.density, shape2)
-        position_accumulator2 = PE2D.Accumulator(GB.Vec2{T}(1.0f0, 5.0f0), zero(GB.Vec2{T}))
-        velocity_accumulator2 = PE2D.Accumulator(GB.Vec2{T}(1.0f0, 0.0f0), zero(GB.Vec2{T}))
+        position_accumulator2 = PE2D.Accumulator(GB.Vec2{T}(1, 5), zero(GB.Vec2{T}))
+        velocity_accumulator2 = PE2D.Accumulator(GB.Vec2{T}(1, 0), zero(GB.Vec2{T}))
         force_accumulator2 = PE2D.Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
         inertia_data2 = PE2D.InertiaData(material_data2.density, shape2)
-        angle_accumulator2 = PE2D.Accumulator(zero(T), zero(T))
+        angle2 = zero(T)
+        angle_accumulator2 = PE2D.Accumulator(angle2, zero(T))
         angular_velocity_accumulator2 = PE2D.Accumulator(one(T), zero(T))
         torque_accumulator2 = PE2D.Accumulator(zero(T), zero(T))
-        body2 = PE2D.RigidBody(shape2, material_data2, mass_data2, position_accumulator2, velocity_accumulator2, force_accumulator2, inertia_data2, angle_accumulator2, angular_velocity_accumulator2, torque_accumulator2)
+        direction2 = GB.Vec2{T}(cos(angle2), sin(angle2))
+        body2 = PE2D.RigidBody(shape2, material_data2, mass_data2, position_accumulator2, velocity_accumulator2, force_accumulator2, inertia_data2, angle_accumulator2, angular_velocity_accumulator2, torque_accumulator2, direction2)
 
         bodies = [body1, body2]
         world = PE2D.World(bodies)
-        PE2D.simulate!(world, 500, 0.01)
+        PE2D.simulate!(world, NUM_ITER, DT)
     end
 
 end
