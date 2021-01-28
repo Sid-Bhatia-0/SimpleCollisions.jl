@@ -18,12 +18,13 @@ function Manifold(a::GB.HyperSphere{N}, b::GB.HyperSphere{N}) where {N}
     center_a = get_center(a)
     center_b = get_center(b)
     ba = center_b .- center_a
-    norm_ba = LA.norm(ba)
-    penetration = a.r + b.r - norm_ba
 
-    if norm_ba ≈ zero(norm_ba)
+    if all(ab -> isapprox(ab[1], ab[2], atol = ATOL), zip(center_a, center_b))
+        penetration = a.r + b.r
         return Manifold(penetration, GB.unit(typeof(ba), 1), center_a)
     else
+        norm_ba = LA.norm(ba)
+        penetration = a.r + b.r - norm_ba
         normal = ba ./ norm_ba
         return Manifold(penetration, normal, center_a .+ (a.r - norm_ba / 2) .* normal)
     end
@@ -94,7 +95,7 @@ function Manifold(a::GB.HyperRectangle{2}, b::GB.HyperSphere{2})
 
     elseif region === GB.Vec(1, 1)
         closest_point = bottom_left
-        if center_b ≈ closest_point
+        if all(ab -> isapprox(ab[1], ab[2], atol = ATOL), zip(center_b, closest_point))
             penetration = b.r
             normal = typeof(center_b)(-SQRT_2, -SQRT_2)
             contact = closest_point
@@ -110,7 +111,7 @@ function Manifold(a::GB.HyperRectangle{2}, b::GB.HyperSphere{2})
 
     elseif region === GB.Vec(1, 3)
         closest_point = get_top_left(a)
-        if center_b ≈ closest_point
+        if all(ab -> isapprox(ab[1], ab[2], atol = ATOL), zip(center_b, closest_point))
             penetration = b.r
             normal = typeof(center_b)(-SQRT_2, SQRT_2)
             contact = closest_point
@@ -126,7 +127,7 @@ function Manifold(a::GB.HyperRectangle{2}, b::GB.HyperSphere{2})
 
     elseif region === GB.Vec(3, 1)
         closest_point = get_bottom_right(a)
-        if center_b ≈ closest_point
+        if all(ab -> isapprox(ab[1], ab[2], atol = ATOL), zip(center_b, closest_point))
             penetration = b.r
             normal = typeof(center_b)(SQRT_2, -SQRT_2)
             contact = closest_point
@@ -142,7 +143,7 @@ function Manifold(a::GB.HyperRectangle{2}, b::GB.HyperSphere{2})
 
     elseif region === GB.Vec(3, 3)
         closest_point = get_bottom_right(a)
-        if center_b ≈ closest_point
+        if all(ab -> isapprox(ab[1], ab[2], atol = ATOL), zip(center_b, closest_point))
             penetration = b.r
             normal = typeof(center_b)(SQRT_2, SQRT_2)
             contact = closest_point
