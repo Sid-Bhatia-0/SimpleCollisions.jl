@@ -71,6 +71,7 @@ get_y_cap(axes::Axes) = axes.y_cap
 set_y_cap!(axes::Axes, y_cap) = axes.y_cap = y_cap
 
 rotate_90(vec::Vec2{T}) = typeof(vec)(-vec[2], vec[1])
+rotate_180(vec::Vec2{T}) = -vec
 rotate_minus_90(vec::Vec2{T}) = typeof(vec)(vec[2], -vec[1])
 
 function rotate_90(axes::Axes)
@@ -79,6 +80,12 @@ function rotate_90(axes::Axes)
     x_cap_90 = y_cap
     y_cap_90 = -x_cap
     return Axes(x_cap_90, y_cap_90)
+end
+
+function rotate_180(axes::Axes)
+    x_cap = get_x_cap(axes)
+    y_cap = get_y_cap(axes)
+    return Axes(-x_cap, -y_cap)
 end
 
 function rotate_minus_90(axes::Axes)
