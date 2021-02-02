@@ -57,6 +57,68 @@ function InertiaData(density::T, shape::GB.AbstractGeometry) where {T<:AbstractF
 end
 
 #####
+# Axes
+#####
+
+mutable struct Axes{T}
+    x_cap::GB.Vec2{T}
+    y_cap::GB.Vec2{T}
+end
+
+get_x_cap(axes::Axes) = axes.x_cap
+set_x_cap!(axes::Axes, x_cap) = axes.x_cap = x_cap
+get_y_cap(axes::Axes) = axes.y_cap
+set_y_cap!(axes::Axes, y_cap) = axes.y_cap = y_cap
+
+rotate_90(vec::Vec2{T}) = typeof(vec)(-vec[2], vec[1])
+rotate_minus_90(vec::Vec2{T}) = typeof(vec)(vec[2], -vec[1])
+
+function rotate_90(axes::Axes)
+    x_cap = get_x_cap(axes)
+    y_cap = get_y_cap(axes)
+    x_cap_90 = y_cap
+    y_cap_90 = -x_cap
+    return Axes(x_cap_90, y_cap_90)
+end
+
+function rotate_minus_90(axes::Axes)
+    x_cap = get_x_cap(axes)
+    y_cap = get_y_cap(axes)
+    x_cap_minus_90 = -y_cap
+    y_cap_minus_90 = x_cap
+    return Axes(x_cap_minus_90, y_cap_minus_90)
+end
+
+function Axes{T}() where {T}
+    x_cap = GB.unit(Vec2{T}, 1)
+    y_cap = GB.unit(Vec2{T}, 2)
+    return Axes{T}(x_cap, y_cap)
+end
+
+function Axes(angle::T) where {T}
+    x_cap = Vec2{T}(cos(angle), sin(angle))
+    y_cap = rotate_90(x_cap)
+    return Axes{T}(x_cap, y_cap)
+end
+
+get_relative_direction(d1::GB.Vec2, d2::GB.Vec2) = typeof(d1)(d2[1] * d1[1] + d2[2] * d1[2], d2[2] * d1[1] - d2[1] * d1[2])
+invert_relative_direction(d::GB.Vec) = typeof(d)(d[1], -d[2])
+
+function get_relative_axes(axes1::Axes, axes2::Axes)
+    x_cap_21 = get_relative_direction(get_x_cap(axes1), get_x_cap(axes2))
+    y_cap_21 = rotate_90(x_cap_21)
+    return Axes(x_cap_21, y_cap_21)
+end
+
+function invert_relative_axes(axes::Axes)
+    x_cap_21 = get_x_cap(axes)
+    y_cap_21 = get_y_cap(axes)
+    x_cap_12 = invert_relative_direction(x_cap_21)
+    y_cap_12 = rotate_90(x_cap_12)
+    return Axes(x_cap_12, y_cap_12)
+end
+
+#####
 # Accumulator
 #####
 
@@ -84,35 +146,39 @@ end
 # RigidBody
 #####
 
-mutable struct RigidBody{T<:AbstractFloat, S<:GB.AbstractGeometry{2, T}}
+struct RigidBody{T<:AbstractFloat, S<:GB.AbstractGeometry{2, T}}
     shape::S
     material_data::MaterialData{T}
+
     mass_data::MassData{T}
     position_accumulator::Accumulator{GB.Vec2{T}}
     velocity_accumulator::Accumulator{GB.Vec2{T}}
     force_accumulator::Accumulator{GB.Vec2{T}}
+
     inertia_data::InertiaData{T}
     angle_accumulator::Accumulator{T}
+    axes::Axes{T}
     angular_velocity_accumulator::Accumulator{T}
     torque_accumulator::Accumulator{T}
-    direction::GB.Vec2{T}
 end
 
 function RigidBody{T}() where {T<:AbstractFloat}
     shape = GB.HyperSphere(zero(GB.Point2{T}), one(T))
     material_data = MaterialData{T}()
+
     mass_data = MassData(material_data.density, shape)
     position_accumulator = Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
     velocity_accumulator = Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
     force_accumulator = Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
+
     inertia_data = InertiaData(material_data.density, shape)
     angle = zero(T)
     angle_accumulator = Accumulator(angle)
+    axes = Axes(angle)
     angular_velocity_accumulator = Accumulator(zero(T))
     torque_accumulator = Accumulator(zero(T))
-    direction = GB.Vec2{T}(cos(angle), sin(angle))
 
-    return RigidBody(shape, material_data, mass_data, position_accumulator, velocity_accumulator, force_accumulator, inertia_data, angle_accumulator, angular_velocity_accumulator, torque_accumulator, direction)
+    return RigidBody(shape, material_data, mass_data, position_accumulator, velocity_accumulator, force_accumulator, inertia_data, angle_accumulator, axes, angular_velocity_accumulator, torque_accumulator)
 end
 
 get_shape(body::RigidBody) = body.shape
@@ -143,6 +209,9 @@ get_angle(body::RigidBody) = get_value(body.angle_accumulator)
 add_angle_change!(body::RigidBody, change) = add_change!(body.angle_accumulator, change)
 apply_angle_change!(body::RigidBody) = apply_change!(body.angle_accumulator)
 
+get_axes(body::RigidBody) = body.axes
+MacroTools.@forward RigidBody.axes get_x_cap, set_x_cap!, get_y_cap, set_y_cap!
+
 get_angular_velocity(body::RigidBody) = get_value(body.angular_velocity_accumulator)
 add_angular_velocity_change!(body::RigidBody, change) = add_change!(body.angular_velocity_accumulator, change)
 apply_angular_velocity_change!(body::RigidBody) = apply_change!(body.angular_velocity_accumulator)
@@ -150,8 +219,5 @@ apply_angular_velocity_change!(body::RigidBody) = apply_change!(body.angular_vel
 get_torque(body::RigidBody) = get_value(body.torque_accumulator)
 add_torque_change!(body::RigidBody, change) = add_change!(body.torque_accumulator, change)
 apply_torque_change!(body::RigidBody) = apply_change!(body.torque_accumulator)
-
-get_direction(body::RigidBody) = body.direction
-set_direction!(body::RigidBody, direction) = body.direction = direction
 
 @pretty_print RigidBody
