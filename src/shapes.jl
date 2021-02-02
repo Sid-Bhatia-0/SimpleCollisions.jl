@@ -36,3 +36,41 @@ get_mass(density::Number, shape::GB.GeometryPrimitive{2}) = density * GB.area(sh
 
 get_inertia(density::Number, shape::GB.Circle) = get_mass(density, shape) * shape.r * shape.r / 2
 get_inertia(density::Number, shape::GB.Rect2D) = get_mass(density, shape) * LA.dot(shape.widths, shape.widths) / 12
+
+function get_vertices(a::GB.Rect, pos, axes)
+    half_widths = maximum(a)
+    half_width = half_widths[1]
+    half_height = half_widths[2]
+
+    x_cap = get_x_cap(axes)
+    y_cap = get_y_cap(axes)
+
+    bottom_left = pos .- half_width .* x_cap .- half_height .* y_cap
+    bottom_right = pos .+ half_width .* x_cap .- half_height .* y_cap
+    top_right = pos .+ half_width .* x_cap .+ half_height .* y_cap
+    top_left = pos .- half_width .* x_cap .+ half_height .* y_cap
+
+    return (bottom_left, bottom_right, top_right, top_left)
+end
+
+function get_vertices(a::GB.Rect)
+    half_widths = maximum(a)
+    half_width = half_widths[1]
+    half_height = half_widths[2]
+
+    VecType = typeof(half_widths)
+
+    bottom_left = VecType(-half_width, -half_height)
+    bottom_right = VecType(half_width, -half_height)
+    top_right = VecType(half_width, half_height)
+    top_left = VecType(-half_width, half_height)
+
+    return (bottom_left, bottom_right, top_left, top_right)
+end
+
+function get_normals(a::GB.Rect)
+    VecType = typeof(a.origin)
+    x_cap = GB.unit(VecType, 1)
+    y_cap = GB.unit(VecType, 2)
+    return (-y_cap, x_cap, y_cap, -x_cap)
+end
