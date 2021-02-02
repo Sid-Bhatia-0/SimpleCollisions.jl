@@ -10,6 +10,7 @@ const LA = LinearAlgebra
 import Requires
 import MacroTools
 
+include("utils.jl")
 include("printing.jl")
 include("shapes.jl")
 include("collision_detection.jl")
