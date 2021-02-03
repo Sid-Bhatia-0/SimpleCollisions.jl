@@ -10,15 +10,13 @@ function step!(world::World, dt)
     bodies = get_bodies(world)
     num_bodies = length(bodies)
 
-    # updates caused by pair-wise interaction of rigid bodies
+    # accumulate changes caused by pair-wise interaction of bodies
     for i in 1:num_bodies-1
         for j in i+1:num_bodies
             a = bodies[i]
-            shape_a = get_shape(a)
             b = bodies[j]
-            shape_b = get_shape(b)
-            if is_colliding(shape_a, shape_b)
-                manifold_ba = Manifold(shape_a, shape_b)
+            if is_colliding(a, b)
+                manifold_ba = Manifold(a, b)
                 velocity_change_a, velocity_change_b = resolve_collision(a, b, manifold_ba)
                 add_velocity_change!(a, velocity_change_a)
                 add_velocity_change!(b, velocity_change_b)
@@ -26,42 +24,36 @@ function step!(world::World, dt)
         end
     end
 
-    # updates caused by self (individual body)
+    # update bodies
     for body in bodies
-        # accumulate velocity change caused by net force
+        # apply velocity change
         inv_mass = get_inv_mass(body)
         force = get_force(body)
         add_velocity_change!(body, inv_mass * force * dt)
         apply_velocity_change!(body)
 
-        # accumulate angular velocity change caused by net torque
+        # apply angular velocity change
         inv_inertia = get_inv_inertia(body)
         torque = get_torque(body)
         add_angular_velocity_change!(body, inv_inertia * torque * dt)
         apply_angular_velocity_change!(body)
 
-        # accumulate position change caused by net velocity
+        # apply position change
         velocity = get_velocity(body)
         add_position_change!(body, velocity * dt)
         apply_position_change!(body)
 
-        # accumulate angle change caused by net angular velocity
+        # apply angle change
         angular_velocity = get_angular_velocity(body)
         add_angle_change!(body, angular_velocity * dt)
         apply_angle_change!(body)
 
-        # update direction using angle
+        # update axes using current angle
         angle = get_angle(body)
-        direction = get_direction(body)
-        new_direction = typeof(direction)(cos(angle), sin(angle))
-        set_direction!(body, new_direction)
-
-        # update shape caused by change in position
-        shape = get_shape(body)
-        position = get_position(body)
-        set_shape!(body, translated(shape, position))
-
-        # TODO: update shape caused by change in angle
+        x_cap = get_x_cap(body)
+        new_x_cap = typeof(x_cap)(cos(angle), sin(angle))
+        set_x_cap!(body, new_x_cap)
+        set_y_cap!(body, rotate_90(new_x_cap))
     end
 
     return world

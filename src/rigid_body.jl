@@ -9,46 +9,51 @@ struct MaterialData{T<:AbstractFloat}
     dynamic_friction_coeff::T
 end
 
-MaterialData{T}() where {T<:AbstractFloat} = MaterialData(one(T), one(T), convert(T, 0.6), convert(T, 0.4))
-
 get_density(material_data::MaterialData) = material_data.density
 get_restitution(material_data::MaterialData) = material_data.restitution
 get_static_friction_coeff(material_data::MaterialData) = material_data.static_friction_coeff
 get_dynamic_friction_coeff(material_data::MaterialData) = material_data.dynamic_friction_coeff
 
+MaterialData{T}() where {T<:AbstractFloat} = MaterialData(one(T), one(T), convert(T, 0.6), convert(T, 0.4))
+
 #####
 # MassData
 #####
 
-struct MassData{T}
+struct MassData{T<:AbstractFloat}
     mass::T
     inv_mass::T
 end
 
-MassData{T}() where {T} = MassData(one(T), one(T))
-
 get_mass(mass_data::MassData) = mass_data.mass
 get_inv_mass(mass_data::MassData) = mass_data.inv_mass
+
+MassData{T}() where {T<:AbstractFloat} = MassData(one(T), one(T))
+
+get_mass(density, shape) = density * get_area(shape)
 
 function MassData(density::T, shape::GB.AbstractGeometry) where {T<:AbstractFloat}
     mass = get_mass(density, shape)
     inv_mass = 1 / mass
-    MassData(convert(T, mass), convert(T, inv_mass))
+    return MassData(convert(T, mass), convert(T, inv_mass))
 end
 
 #####
 # IntertiaData
 #####
 
-struct InertiaData{T}
+struct InertiaData{T<:AbstractFloat}
     inertia::T
     inv_inertia::T
 end
 
-InertiaData{T}() where {T} = InertiaData(one(T), one(T))
-
 get_inertia(inertia_data::InertiaData) = inertia_data.inertia
 get_inv_inertia(inertia_data::InertiaData) = inertia_data.inv_inertia
+
+InertiaData{T}() where {T<:AbstractFloat} = InertiaData(one(T), one(T))
+
+get_inertia(density, shape::GB.Circle) = get_mass(density, shape) * shape.r * shape.r / 2
+get_inertia(density, shape::GB.Rect2D) = get_mass(density, shape) * LA.dot(shape.widths, shape.widths) / 12
 
 function InertiaData(density::T, shape::GB.AbstractGeometry) where {T<:AbstractFloat}
     inertia = get_inertia(density, shape)
@@ -70,9 +75,29 @@ set_x_cap!(axes::Axes, x_cap) = axes.x_cap = x_cap
 get_y_cap(axes::Axes) = axes.y_cap
 set_y_cap!(axes::Axes, y_cap) = axes.y_cap = y_cap
 
-rotate_90(vec::Vec2{T}) = typeof(vec)(-vec[2], vec[1])
-rotate_180(vec::Vec2{T}) = -vec
-rotate_minus_90(vec::Vec2{T}) = typeof(vec)(vec[2], -vec[1])
+function Axes{T}() where {T}
+    x_cap = GB.unit(GB.Vec2{T}, 1)
+    y_cap = GB.unit(GB.Vec2{T}, 2)
+    return Axes{T}(x_cap, y_cap)
+end
+
+function Axes(angle::T) where {T}
+    x_cap = GB.Vec2{T}(cos(angle), sin(angle))
+    y_cap = rotate_90(x_cap)
+    return Axes{T}(x_cap, y_cap)
+end
+
+function rotate(vec::GB.Vec2, axes::Axes)
+    x_cap = get_x_cap(axes)
+    y_cap = get_y_cap(axes)
+    v1 = vec[1]
+    v2 = vec[2]
+    return typeof(vec)(x_cap[1] * v1 + y_cap[1] * v2, x_cap[2] * v1 + y_cap[2] * v2)
+end
+
+rotate_90(vec::GB.Vec2) = typeof(vec)(-vec[2], vec[1])
+rotate_180(vec::GB.Vec2) = -vec
+rotate_minus_90(vec::GB.Vec2) = typeof(vec)(vec[2], -vec[1])
 
 function rotate_90(axes::Axes)
     x_cap = get_x_cap(axes)
@@ -94,18 +119,6 @@ function rotate_minus_90(axes::Axes)
     x_cap_minus_90 = -y_cap
     y_cap_minus_90 = x_cap
     return Axes(x_cap_minus_90, y_cap_minus_90)
-end
-
-function Axes{T}() where {T}
-    x_cap = GB.unit(Vec2{T}, 1)
-    y_cap = GB.unit(Vec2{T}, 2)
-    return Axes{T}(x_cap, y_cap)
-end
-
-function Axes(angle::T) where {T}
-    x_cap = Vec2{T}(cos(angle), sin(angle))
-    y_cap = rotate_90(x_cap)
-    return Axes{T}(x_cap, y_cap)
 end
 
 get_relative_direction(d1::GB.Vec2, d2::GB.Vec2) = typeof(d1)(d2[1] * d1[1] + d2[2] * d1[2], d2[2] * d1[1] - d2[1] * d1[2])
@@ -170,22 +183,35 @@ struct RigidBody{T<:AbstractFloat, S<:GB.AbstractGeometry{2, T}}
 end
 
 function RigidBody{T}() where {T<:AbstractFloat}
-    shape = GB.HyperSphere(zero(GB.Point2{T}), one(T))
+    PointType = GB.Point2{T}
+    VecType = GB.Vec2{T}
+
+    shape = GB.HyperSphere(zero(PointType), one(T))
     material_data = MaterialData{T}()
 
     mass_data = MassData(material_data.density, shape)
-    position_accumulator = Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
-    velocity_accumulator = Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
-    force_accumulator = Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
+    position_accumulator = Accumulator(zero(VecType), zero(VecType))
+    velocity_accumulator = Accumulator(zero(VecType), zero(VecType))
+    force_accumulator = Accumulator(zero(VecType), zero(VecType))
 
     inertia_data = InertiaData(material_data.density, shape)
     angle = zero(T)
-    angle_accumulator = Accumulator(angle)
+    angle_accumulator = Accumulator(angle, zero(T))
     axes = Axes(angle)
-    angular_velocity_accumulator = Accumulator(zero(T))
-    torque_accumulator = Accumulator(zero(T))
+    angular_velocity_accumulator = Accumulator(zero(T), zero(T))
+    torque_accumulator = Accumulator(zero(T), zero(T))
 
-    return RigidBody(shape, material_data, mass_data, position_accumulator, velocity_accumulator, force_accumulator, inertia_data, angle_accumulator, axes, angular_velocity_accumulator, torque_accumulator)
+    return RigidBody(shape,
+                     material_data,
+                     mass_data,
+                     position_accumulator,
+                     velocity_accumulator,
+                     force_accumulator,
+                     inertia_data,
+                     angle_accumulator,
+                     axes,
+                     angular_velocity_accumulator,
+                     torque_accumulator)
 end
 
 get_shape(body::RigidBody) = body.shape

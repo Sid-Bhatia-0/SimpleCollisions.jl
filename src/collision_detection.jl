@@ -16,6 +16,32 @@ function is_colliding(a::RigidBody, b::RigidBody)
 end
 
 #####
+# Point vs. Point
+#####
+
+is_colliding(a::GB.Vec, b::GB.Vec, pos_ba) = pos_ba == zero(pos_ba)
+is_colliding(a::GB.Vec, b::GB.Vec, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
+
+#####
+# Line vs. Point
+#####
+
+function is_colliding(a::GB.Line, b::GB.Vec, pos_ba)
+    p1 = get_point(a, 1)
+    p2 = get_point(a, 2)
+    x_ba = pos_ba[1]
+    y_ba = pos_ba[2]
+    return (y_ba == zero(y_ba)) && (p1[1] <= x_ba <= p2[1])
+end
+
+is_colliding(a::GB.Line, b::GB.Vec, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
+function is_colliding(a::GB.Vec, b::GB.Line, pos_ba, axes_ba)
+    axes_ab = invert_relative_axes(axes_ba)
+    pos_ab = -rotate(pos_ba, axes_ab)
+    is_colliding(b, a, pos_ab, axes_ab)
+end
+
+#####
 # Line vs. Line
 #####
 
@@ -25,8 +51,8 @@ function is_colliding(a::GB.Line, b::GB.Line, pos_ba, axes_ba)
 
     half_width_b = get_point(b, 2)[1]
     x_cap_b = get_x_cap(axes_ba)
-    q1 = pos_ba .+ half_width_b .* x_cap_b
-    q2 = pos_ba .- half_width_b .* x_cap_b
+    q1 = pos_ba .- half_width_b .* x_cap_b
+    q2 = pos_ba .+ half_width_b .* x_cap_b
 
     x1_a = p1[1]
     x2_a = p2[1]
@@ -36,12 +62,13 @@ function is_colliding(a::GB.Line, b::GB.Line, pos_ba, axes_ba)
     x2_b = q2[1]
     y2_b = q2[2]
 
-    x_intersection = x1_b + y1_b * (x2_b - x1_b) / (y1_b - y2_b)
+    t = y1_b / (y1_b - y2_b)
 
-    if isfinite(x_intersection)
-        return x1_a <= x_intersection <= x2_a
+    if isfinite(t)
+        x_intersection = x1_b + t * (x2_b - x1_b)
+        return (zero(t) <= t <= one(t)) && (x1_a <= x_intersection <= x2_a)
     else
-        return (y1_b == zero(y1_b)) && (y2_b == zero(y2_b)) && ((x1_a <= x1_b <= x2_a) || (x1_a <= x2_b <= x2_a))
+        return (y1_b == zero(y1_b)) && (y2_b == zero(y2_b)) && !((x2_a < x1_b) || (x2_b < x1_a))
     end
 end
 
@@ -77,7 +104,7 @@ end
 function is_colliding(a::GB.Line, b::GB.HyperSphere, pos_ba)
     closest_point_ba = project(a, b, pos_ba)
     vec = pos_ba .- closest_point_ba
-    return LA.dot(vec, vec) <= b.r  2
+    return LA.dot(vec, vec) <= b.r ^ 2
 end
 
 #####

@@ -3,12 +3,12 @@ get_center(a::GB.HyperSphere) = convert(GB.Vec, a.center)
 get_center(a::GB.HyperRectangle) = convert(GB.Vec, a.origin .+ a.widths ./ 2)
 get_half_widths(a::GB.HyperRectangle) = convert(GB.Vec, a.widths ./ 2)
 get_bottom_left(a::GB.HyperRectangle) = minimum(a)
-get_bottom_right(a::GB.HyperRectangle) = minimum(a) .+ GB.Vec(GB.widths[1], zero(eltype(a.origin)))
+get_bottom_right(a::GB.HyperRectangle{N, T}) where {N, T} = minimum(a) .+ GB.Vec(GB.widths[1], zero(T))
 get_top_right(a::GB.HyperRectangle) = maximum(a)
-get_top_left(a::GB.HyperRectangle) = minimum(a) .+ GB.Vec(zero(eltype(a.origin)), GB.widths[2])
+get_top_left(a::GB.HyperRectangle) = minimum(a) .+ GB.Vec(zero(T), GB.widths[2])
 
-GB.area(a::GB.Rect2D) = prod(a.widths)
-GB.area(a::GB.Circle) = π * a.r * a.r
+get_area(a::GB.Rect2D) = prod(a.widths)
+get_area(a::GB.Circle) = π * a.r * a.r
 function get_area(p1, p2, p3)
     x1 = p1[1]
     y1 = p1[2]
@@ -19,23 +19,19 @@ function get_area(p1, p2, p3)
     return abs(x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2
 end
 
-function get_lines(a::GB.Rect{2, T}) where {T}
-    bottom_left = convert(GB.Point, minimum(a))
-    bottom_right = convert(GB.Point, bottom_left .+ GB.Point(a.widths[1], zero(T)))
-    top_right = convert(GB.Point, maximum(a))
-    top_left = convert(GB.Point, bottom_left .+ GB.Point(zero(T), a.widths[2]))
+function get_edges(a::GB.Rect2D)
+    bottom_left = convert(GB.Point, get_bottom_left(a))
+    bottom_right = convert(GB.Point, get_bottom_right(a))
+    top_right = convert(GB.Point, get_top_right(a))
+    top_left = convert(GB.Point, get_top_left(a))
 
-    l1 = GB.Line(bottom_left, bottom_right)
-    l2 = GB.Line(bottom_right, top_right)
-    l3 = GB.Line(top_right, top_left)
-    l4 = GB.Line(top_left, bottom_left)
-    return (l1, l2, l3, l4)
+    e1 = GB.Line(bottom_left, bottom_right)
+    e2 = GB.Line(bottom_right, top_right)
+    e3 = GB.Line(top_right, top_left)
+    e4 = GB.Line(top_left, bottom_left)
+
+    return (e1, e2, e3, e4)
 end
-
-get_mass(density::Number, shape::GB.GeometryPrimitive{2}) = density * GB.area(shape)
-
-get_inertia(density::Number, shape::GB.Circle) = get_mass(density, shape) * shape.r * shape.r / 2
-get_inertia(density::Number, shape::GB.Rect2D) = get_mass(density, shape) * LA.dot(shape.widths, shape.widths) / 12
 
 function get_vertices(a::GB.Rect, pos, axes)
     half_widths = maximum(a)
