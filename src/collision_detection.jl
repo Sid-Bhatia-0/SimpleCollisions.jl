@@ -185,7 +185,12 @@ function is_colliding(a::GB.Rect, b::GB.HyperSphere, pos_ba)
 end
 
 is_colliding(a::GB.Rect, b::GB.HyperSphere, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
-is_colliding(a::GB.HyperSphere, b::GB.Rect, pos_ba, axes_ba) = is_colliding(b, a, -pos_ba)
+function is_colliding(a::GB.HyperSphere, b::GB.Rect, pos_ba, axes_ba)
+    axes_ab = invert_relative_axes(axes_ba)
+    pos_ab = -rotate(pos_ba, axes_ab)
+    return is_colliding(b, a, pos_ab, axes_ab)
+end
+
 
 #####
 # HyperRectangle vs. HyperRectangle
@@ -201,7 +206,7 @@ function is_penetrating(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
     min_x_ba, max_x_ba = extrema((bottom_left_ba[1], bottom_right_ba[1], top_right_ba[1], top_left_ba[1]))
     min_y_ba, max_y_ba = extrema((bottom_left_ba[2], bottom_right_ba[2], top_right_ba[2], top_left_ba[2]))
 
-    return !((half_width_a <= min_x_ba) || (max_x_ba <= -half_width_a) || (half_height_a <= min_y_ba) || (max_y_ba <= -half_height_a))
+    return !((half_width_a < min_x_ba) || (max_x_ba < -half_width_a) || (half_height_a < min_y_ba) || (max_y_ba < -half_height_a))
 end
 
 is_colliding(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba) = is_penetrating(a, b, pos_ba, axes_ba) || is_penetrating(b, a, -pos_ba, invert_relative_axes(axes_ba))
