@@ -61,7 +61,7 @@ function get_vertices(a::GB.Rect)
     top_right = VecType(half_width, half_height)
     top_left = VecType(-half_width, half_height)
 
-    return (bottom_left, bottom_right, top_left, top_right)
+    return (bottom_left, bottom_right, top_right, top_left)
 end
 
 function get_normals(a::GB.Rect)

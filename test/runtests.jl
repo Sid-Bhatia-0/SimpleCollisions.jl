@@ -37,6 +37,7 @@ end
     @testset "Collision detection" begin
         T = Float32
         origin = zero(GB.Vec2{T})
+        VecType = typeof(origin)
         std_axes = PE2D.Axes{T}()
         rotated_axes = PE2D.Axes(convert(T, π / 6))
         i_cap = PE2D.get_x_cap(std_axes)
@@ -44,6 +45,8 @@ end
         l1 = GB.Line(convert(GB.Point, -i_cap), convert(GB.Point, i_cap))
         l2 = GB.Line(convert(GB.Point, -2 .* i_cap), convert(GB.Point, 2 .* i_cap))
         c1 = GB.HyperSphere(convert(GB.Point, origin), one(T))
+        c2 = GB.HyperSphere(convert(GB.Point, origin), 2 * one(T))
+        r1 = GB.Rect(origin .- VecType(1, 0.5), VecType(2, 1))
 
         @testset "Point2 vs. Point2" begin
             collision_list = [
@@ -264,41 +267,347 @@ end
             test_collision_list(collision_list)
         end
 
-        # @testset "Circle vs. Line segment" begin
-            # collision_list = [(GB.HyperSphere(GB.Point(0, 0), 1), GB.Line(GB.Point(0, 0), GB.Point(1, 0)), true),
-                              # (GB.HyperSphere(GB.Point(0, 0), 1), GB.Line(GB.Point(0, 0), GB.Point(1, 1)), true),
-                              # (GB.HyperSphere(GB.Point(0, 0), 2), GB.Line(GB.Point(1, 1), GB.Point(3, 4)), true),
-                              # (GB.HyperSphere(GB.Point(0, 0), 2), GB.Line(GB.Point(1, -3), GB.Point(1, 4)), true),
-                              # (GB.HyperSphere(GB.Point(0, 0), 2), GB.Line(GB.Point(-3, 3), GB.Point(3, 5)), false),
-                              # (GB.HyperSphere(GB.Point(0, 0), 1), GB.Line(GB.Point(2, 3), GB.Point(3, 4)), false)]
-            # test_collision_list(collision_list)
-        # end
+        @testset "Circle vs. Line segment" begin
+            collision_list = [
+            # std_axes
+            (l1, c2, origin, std_axes, true),
+            (l1, c2, origin, std_axes, true),
 
-        # @testset "Circle vs. Circle" begin
-            # collision_list = [(GB.HyperSphere(GB.Point(0, 0), 1), GB.HyperSphere(GB.Point(0, 0), 1), true),
-                              # (GB.HyperSphere(GB.Point(0, 0), 1), GB.HyperSphere(GB.Point(1, 0), 1), true),
-                              # (GB.HyperSphere(GB.Point(0, 0), 1), GB.HyperSphere(GB.Point(2, 0), 1), true),
-                              # (GB.HyperSphere(GB.Point(0, 0), 1), GB.HyperSphere(GB.Point(3, 0), 1), false)]
-            # test_collision_list(collision_list)
-        # end
+            (l1, c2, -convert(T, 3.01) .* i_cap, std_axes, false),
+            (l1, c2, -convert(T, 3) .* i_cap, std_axes, true),
+            (l1, c2, -convert(T, 2.99) .* i_cap, std_axes, true),
+            (l1, c2, -convert(T, 1.01) .* i_cap, std_axes, true),
+            (l1, c2, convert(T, 1.01) .* i_cap, std_axes, true),
+            (l1, c2, convert(T, 2.99) .* i_cap, std_axes, true),
+            (l1, c2, convert(T, 3) .* i_cap, std_axes, true),
+            (l1, c2, convert(T, 3.01) .* i_cap, std_axes, false),
 
-        # @testset "Rect2D vs. Point2" begin
-            # collision_list = [(GB.Rect(1, 2, 5, 6), GB.Vec(3, 3), true),
-                              # (GB.Rect(1, 2, 5, 6), GB.Vec(1, 3), true),
-                              # (GB.Rect(1, 2, 5, 6), GB.Vec(1, 2), true),
-                              # (GB.Rect(1, 2, 5, 6), GB.Vec(1, 1), false)]
-            # test_collision_list(collision_list)
-        # end
+            (l1, c2, -convert(T, 2.01) .* j_cap, std_axes, false),
+            (l1, c2, -convert(T, 2) .* j_cap, std_axes, true),
+            (l1, c2, -convert(T, 1.99) .* j_cap, std_axes, true),
+            (l1, c2, -convert(T, 1.01) .* j_cap, std_axes, true),
+            (l1, c2, convert(T, 1.01) .* j_cap, std_axes, true),
+            (l1, c2, convert(T, 1.99) .* j_cap, std_axes, true),
+            (l1, c2, convert(T, 2) .* j_cap, std_axes, true),
+            (l1, c2, convert(T, 2.01) .* j_cap, std_axes, false),
 
-        # @testset "Rect2D vs. Line segment" begin
-            # collision_list = [(GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(5, 5)), true),
-                              # (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(2, 0), GB.Point(4, 5)), true),
-                              # (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(2, 3), GB.Point(4, 5)), true),
-                              # (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(1, 1)), false),
-                              # (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(1, 0)), false),
-                              # (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(10, 1)), false)]
-            # test_collision_list(collision_list)
-        # end
+            (l1, c2, i_cap .* j_cap, std_axes, true),
+
+            # rotated_axes
+            (l1, c2, origin, rotated_axes, true),
+            (l1, c2, origin, rotated_axes, true),
+
+            (l1, c2, -convert(T, 3.01) .* i_cap, rotated_axes, false),
+            (l1, c2, -convert(T, 3) .* i_cap, rotated_axes, true),
+            (l1, c2, -convert(T, 2.99) .* i_cap, rotated_axes, true),
+            (l1, c2, -convert(T, 1.01) .* i_cap, rotated_axes, true),
+            (l1, c2, convert(T, 1.01) .* i_cap, rotated_axes, true),
+            (l1, c2, convert(T, 2.99) .* i_cap, rotated_axes, true),
+            (l1, c2, convert(T, 3) .* i_cap, rotated_axes, true),
+            (l1, c2, convert(T, 3.01) .* i_cap, rotated_axes, false),
+
+            (l1, c2, -convert(T, 2.01) .* j_cap, rotated_axes, false),
+            (l1, c2, -convert(T, 2) .* j_cap, rotated_axes, true),
+            (l1, c2, -convert(T, 1.99) .* j_cap, rotated_axes, true),
+            (l1, c2, -convert(T, 1.01) .* j_cap, rotated_axes, true),
+            (l1, c2, convert(T, 1.01) .* j_cap, rotated_axes, true),
+            (l1, c2, convert(T, 1.99) .* j_cap, rotated_axes, true),
+            (l1, c2, convert(T, 2) .* j_cap, rotated_axes, true),
+            (l1, c2, convert(T, 2.01) .* j_cap, rotated_axes, false),
+
+            (l1, c2, i_cap .* j_cap, rotated_axes, true),
+
+            # reverse check with std_axes
+            (c2, l1, origin, std_axes, true),
+            (c2, l1, origin, std_axes, true),
+
+            (c2, l1, -convert(T, 3.01) .* i_cap, std_axes, false),
+            (c2, l1, -convert(T, 3) .* i_cap, std_axes, true),
+            (c2, l1, -convert(T, 2.99) .* i_cap, std_axes, true),
+            (c2, l1, -convert(T, 1.01) .* i_cap, std_axes, true),
+            (c2, l1, convert(T, 1.01) .* i_cap, std_axes, true),
+            (c2, l1, convert(T, 2.99) .* i_cap, std_axes, true),
+            (c2, l1, convert(T, 3) .* i_cap, std_axes, true),
+            (c2, l1, convert(T, 3.01) .* i_cap, std_axes, false),
+
+            (c2, l1, -convert(T, 2.01) .* j_cap, std_axes, false),
+            (c2, l1, -convert(T, 2) .* j_cap, std_axes, true),
+            (c2, l1, -convert(T, 1.99) .* j_cap, std_axes, true),
+            (c2, l1, -convert(T, 1.01) .* j_cap, std_axes, true),
+            (c2, l1, convert(T, 1.01) .* j_cap, std_axes, true),
+            (c2, l1, convert(T, 1.99) .* j_cap, std_axes, true),
+            (c2, l1, convert(T, 2) .* j_cap, std_axes, true),
+            (c2, l1, convert(T, 2.01) .* j_cap, std_axes, false),
+
+            (c2, l1, i_cap .* j_cap, std_axes, true),
+
+            # reverse check with rotated_axes
+            (c2, l1, origin, rotated_axes, true),
+            (c2, l1, origin, rotated_axes, true),
+
+            (c2, l1, -convert(T, 3.01) .* i_cap, rotated_axes, false),
+            (c2, l1, -convert(T, 3) .* i_cap, rotated_axes, false),
+            (c2, l1, convert(T, 3) .* i_cap, rotated_axes, false),
+            (c2, l1, convert(T, 3.01) .* i_cap, rotated_axes, false),
+
+            (c2, l1, -convert(T, 2.01) .* j_cap, rotated_axes, true),
+            (c2, l1, -convert(T, 2) .* j_cap, rotated_axes, true),
+            (c2, l1, -convert(T, 1.99) .* j_cap, rotated_axes, true),
+            (c2, l1, -convert(T, 1.01) .* j_cap, rotated_axes, true),
+            (c2, l1, convert(T, 1.01) .* j_cap, rotated_axes, true),
+            (c2, l1, convert(T, 1.99) .* j_cap, rotated_axes, true),
+            (c2, l1, convert(T, 2) .* j_cap, rotated_axes, true),
+            (c2, l1, convert(T, 2.01) .* j_cap, rotated_axes, true),
+
+            (c2, l1, convert(T, 1.5 * sqrt(3) - 0.01) .* i_cap .+ convert(T, 1.5 - 0.01) .* j_cap, rotated_axes, true),
+            (c2, l1, convert(T, 1.5 * sqrt(3)) .* i_cap .+ convert(T, 1.5) .* j_cap, rotated_axes, true),
+            (c2, l1, convert(T, 1.5 * sqrt(3) + 0.01) .* i_cap .+ convert(T, 1.5 + 0.01) .* j_cap, rotated_axes, false),
+            ]
+
+            test_collision_list(collision_list)
+        end
+
+        @testset "Circle vs. Circle" begin
+            collision_list = [
+            # std_axes
+            (c1, c2, origin, std_axes, true),
+            (c1, c2, convert(T, 2) .* i_cap, std_axes, true),
+
+            (c1, c2, -convert(T, 3.01) .* i_cap, std_axes, false),
+            (c1, c2, -convert(T, 3) .* i_cap, std_axes, true),
+            (c1, c2, -convert(T, 2.99) .* i_cap, std_axes, true),
+            (c1, c2, -convert(T, 1.01) .* i_cap, std_axes, true),
+            (c1, c2, convert(T, 1.01) .* i_cap, std_axes, true),
+            (c1, c2, convert(T, 2.99) .* i_cap, std_axes, true),
+            (c1, c2, convert(T, 3) .* i_cap, std_axes, true),
+            (c1, c2, convert(T, 3.01) .* i_cap, std_axes, false),
+
+            (c1, c2, -convert(T, 3.01) .* j_cap, std_axes, false),
+            (c1, c2, -convert(T, 3) .* j_cap, std_axes, true),
+            (c1, c2, -convert(T, 2.99) .* j_cap, std_axes, true),
+            (c1, c2, -convert(T, 1.01) .* j_cap, std_axes, true),
+            (c1, c2, convert(T, 1.01) .* j_cap, std_axes, true),
+            (c1, c2, convert(T, 2.99) .* j_cap, std_axes, true),
+            (c1, c2, convert(T, 3) .* j_cap, std_axes, true),
+            (c1, c2, convert(T, 3.01) .* j_cap, std_axes, false),
+
+            (c1, c2, convert(T, 3 / sqrt(2) - 0.01) .* i_cap .+ convert(T, 3 / sqrt(2) - 0.01) .* j_cap, std_axes, true),
+            (c1, c2, convert(T, 3 / sqrt(2)) .* i_cap .+ convert(T, 3 / sqrt(2)) .* j_cap, std_axes, true),
+            (c1, c2, convert(T, 3 / sqrt(2) + 0.01) .* i_cap .+ convert(T, 3 / sqrt(2) + 0.01) .* j_cap, std_axes, false),
+
+            # rotated_axes
+            (c1, c2, origin, rotated_axes, true),
+            (c1, c2, convert(T, 2) .* i_cap, rotated_axes, true),
+
+            (c1, c2, -convert(T, 3.01) .* i_cap, rotated_axes, false),
+            (c1, c2, -convert(T, 3) .* i_cap, rotated_axes, true),
+            (c1, c2, -convert(T, 2.99) .* i_cap, rotated_axes, true),
+            (c1, c2, -convert(T, 1.01) .* i_cap, rotated_axes, true),
+            (c1, c2, convert(T, 1.01) .* i_cap, rotated_axes, true),
+            (c1, c2, convert(T, 2.99) .* i_cap, rotated_axes, true),
+            (c1, c2, convert(T, 3) .* i_cap, rotated_axes, true),
+            (c1, c2, convert(T, 3.01) .* i_cap, rotated_axes, false),
+
+            (c1, c2, -convert(T, 3.01) .* j_cap, rotated_axes, false),
+            (c1, c2, -convert(T, 3) .* j_cap, rotated_axes, true),
+            (c1, c2, -convert(T, 2.99) .* j_cap, rotated_axes, true),
+            (c1, c2, -convert(T, 1.01) .* j_cap, rotated_axes, true),
+            (c1, c2, convert(T, 1.01) .* j_cap, rotated_axes, true),
+            (c1, c2, convert(T, 2.99) .* j_cap, rotated_axes, true),
+            (c1, c2, convert(T, 3) .* j_cap, rotated_axes, true),
+            (c1, c2, convert(T, 3.01) .* j_cap, rotated_axes, false),
+
+            (c1, c2, convert(T, 3 / sqrt(2) - 0.01) .* i_cap .+ convert(T, 3 / sqrt(2) - 0.01) .* j_cap, rotated_axes, true),
+            (c1, c2, convert(T, 3 / sqrt(2)) .* i_cap .+ convert(T, 3 / sqrt(2)) .* j_cap, rotated_axes, true),
+            (c1, c2, convert(T, 3 / sqrt(2) + 0.01) .* i_cap .+ convert(T, 3 / sqrt(2) + 0.01) .* j_cap, rotated_axes, false),
+            ]
+
+            test_collision_list(collision_list)
+        end
+
+        @testset "Rect2D vs. Point2" begin
+            collision_list = [
+            # std_axes
+            (r1, origin, origin, std_axes, true),
+
+            (r1, origin, -convert(T, 1.01) .* i_cap, std_axes, false),
+            (r1, origin, -i_cap, std_axes, true),
+            (r1, origin, -convert(T, 0.99) .* i_cap, std_axes, true),
+            (r1, origin, convert(T, 0.99) .* i_cap, std_axes, true),
+            (r1, origin, i_cap, std_axes, true),
+            (r1, origin, convert(T, 1.01) .* i_cap, std_axes, false),
+
+            (r1, origin, -convert(T, 0.51) .* j_cap, std_axes, false),
+            (r1, origin, -convert(T, 0.50) .* j_cap, std_axes, true),
+            (r1, origin, -convert(T, 0.49) .* j_cap, std_axes, true),
+            (r1, origin, convert(T, 0.49) .* j_cap, std_axes, true),
+            (r1, origin, convert(T, 0.50) .* j_cap, std_axes, true),
+            (r1, origin, convert(T, 0.51) .* j_cap, std_axes, false),
+
+            (r1, origin, maximum(r1) .- 0.01, std_axes, true),
+            (r1, origin, maximum(r1), std_axes, true),
+            (r1, origin, maximum(r1) .+ 0.01, std_axes, false),
+
+            # rotated_axes
+            (r1, origin, origin, rotated_axes, true),
+
+            (r1, origin, -convert(T, 1.01) .* i_cap, rotated_axes, false),
+            (r1, origin, -i_cap, rotated_axes, true),
+            (r1, origin, -convert(T, 0.99) .* i_cap, rotated_axes, true),
+            (r1, origin, convert(T, 0.99) .* i_cap, rotated_axes, true),
+            (r1, origin, i_cap, rotated_axes, true),
+            (r1, origin, convert(T, 1.01) .* i_cap, rotated_axes, false),
+
+            (r1, origin, -convert(T, 0.51) .* j_cap, rotated_axes, false),
+            (r1, origin, -convert(T, 0.50) .* j_cap, rotated_axes, true),
+            (r1, origin, -convert(T, 0.49) .* j_cap, rotated_axes, true),
+            (r1, origin, convert(T, 0.49) .* j_cap, rotated_axes, true),
+            (r1, origin, convert(T, 0.50) .* j_cap, rotated_axes, true),
+            (r1, origin, convert(T, 0.51) .* j_cap, rotated_axes, false),
+
+            (r1, origin, maximum(r1) .- 0.01, rotated_axes, true),
+            (r1, origin, maximum(r1), rotated_axes, true),
+            (r1, origin, maximum(r1) .+ 0.01, rotated_axes, false),
+
+            # reverse check with std_axes
+            (origin, r1, origin, std_axes, true),
+
+            (origin, r1, -convert(T, 1.01) .* i_cap, std_axes, false),
+            (origin, r1, -i_cap, std_axes, true),
+            (origin, r1, -convert(T, 0.99) .* i_cap, std_axes, true),
+            (origin, r1, convert(T, 0.99) .* i_cap, std_axes, true),
+            (origin, r1, i_cap, std_axes, true),
+            (origin, r1, convert(T, 1.01) .* i_cap, std_axes, false),
+
+            (origin, r1, -convert(T, 0.51) .* j_cap, std_axes, false),
+            (origin, r1, -convert(T, 0.50) .* j_cap, std_axes, true),
+            (origin, r1, -convert(T, 0.49) .* j_cap, std_axes, true),
+            (origin, r1, convert(T, 0.49) .* j_cap, std_axes, true),
+            (origin, r1, convert(T, 0.50) .* j_cap, std_axes, true),
+            (origin, r1, convert(T, 0.51) .* j_cap, std_axes, false),
+
+            (origin, r1, maximum(r1) .- 0.01, std_axes, true),
+            (origin, r1, maximum(r1), std_axes, true),
+            (origin, r1, maximum(r1) .+ 0.01, std_axes, false),
+
+            # reverse check with rotated_axes
+            (origin, r1, origin, rotated_axes, true),
+
+            (origin, r1, -convert(T, 1.01) .* i_cap, rotated_axes, false),
+            (origin, r1, -i_cap, rotated_axes, true),
+            (origin, r1, -convert(T, 0.99) .* i_cap, rotated_axes, true),
+            (origin, r1, convert(T, 0.99) .* i_cap, rotated_axes, true),
+            (origin, r1, i_cap, rotated_axes, true),
+            (origin, r1, convert(T, 1.01) .* i_cap, rotated_axes, false),
+
+            (origin, r1, -convert(T, 1 / sqrt(3) + 0.01) .* j_cap, rotated_axes, false),
+            (origin, r1, -convert(T, 1 / sqrt(3)) .* j_cap, rotated_axes, true),
+            (origin, r1, -convert(T, 1 / sqrt(3) - 0.01) .* j_cap, rotated_axes, true),
+            (origin, r1, convert(T, 1 / sqrt(3) - 0.01) .* j_cap, rotated_axes, true),
+            (origin, r1, convert(T, 1 / sqrt(3)) .* j_cap, rotated_axes, true),
+            (origin, r1, convert(T, 1 / sqrt(3) + 0.01) .* j_cap, rotated_axes, false),
+
+            (origin, r1, PE2D.rotate(PE2D.get_vertices(r1)[1], rotated_axes) .- 0.01, rotated_axes, false),
+            (origin, r1, PE2D.rotate(PE2D.get_vertices(r1)[1], rotated_axes), rotated_axes, true),
+            (origin, r1, PE2D.rotate(PE2D.get_vertices(r1)[1], rotated_axes) .+ 0.01, rotated_axes, true),
+            ]
+
+            test_collision_list(collision_list)
+        end
+
+        @testset "Rect2D vs. Line segment" begin
+            collision_list = [
+            # std_axes
+            (r1, l1, origin, std_axes, true),
+            (r1, l2, origin, std_axes, true),
+
+            (r1, l1, -convert(T, 2.01) .* i_cap, std_axes, false),
+            (r1, l1, -convert(T, 2) .* i_cap, std_axes, true),
+            (r1, l1, -convert(T, 1.99) .* i_cap, std_axes, true),
+            (r1, l1, convert(T, 1.99) .* i_cap, std_axes, true),
+            (r1, l1, convert(T, 2) .* i_cap, std_axes, true),
+            (r1, l1, convert(T, 2.01) .* i_cap, std_axes, false),
+
+            (r1, l1, -convert(T, 0.51) .* j_cap, std_axes, false),
+            (r1, l1, -convert(T, 0.50) .* j_cap, std_axes, true),
+            (r1, l1, -convert(T, 0.49) .* j_cap, std_axes, true),
+            (r1, l1, convert(T, 0.49) .* j_cap, std_axes, true),
+            (r1, l1, convert(T, 0.50) .* j_cap, std_axes, true),
+            (r1, l1, convert(T, 0.51) .* j_cap, std_axes, false),
+
+            (r1, l1, maximum(r1) .- 0.01, std_axes, true),
+            (r1, l1, maximum(r1), std_axes, true),
+            (r1, l1, maximum(r1) .+ 0.01, std_axes, false),
+
+            # rotated_axes
+            (r1, l1, origin, rotated_axes, true),
+            (r1, l2, origin, rotated_axes, true),
+
+            (r1, l1, -convert(T, 2.01) .* i_cap, rotated_axes, false),
+            (r1, l1, -convert(T, 2) .* i_cap, rotated_axes, false),
+            (r1, l1, -convert(T, 1.99) .* i_cap, rotated_axes, false),
+            (r1, l1, convert(T, 2.01) .* i_cap, rotated_axes, false),
+            (r1, l1, convert(T, 2) .* i_cap, rotated_axes, false),
+            (r1, l1, convert(T, 1.99) .* i_cap, rotated_axes, false),
+
+            (r1, l1, -convert(T, 0.51) .* j_cap, rotated_axes, true),
+            (r1, l1, -convert(T, 0.50) .* j_cap, rotated_axes, true),
+            (r1, l1, -convert(T, 0.49) .* j_cap, rotated_axes, true),
+            (r1, l1, convert(T, 0.49) .* j_cap, rotated_axes, true),
+            (r1, l1, convert(T, 0.50) .* j_cap, rotated_axes, true),
+            (r1, l1, convert(T, 0.51) .* j_cap, rotated_axes, true),
+
+            (r1, l1, maximum(r1) .- 0.01, rotated_axes, true),
+            (r1, l1, maximum(r1), rotated_axes, true),
+            (r1, l1, maximum(r1) .+ 0.01, rotated_axes, true),
+
+            # reverse check with std_axes
+            (r1, l1, origin, std_axes, true),
+            (r1, l2, origin, std_axes, true),
+
+            (r1, l1, -convert(T, 2.01) .* i_cap, std_axes, false),
+            (r1, l1, -convert(T, 2) .* i_cap, std_axes, true),
+            (r1, l1, -convert(T, 1.99) .* i_cap, std_axes, true),
+            (r1, l1, convert(T, 1.99) .* i_cap, std_axes, true),
+            (r1, l1, convert(T, 2) .* i_cap, std_axes, true),
+            (r1, l1, convert(T, 2.01) .* i_cap, std_axes, false),
+
+            (r1, l1, -convert(T, 0.51) .* j_cap, std_axes, false),
+            (r1, l1, -convert(T, 0.50) .* j_cap, std_axes, true),
+            (r1, l1, -convert(T, 0.49) .* j_cap, std_axes, true),
+            (r1, l1, convert(T, 0.49) .* j_cap, std_axes, true),
+            (r1, l1, convert(T, 0.50) .* j_cap, std_axes, true),
+            (r1, l1, convert(T, 0.51) .* j_cap, std_axes, false),
+
+            (r1, l1, maximum(r1) .- 0.01, std_axes, true),
+            (r1, l1, maximum(r1), std_axes, true),
+            (r1, l1, maximum(r1) .+ 0.01, std_axes, false),
+
+            # reverse check with rotated_axes
+            (l1, r1, origin, rotated_axes, true),
+            (l2, r1, origin, rotated_axes, true),
+
+            (l1, r1, -convert(T, 2.01) .* i_cap, rotated_axes, false),
+            (l1, r1, -convert(T, 2) .* i_cap, rotated_axes, true),
+            (l1, r1, -convert(T, 1.99) .* i_cap, rotated_axes, true),
+            (l1, r1, convert(T, 1.99) .* i_cap, rotated_axes, true),
+            (l1, r1, convert(T, 2) .* i_cap, rotated_axes, true),
+            (l1, r1, convert(T, 2.01) .* i_cap, rotated_axes, false),
+
+            (l1, r1, -convert(T, 0.51) .* j_cap, rotated_axes, true),
+            (l1, r1, -convert(T, 0.50) .* j_cap, rotated_axes, true),
+            (l1, r1, -convert(T, 0.49) .* j_cap, rotated_axes, true),
+            (l1, r1, convert(T, 0.49) .* j_cap, rotated_axes, true),
+            (l1, r1, convert(T, 0.50) .* j_cap, rotated_axes, true),
+            (l1, r1, convert(T, 0.51) .* j_cap, rotated_axes, true),
+
+            (l1, r1, maximum(r1) .- 0.01, rotated_axes, true),
+            (l1, r1, maximum(r1), rotated_axes, true),
+            (l1, r1, maximum(r1) .+ 0.01, rotated_axes, true),
+            ]
+
+            test_collision_list(collision_list)
+        end
 
         # @testset "Rect2D vs. Circle" begin
             # collision_list = [(GB.Rect(1, 2, 5, 6), GB.HyperSphere(GB.Point(3, 3), 1), true),

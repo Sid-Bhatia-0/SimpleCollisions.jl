@@ -84,7 +84,11 @@ is_colliding(a::GB.Vec, b::GB.HyperSphere, pos_ba, axes_ba) = is_colliding(b, a,
 # HyperSphere vs. Line
 #####
 
-is_colliding(a::GB.HyperSphere, b::GB.Line, pos_ba, axes_ba) = is_colliding(b, a, -position_ba, get_reverse_direction(direction_ba))
+function is_colliding(a::GB.HyperSphere, b::GB.Line, pos_ba, axes_ba)
+    axes_ab = invert_relative_axes(axes_ba)
+    pos_ab = -rotate(pos_ba, axes_ab)
+    is_colliding(b, a, pos_ab, axes_ab)
+end
 
 is_colliding(a::GB.Line, b::GB.HyperSphere, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
 
@@ -118,46 +122,55 @@ is_colliding(a::GB.HyperSphere, b::GB.HyperSphere, pos_ba, axes_ba) = is_collidi
 # HyperRectangle vs. Point
 #####
 
-is_colliding(a::GB.Rect, b::GB.Vec, pos_ba) = minimum(a) <= pos_ba <= maximum(a)
+is_colliding(a::GB.Rect, b::GB.Vec, pos_ba) = all(minimum(a) .<= pos_ba .<= maximum(a))
 is_colliding(a::GB.Rect, b::GB.Vec, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
-is_colliding(a::GB.Vec, b::GB.Rect, pos_ba, axes_ba) = is_colliding(b, a, -pos_ba)
+function is_colliding(a::GB.Vec, b::GB.Rect, pos_ba, axes_ba)
+    axes_ab = invert_relative_axes(axes_ba)
+    pos_ab = -rotate(pos_ba, axes_ab)
+    return is_colliding(b, a, pos_ab, axes_ab)
+end
 
 #####
 # HyperRectangle vs. Line
 #####
 
 function is_colliding(a::GB.Rect, b::GB.Line, pos_ba, axes_ba)
-    if is_colliding(a, get_point(b, 1)) || is_colliding(a, get_point(b, 2))
+    origin = zero(a.origin)
+    half_width_b = get_point(b, 2)[1]
+    x_cap_ba = get_x_cap(axes_ba)
+    q1 = pos_ba .+ half_width_b .* x_cap_ba
+    q2 = pos_ba .- half_width_b .* x_cap_ba
+
+    if is_colliding(a, origin, q1) || is_colliding(a, origin, q2)
         return true
     else
         half_widths_a = get_half_widths(a)
         half_width_a = half_widths_a[1]
         half_height_a = half_widths_a[2]
 
-        half_width_b = get_point(b, 2)[1]
-        x_cap_ba = get_x_cap(axes_ba)
-        q1 = pos_ba .+ half_width_b .* x_cap_ba
-        q2 = pos_ba .- half_width_b .* x_cap_ba
-
         PointType = typeof(b.points[1])
-        VecType = typeof(position_ba)
+        VecType = typeof(pos_ba)
 
         x_ba = pos_ba[1]
         y_ba = pos_ba[2]
 
         zero_val = zero(half_width_a)
         horizontal_line = GB.Line(PointType(-half_width_a, zero_val), PointType(half_width_a, zero_val))
-        vertical_line = GB.Line(PointType(-half_height, zero_val), PointType(half_height_a, zero_val))
+        vertical_line = GB.Line(PointType(-half_height_a, zero_val), PointType(half_height_a, zero_val))
 
         axis_ba_minus_90 = rotate_minus_90(axes_ba)
-        return any([is_colliding(horizontal_line, b, VecType(x_ba, y_ba + half_height), axes_ba),
+        return any([is_colliding(horizontal_line, b, VecType(x_ba, y_ba + half_height_a), axes_ba),
                     is_colliding(vertical_line, b, VecType(y_ba, half_width_a - x_ba), axis_ba_minus_90),
-                    is_colliding(horizontal_line, b, VecType(x_ba, y_ba - half_height), axes_ba),
+                    is_colliding(horizontal_line, b, VecType(x_ba, y_ba - half_height_a), axes_ba),
                     is_colliding(vertical_line, b, VecType(y_ba, - half_width_a - x_ba), axis_ba_minus_90)])
     end
 end
 
-is_colliding(a::GB.Line, b::GB.Rect, pos_ba, axes_ba) = is_colliding(b, a, -pos_ba, invert_relative_axes(axes_ba))
+function is_colliding(a::GB.Line, b::GB.Rect, pos_ba, axes_ba)
+    axes_ab = invert_relative_axes(axes_ba)
+    pos_ab = -rotate(pos_ba, axes_ab)
+    return is_colliding(b, a, pos_ab, axes_ab)
+end
 
 #####
 # HyperRectangle vs. HyperSphere
