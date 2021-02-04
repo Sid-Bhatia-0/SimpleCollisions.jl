@@ -48,11 +48,15 @@ function Manifold(a::GB.HyperSphere, b::GB.HyperSphere, pos_ba)
     else
         penetration = a.r + b.r
         T = eltype(pos_ba)
-        axes = Axes{T}()
-        contact = zero(pos_ba)
-        return Manifold(penetration, normal, contact)
+        axes = rotate_minus_90(Axes{T}())
+        tangent = get_x_cap(axes)
+        normal = get_y_cap(axes)
+        contact = (a.r - penetration / 2) .* normal
+        return Manifold(penetration, axes, contact)
     end
 end
+
+Manifold(a::GB.HyperSphere, b::GB.HyperSphere, pos_ba, axes_ba) = Manifold(a, b, pos_ba)
 
 #####
 # HyperRectangle vs. HyperSphere

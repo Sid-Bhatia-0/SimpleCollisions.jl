@@ -8,64 +8,78 @@ using Test
 
 function test_collision_list(collision_list)
     for (a, b, pos_ba, axes_ba, value) in collision_list
-        @show a, b, pos_ba, axes_ba, value
         @test PE2D.is_colliding(a, b, pos_ba, axes_ba) == value
     end
 end
 
 function test_manifold_list(manifold_list)
-    for (a, b, value) in manifold_list
-        manifold = PE2D.Manifold(a, b)
-        @test manifold.penetration ≈ value.penetration
-        @test manifold.normal ≈ value.normal
+    for (a, b, pos_ba, axes_ba, value) in manifold_list
+        manifold_ba = PE2D.Manifold(a, b, pos_ba, axes_ba)
+
+        @show a
+        @show b
+        @show pos_ba
+        @show axes_ba
+        @show manifold_ba
+
+        @test PE2D.get_penetration(manifold_ba) ≈ PE2D.get_penetration(value)
+        @test PE2D.get_normal(manifold_ba) ≈ PE2D.get_normal(value)
+        @test PE2D.get_tangent(manifold_ba) ≈ PE2D.get_tangent(value)
+        @test PE2D.get_contact(manifold_ba) ≈ PE2D.get_contact(value)
     end
 end
 
 @testset "PhysicsEngine2D.jl" begin
+    T = Float32
+    penetration = 0.01
+
+    origin = zero(GB.Vec2{T})
+    VecType = typeof(origin)
+
+    std_axes = PE2D.Axes{T}()
+    i_cap = PE2D.get_x_cap(std_axes)
+    j_cap = PE2D.get_y_cap(std_axes)
+
+    theta = convert(T, π / 6)
+    rotated_axes = PE2D.Axes(theta)
+
+    l1 = GB.Line(convert(GB.Point, -i_cap), convert(GB.Point, i_cap))
+    p1_l1 = PE2D.get_point(l1, 1)
+    p2_l1 = PE2D.get_point(l1, 2)
+
+    l2 = GB.Line(convert(GB.Point, -2 .* i_cap), convert(GB.Point, 2 .* i_cap))
+    p1_l2 = PE2D.get_point(l2, 1)
+    p2_l2 = PE2D.get_point(l2, 2)
+
+    c1 = GB.HyperSphere(convert(GB.Point, origin), one(T))
+    r_c1 = c1.r
+
+    c2 = GB.HyperSphere(convert(GB.Point, origin), 2 * one(T))
+    r_c2 = c2.r
+
+    r1 = GB.Rect(origin .- VecType(1, 0.5), VecType(2, 1))
+    top_right_r1 = PE2D.get_top_right(r1)
+    half_width_r1 = top_right_r1[1]
+    half_height_r1 = top_right_r1[2]
+    theta_r1 = atan(half_height_r1, half_width_r1)
+
+    r2 = GB.Rect(origin .- VecType(2, 1), VecType(4, 2))
+    top_right_r2 = PE2D.get_top_right(r2)
+    half_width_r2 = top_right_r2[1]
+    half_height_r2 = top_right_r2[2]
+    theta_r2 = atan(half_height_r2, half_width_r2)
+
     @testset "Area computation" begin
         @testset "Rect2D" begin
-            a = GB.Rect(1, 2, 3, 4)
-            @test PE2D.get_area(a) == 12
+            @test PE2D.get_area(GB.Rect(1, 2, 3, 4)) == 12
         end
 
         @testset "Circle" begin
-            a = GB.HyperSphere(GB.Point(0, 0), 1)
-            @test PE2D.get_area(a) ≈ π
+            @test PE2D.get_area(GB.HyperSphere(GB.Point(0, 0), 1)) ≈ π
         end
     end
 
     @testset "Collision detection" begin
-        T = Float32
-        origin = zero(GB.Vec2{T})
-        VecType = typeof(origin)
-        std_axes = PE2D.Axes{T}()
-
-        penetration = 0.01
-
-        theta = convert(T, π / 6)
-        rotated_axes = PE2D.Axes(theta)
-
-        i_cap = PE2D.get_x_cap(std_axes)
-        j_cap = PE2D.get_y_cap(std_axes)
-
-        l1 = GB.Line(convert(GB.Point, -i_cap), convert(GB.Point, i_cap))
-        l2 = GB.Line(convert(GB.Point, -2 .* i_cap), convert(GB.Point, 2 .* i_cap))
-
-        c1 = GB.HyperSphere(convert(GB.Point, origin), one(T))
-        c2 = GB.HyperSphere(convert(GB.Point, origin), 2 * one(T))
-
-        r1 = GB.Rect(origin .- VecType(1, 0.5), VecType(2, 1))
-        top_right_r1 = PE2D.get_top_right(r1)
-        half_width_r1 = top_right_r1[1]
-        half_height_r1 = top_right_r1[2]
-        theta_r1 = atan(half_height_r1, half_width_r1)
-
-        r2 = GB.Rect(origin .- VecType(2, 1), VecType(4, 2))
-        top_right_r2 = PE2D.get_top_right(r2)
-        half_width_r2 = top_right_r2[1]
-        half_height_r2 = top_right_r2[2]
-        theta_r2 = atan(half_height_r2, half_width_r2)
-
         @testset "Point2 vs. Point2" begin
             collision_list = [
             # std_axes
@@ -768,13 +782,36 @@ end
         end
     end
 
-    # @testset "Manifold generation" begin
-        # @testset "Circle vs. Circle" begin
-            # manifold_list = [(GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 2.0f0), PE2D.Manifold(3.0f0, GB.Vec(1.0f0, 0.0f0), GB.Vec(0.0f0, 0.0f0))),
-                             # (GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 1.0f0), 1.0f0), PE2D.Manifold(1.0f0, GB.Vec(0.0f0, 1.0f0), GB.Vec(0.0f0, 0.5f0))),
-                             # (GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 2.0f0), 1.0f0), PE2D.Manifold(0.0f0, GB.Vec(0.0f0, 1.0f0), GB.Vec(0.0f0, 1.0f0)))]
-            # test_manifold_list(manifold_list)
-        # end
+    @testset "Manifold generation" begin
+        @testset "Circle vs. Circle" begin
+            manifold_list = [
+            # std_axes
+            (c1, c2, origin, std_axes, PE2D.Manifold(r_c1 + r_c2, PE2D.rotate_minus_90(std_axes), (r_c1 - (r_c1 + r_c2) / 2) .* i_cap)),
+
+            (c1, c2, r_c1 * i_cap, std_axes, PE2D.Manifold(r_c2, PE2D.rotate_minus_90(std_axes), (r_c1 - r_c2 / 2) .* i_cap)),
+            (c1, c2, r_c2 * i_cap, std_axes, PE2D.Manifold(r_c1, PE2D.rotate_minus_90(std_axes), (r_c1 - r_c1 / 2) .* i_cap)),
+
+            (c1, c2, r_c1 * j_cap, std_axes, PE2D.Manifold(r_c2, std_axes, (r_c1 - r_c2 / 2) .* j_cap)),
+            (c1, c2, r_c2 * j_cap, std_axes, PE2D.Manifold(r_c1, std_axes, (r_c1 - r_c1 / 2) .* j_cap)),
+
+            (c1, c2, r_c1 .* (i_cap .+ j_cap) ./ convert(T, sqrt(2)), std_axes, PE2D.Manifold(r_c2, PE2D.Axes(convert(T, -pi / 4)), (r_c1 - r_c2 / 2) .* (i_cap .+ j_cap) ./ convert(T, sqrt(2)))),
+            (c1, c2, r_c2 .* (i_cap .+ j_cap) ./ convert(T, sqrt(2)), std_axes, PE2D.Manifold(r_c1, PE2D.Axes(convert(T, -pi / 4)), (r_c1 - r_c1 / 2) .* (i_cap .+ j_cap) ./ convert(T, sqrt(2)))),
+
+            # rotated_axes
+            (c1, c2, origin, rotated_axes, PE2D.Manifold(r_c1 + r_c2, PE2D.rotate_minus_90(std_axes), (r_c1 - (r_c1 + r_c2) / 2) .* i_cap)),
+
+            (c1, c2, r_c1 * i_cap, rotated_axes, PE2D.Manifold(r_c2, PE2D.rotate_minus_90(std_axes), (r_c1 - r_c2 / 2) .* i_cap)),
+            (c1, c2, r_c2 * i_cap, rotated_axes, PE2D.Manifold(r_c1, PE2D.rotate_minus_90(std_axes), (r_c1 - r_c1 / 2) .* i_cap)),
+
+            (c1, c2, r_c1 * j_cap, rotated_axes, PE2D.Manifold(r_c2, std_axes, (r_c1 - r_c2 / 2) .* j_cap)),
+            (c1, c2, r_c2 * j_cap, rotated_axes, PE2D.Manifold(r_c1, std_axes, (r_c1 - r_c1 / 2) .* j_cap)),
+
+            (c1, c2, r_c1 .* (i_cap .+ j_cap) ./ convert(T, sqrt(2)), rotated_axes, PE2D.Manifold(r_c2, PE2D.Axes(convert(T, -pi / 4)), (r_c1 - r_c2 / 2) .* (i_cap .+ j_cap) ./ convert(T, sqrt(2)))),
+            (c1, c2, r_c2 .* (i_cap .+ j_cap) ./ convert(T, sqrt(2)), rotated_axes, PE2D.Manifold(r_c1, PE2D.Axes(convert(T, -pi / 4)), (r_c1 - r_c1 / 2) .* (i_cap .+ j_cap) ./ convert(T, sqrt(2)))),
+            ]
+
+            test_manifold_list(manifold_list)
+        end
 
         # @testset "Rect2D vs. Circle" begin
             # manifold_list = [(GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperSphere(GB.Point(0.5f0, 1.75f0), 1.0f0), PE2D.Manifold(1.0f0 - sqrt(0.5f0^2 + 0.25f0^2), LA.normalize(GB.Vec(-0.5f0, -0.25f0)), GB.Vec(1.0f0, 2.0f0))),
@@ -790,7 +827,7 @@ end
                              # (GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(2.0f0, 0.0f0, 5.0f0, 2.0f0), PE2D.Manifold(0.0f0, GB.Vec(0.0f0, -1.0f0), GB.Vec(3.0f0, 2.0f0)))]
             # test_manifold_list(manifold_list)
         # end
-    # end
+    end
 
     # @testset "Simulation: frictionless collision of rotating circles" begin
         # T = Float32
