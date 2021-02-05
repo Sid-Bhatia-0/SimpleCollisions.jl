@@ -65,8 +65,15 @@ function get_vertices(a::GB.Rect)
 end
 
 function get_normals(a::GB.Rect)
-    VecType = typeof(a.origin)
-    x_cap = GB.unit(VecType, 1)
-    y_cap = GB.unit(VecType, 2)
+    T = eltype(a.origin)
+    axes = Axes{T}()
+    x_cap = get_x_cap(axes)
+    y_cap = get_y_cap(axes)
+    return (-y_cap, x_cap, y_cap, -x_cap)
+end
+
+function get_normals(a::GB.Rect, pos, axes)
+    x_cap = get_x_cap(axes)
+    y_cap = get_y_cap(axes)
     return (-y_cap, x_cap, y_cap, -x_cap)
 end

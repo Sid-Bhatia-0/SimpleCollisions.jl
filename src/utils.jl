@@ -22,7 +22,7 @@ function Base.findmax(f::Function, itr)
 
     for (idx, element) in enumerate(itr)
         f_value = f(element)
-        if f_value > min_f_value
+        if f_value > max_f_value
             max_f_value = f_value
             max_element = element
             max_idx = idx

@@ -62,9 +62,9 @@ Manifold(a::GB.HyperSphere, b::GB.HyperSphere, pos_ba, axes_ba) = Manifold(a, b,
 # HyperRectangle vs. HyperSphere
 #####
 
-function project_edge(a::GB.HyperRectangle{N}, b::GB.Vec{N}) where {N}
-    bottom_left = minimum(a)
-    top_right = maximum(a)
+function project_from_inside(a::GB.HyperRectangle{N}, b::GB.Vec{N}) where {N}
+    bottom_left = get_bottom_left(a)
+    top_right = get_top_right(a)
     min_dist = Inf
     min_dist_dim = 0
     min_dist_dir = 0
@@ -81,7 +81,7 @@ function project_edge(a::GB.HyperRectangle{N}, b::GB.Vec{N}) where {N}
     return (min_dist, min_dist_dim, min_dist_dir)
 end
 
-function Manifold(a::GB.Rect, b::GB.HyperSphere, pos_ba)
+function Manifold(a::GB.Rect, b::GB.HyperSphere, pos_ba::GB.Vec)
     closest_point_ba = project(a, b, pos_ba)
     vec = pos_ba .- closest_point_ba
     normal = LA.normalize(vec)
@@ -90,18 +90,20 @@ function Manifold(a::GB.Rect, b::GB.HyperSphere, pos_ba)
         penetration = b.r - d
         tangent = rotate_minus_90(normal)
         axes = Axes(tangent, normal)
-        contact = pos_ba .+ (a.r - penetration / 2) .* -normal
+        contact = pos_ba .+ (b.r - penetration / 2) .* -normal
         return Manifold(penetration, axes, contact)
     else
-        dist, dim, dir = project_edge(a, pos_ba)
+        dist, dim, dir = project_from_inside(a, pos_ba)
         penetration = b.r + dist
         normal = dir * GB.unit(typeof(pos_ba), dim)
         tangent = rotate_minus_90(normal)
         axes = Axes(tangent, normal)
-        contact = pos_ba .+ (a.r - penetration / 2) .* -normal
+        contact = pos_ba .+ (b.r - penetration / 2) .* -normal
         return Manifold(penetration, axes, contact)
     end
 end
+
+Manifold(a::GB.Rect, b::GB.HyperSphere, pos_ba, axes_ba) = Manifold(a, b, pos_ba)
 
 function Manifold(a::GB.HyperSphere, b::GB.Rect, pos_ba, axes_ba)
     manifold_ab = Manifold(b, a, -pos_ba)
@@ -132,15 +134,15 @@ function get_candidate_support(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
     max_value_4, max_vertex_4, max_vertex_id_4 = findmax(vertex -> vertex[1], vertices_ba)
     max_penetration_4 = half_width_a + max_value_4
 
-    max_penetration, candidate_support, edge_id = findmin(x -> x[1], ((max_penetration_1, max_vertex_1, max_vertex_id_1),
+    max_penetration, candidate_support, max_edge_id = findmin(x -> x[1], ((max_penetration_1, max_vertex_1, max_vertex_id_1),
                                           (max_penetration_2, max_vertex_2, max_vertex_id_2),
                                           (max_penetration_3, max_vertex_3, max_vertex_id_3),
                                           (max_penetration_4, max_vertex_4, max_vertex_id_4)))
 
     max_vertex = candidate_support[2]
-    vertex_id = candidate_support[3]
+    max_vertex_id = candidate_support[3]
 
-    return max_penetration, vertex, vertex_id, edge_id
+    return max_penetration, max_vertex, max_vertex_id, max_edge_id
 end
 
 function Manifold(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
