@@ -1,5 +1,3 @@
-const ATOL = 1e-7
-
 function is_colliding(a::RigidBody, b::RigidBody)
     shape_a = get_shape(a)
     shape_b = get_shape(b)
@@ -13,32 +11,6 @@ function is_colliding(a::RigidBody, b::RigidBody)
     axes_ba = get_relative_axes(axes_a, axes_b)
 
     is_colliding(shape_a, shape_b, pos_ba, axes_ba)
-end
-
-#####
-# Point vs. Point
-#####
-
-is_colliding(a::GB.Vec, b::GB.Vec, pos_ba) = pos_ba == zero(pos_ba)
-is_colliding(a::GB.Vec, b::GB.Vec, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
-
-#####
-# Line vs. Point
-#####
-
-function is_colliding(a::GB.Line, b::GB.Vec, pos_ba)
-    p1 = get_point(a, 1)
-    p2 = get_point(a, 2)
-    x_ba = pos_ba[1]
-    y_ba = pos_ba[2]
-    return (y_ba == zero(y_ba)) && (p1[1] <= x_ba <= p2[1])
-end
-
-is_colliding(a::GB.Line, b::GB.Vec, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
-function is_colliding(a::GB.Vec, b::GB.Line, pos_ba, axes_ba)
-    axes_ab = invert_relative_axes(axes_ba)
-    pos_ab = -rotate(pos_ba, axes_ab)
-    is_colliding(b, a, pos_ab, axes_ab)
 end
 
 #####
@@ -196,8 +168,8 @@ end
 # HyperRectangle vs. HyperRectangle
 #####
 
-function is_penetrating(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
-    half_widths_a = maximum(a)
+function is_separate(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
+    half_widths_a = get_top_right(a)
     half_width_a = half_widths_a[1]
     half_height_a = half_widths_a[2]
 
@@ -206,11 +178,11 @@ function is_penetrating(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
     min_x_ba, max_x_ba = extrema((bottom_left_ba[1], bottom_right_ba[1], top_right_ba[1], top_left_ba[1]))
     min_y_ba, max_y_ba = extrema((bottom_left_ba[2], bottom_right_ba[2], top_right_ba[2], top_left_ba[2]))
 
-    return !((half_width_a <= min_x_ba) || (max_x_ba <= -half_width_a) || (half_height_a <= min_y_ba) || (max_y_ba <= -half_height_a))
+    return ((half_width_a <= min_x_ba) || (max_x_ba <= -half_width_a) || (half_height_a <= min_y_ba) || (max_y_ba <= -half_height_a))
 end
 
 function is_colliding(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
     axes_ab = invert_relative_axes(axes_ba)
     pos_ab = -rotate(pos_ba, axes_ab)
-    return is_penetrating(a, b, pos_ba, axes_ba) || is_penetrating(b, a, pos_ab, axes_ab)
+    return !(is_separate(a, b, pos_ba, axes_ba) || is_separate(b, a, pos_ab, axes_ab))
 end
