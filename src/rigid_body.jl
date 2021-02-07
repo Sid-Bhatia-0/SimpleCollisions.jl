@@ -130,12 +130,12 @@ function get_relative_axes(axes1::Axes, axes2::Axes)
     return Axes(x_cap_21, y_cap_21)
 end
 
-function invert_relative_axes(axes::Axes)
-    x_cap_21 = get_x_cap(axes)
-    y_cap_21 = get_y_cap(axes)
-    x_cap_12 = invert_relative_direction(x_cap_21)
-    y_cap_12 = rotate_90(x_cap_12)
-    return Axes(x_cap_12, y_cap_12)
+function invert_relative_axes(axes_ba::Axes)
+    x_cap_ba = get_x_cap(axes_ba)
+    y_cap_ba = get_y_cap(axes_ba)
+    x_cap_ab = invert_relative_direction(x_cap_ba)
+    y_cap_ab = rotate_90(x_cap_ab)
+    return Axes(x_cap_ab, y_cap_ab)
 end
 
 #####
