@@ -10,13 +10,6 @@ get_normal(manifold::Manifold) = manifold |> get_axes |> get_y_cap
 get_tangent(manifold::Manifold) = manifold |> get_axes |> get_x_cap
 get_contact(manifold::Manifold) = manifold.contact
 
-function get_relative_manifold(manifold_ab::Manifold, pos_ba, axes_ba)
-    penetration = get_penetration(manifold_ab)
-    axes = get_relative_axes(axes_ba, rotate_180(get_axes(manifold_ab)))
-    contact = get_contact(manifold_ab) .- pos_ba
-    return Manifold(penetration, axes, contact)
-end
-
 function Manifold(a::RigidBody, b::RigidBody)
     shape_a = get_shape(a)
     shape_b = get_shape(b)
@@ -106,9 +99,14 @@ end
 Manifold(a::GB.Rect, b::GB.HyperSphere, pos_ba, axes_ba) = Manifold(a, b, pos_ba)
 
 function Manifold(a::GB.HyperSphere, b::GB.Rect, pos_ba, axes_ba)
-    manifold_ab = Manifold(b, a, -pos_ba)
-    manifold_ba = get_relative_manifold(manifold_ab, pos_ba, axes_ba)
-    return manifold_ba
+    axes_ab = invert_relative_axes(axes_ba)
+    pos_ab = -rotate(pos_ba, axes_ab)
+    manifold_ab = Manifold(b, a, pos_ab, axes_ab)
+
+    penetration = get_penetration(manifold_ab)
+    axes = get_relative_axes(axes_ab, rotate_180(get_axes(manifold_ab)))
+    contact = rotate(get_contact(manifold_ab) .- pos_ab, axes_ba)
+    return Manifold(penetration, axes, contact)
 end
 
 #####
@@ -146,15 +144,19 @@ function get_candidate_support(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
 end
 
 function Manifold(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
-    penetration_ba, vertex_ba, vertex_id_ba, edge_id_ba = get_candidate_support(a, b, pos_ba, axes_ba)
-    penetration_ab, vertex_ab, vertex_id_ab, edge_id_ab = get_candidate_support(b, a, -pos_ba, invert_relative_axes(axes_ba))
+    penetration_ba, vertex_ba, vertex_id_b, edge_id_a = get_candidate_support(a, b, pos_ba, axes_ba)
+
+    axes_ab = invert_relative_axes(axes_ba)
+    pos_ab = -rotate(pos_ba, axes_ab)
+    penetration_ab, vertex_ab, vertex_id_a, edge_id_b = get_candidate_support(b, a, pos_ab, axes_ab)
+
     if penetration_ba <= penetration_ab
         penetration = penetration_ba
         normals_aa = get_normals(a)
-        normal = normals_aa[edge_id_ba]
+        normal = normals_aa[edge_id_a]
         tangent = rotate_minus_90(normal)
         axes = Axes(tangent, normal)
-        contact = vertex_ba .+ (penetration / 2) .* -normal
+        contact = vertex_ba .+ (penetration / 2) .* normal
         return Manifold(penetration, axes, contact)
     else
         penetration = penetration_ab
@@ -162,9 +164,9 @@ function Manifold(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
         normal = normals_ba[edge_id_ab]
         tangent = rotate_minus_90(normal)
         axes = Axes(tangent, normal)
-        vertices_ba = get_vertices(b, pos_ba, axes_ba)
-        vertex = vertices_ba[vertex_id_ab]
-        contact = vertex .+ (penetration / 2) .* -normal
+        vertices_aa = get_vertices(a)
+        vertex = vertices_aa[vertex_id_ab]
+        contact = vertex .+ (penetration / 2) .* normal
         return Manifold(penetration, axes, contact)
     end
 end
