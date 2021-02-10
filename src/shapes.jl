@@ -9,6 +9,23 @@ get_top_left(a::GB.HyperRectangle) = minimum(a) .+ GB.Vec(zero(T), GB.widths[2])
 
 get_area(a::GB.Rect2D) = prod(a.widths)
 get_area(a::GB.Circle) = π * a.r * a.r
+function get_area(vertices)
+    area = zero(eltype(vertices[1]))
+
+    for i in 1:length(vertices) - 1
+        v1 = augmented_vertices[i]
+        v2 = augmented_vertices[i + 1]
+        area = area + v1[1] * v2[2] - v2[1] * v1[2]
+    end
+
+    last_vertex = vertices[end]
+    first_vertex = vertices[1]
+
+    area = (area + last_vertex[1] * first_vertex[2] - first_vertex[1] * last_vertex[2]) / 2
+
+    return area
+end
+
 function get_area(p1, p2, p3)
     x1 = p1[1]
     y1 = p1[2]

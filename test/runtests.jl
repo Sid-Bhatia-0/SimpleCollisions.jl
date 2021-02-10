@@ -500,15 +500,39 @@ end
             test_manifold_list(manifold_list)
         end
 
-        # @testset "Rect2D vs. Rect2D" begin
-            # manifold_list = [
-            # # rotated_axes
-            # # (r1, r2, (half_height_r1 - d) .* j_cap .+ PE2D.rotate(top_right_r2, rotated_axes), rotated_axes, PE2D.Manifold(d, std_axes, (half_height_r1 - d/2) .* j_cap)),
+        @testset "Rect2D vs. Rect2D" begin
+            manifold_list = [
+            # std_axes
+            (r2, r1, (half_height_r2 + half_height_r1 - d) .* -j_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_180(std_axes), (half_height_r2 - d/2) .* -j_cap)),
+            (r2, r1, (half_height_r2 + d) .* -j_cap, std_axes, PE2D.Manifold(half_height_r1 - d, PE2D.rotate_180(std_axes), (half_height_r2 - (half_height_r1 - d)/2) .* -j_cap)),
+            (r2, r1, (half_height_r2 - d) .* -j_cap, std_axes, PE2D.Manifold(half_height_r1 + d, PE2D.rotate_180(std_axes), (half_height_r2 - (half_height_r1 + d)/2) .* -j_cap)),
+            (r2, r1, d .* -j_cap, std_axes, PE2D.Manifold(half_height_r2 + half_height_r1 - d, PE2D.rotate_180(std_axes), d .* -j_cap)),
+            (r2, r1, d .* j_cap, std_axes, PE2D.Manifold(half_height_r2 + half_height_r1 - d, std_axes, d .* j_cap)),
+            (r2, r1, (half_height_r2 - d) .* j_cap, std_axes, PE2D.Manifold(half_height_r1 + d, std_axes, (half_height_r2 - (half_height_r1 + d)/2) .* j_cap)),
+            (r2, r1, (half_height_r2 + d) .* j_cap, std_axes, PE2D.Manifold(half_height_r1 - d, std_axes, (half_height_r2 - (half_height_r1 - d)/2) .* j_cap)),
+            (r2, r1, (half_height_r2 + half_height_r1 - d) .* j_cap, std_axes, PE2D.Manifold(d, std_axes, (half_height_r2 - d/2) .* j_cap)),
 
-            # ]
+            (r2, r1, (half_width_r2 + half_width_r1 - d) .* -i_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_90(std_axes), (half_width_r2 - d/2) .* -i_cap)),
+            (r2, r1, (half_width_r2 + d) .* -i_cap, std_axes, PE2D.Manifold(half_width_r1 - d, PE2D.rotate_90(std_axes), (half_width_r2 - (half_width_r1 - d)/2) .* -i_cap)),
+            (r2, r1, (half_width_r2 - d) .* -i_cap, std_axes, PE2D.Manifold(half_width_r1 + d, PE2D.rotate_90(std_axes), (half_width_r2 - (half_width_r1 + d)/2) .* -i_cap)),
+            (r2, r1, (half_width_r2 - d) .* i_cap, std_axes, PE2D.Manifold(half_width_r1 + d, PE2D.rotate_minus_90(std_axes), (half_width_r2 - (half_width_r1 + d)/2) .* i_cap)),
+            (r2, r1, (half_width_r2 + d) .* i_cap, std_axes, PE2D.Manifold(half_width_r1 - d, PE2D.rotate_minus_90(std_axes), (half_width_r2 - (half_width_r1 - d)/2) .* i_cap)),
+            (r2, r1, (half_width_r2 + half_width_r1 - d) .* i_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_minus_90(std_axes), (half_width_r2 - d/2) .* i_cap)),
 
-            # test_manifold_list(manifold_list)
-        # end
+            (r2, r1, top_right_r2 .- d, std_axes, PE2D.Manifold(half_height_r1 + d, std_axes, top_right_r2 .+ (half_width_r1 + d)/2 .* -i_cap .+ (half_height_r1 + d)/2 .* -j_cap)),
+            (r2, r1, top_right_r2, std_axes, PE2D.Manifold(half_height_r1, std_axes, top_right_r2 .+ (half_width_r1/2) .* -i_cap .+ (half_height_r1/2) .* -j_cap)),
+            (r2, r1, top_right_r2 .+ d, std_axes, PE2D.Manifold(half_height_r1 - d, std_axes, top_right_r2 .+ (half_width_r1 - d)/2 .* -i_cap .+ (half_height_r1 - d)/2 .* -j_cap)),
+
+            # rotated_axes
+            (r2, r1, (half_height_r2 - d) .* -j_cap .- PE2D.rotate(top_right_r1, rotated_axes), rotated_axes, PE2D.Manifold(d, PE2D.rotate_180(std_axes), ((zero(T) - d / tan(theta) + d * tan(theta)) ./ 3) .* i_cap .+ ((-half_height_r2 + d - half_height_r2 - half_height_r2) ./ 3) .* j_cap)),
+            (r2, r1, (half_height_r2 - d) .* j_cap .+ PE2D.rotate(top_right_r1, rotated_axes), rotated_axes, PE2D.Manifold(d, std_axes, ((zero(T) + d / tan(theta) - d * tan(theta)) ./ 3) .* i_cap .+ ((half_height_r2 - d + half_height_r2 + half_height_r2) ./ 3) .* j_cap)),
+
+            (r2, r1, (half_width_r2 + LA.norm(top_right_r1) * cos(-theta_r1 + theta) - d) .* -i_cap, rotated_axes, PE2D.Manifold(d, PE2D.rotate_90(std_axes), ((-half_width_r2 + d - half_width_r2 - half_width_r2) ./ 3) .* i_cap .+ (LA.norm(top_right_r1) * sin(-theta_r1 + theta) + (d / tan(theta) - d * tan(theta)) / 3) .* j_cap)),
+            (r2, r1, (half_width_r2 + LA.norm(top_right_r1) * cos(-theta_r1 + theta) - d) .* i_cap, rotated_axes, PE2D.Manifold(d, PE2D.rotate_minus_90(std_axes), ((half_width_r2 - d + half_width_r2 + half_width_r2) ./ 3) .* i_cap .+ (LA.norm(top_right_r1) * sin(convert(T, pi - theta_r1) + theta) + (d * tan(theta) - d / tan(theta)) / 3) .* j_cap)),
+            ]
+
+            test_manifold_list(manifold_list)
+        end
     end
 
     # @testset "Simulation: frictionless collision of rotating circles" begin

@@ -113,60 +113,254 @@ end
 # HyperRectangle vs. HyperRectangle
 #####
 
+function get_clipped_vertices(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
+    half_widths_a = get_top_right(a)
+    half_width_a = half_widths_a[1]
+    half_height_a = half_widths_a[2]
+
+    vertices_ba = get_vertices(b, pos_ba, axes_ba)
+    VecType = typeof(vertices_ba[1])
+
+    initial_vertices = (vertices_ba..., vertices_ba[1])
+    final_vertices = VecType[]
+
+    # e1
+    for i in 1:length(initial_vertices) - 1
+        v1 = initial_vertices[i]
+        v2 = initial_vertices[i + 1]
+
+        x1 = v1[1]
+        y1 = v1[2]
+
+        x2 = v2[1]
+        y2 = v2[2]
+
+        # in-in
+        if (y1 >= -half_height_a) && (y2 >= -half_height_a)
+            push!(final_vertices, v2)
+        # in-out
+        elseif (y1 >= -half_height_a) && (y2 < -half_height_a)
+            x_intersection = x1 + (x2 - x1) * (y1 + half_height_a) / (y1 - y2)
+            if isfinite(x_intersection)
+                push!(final_vertices, VecType(x_intersection, -half_height_a))
+            else
+                push!(final_vertices, (v1 .+ v2) ./ 2)
+            end
+        # out-in
+        elseif (y1 < -half_height_a) && (y2 >= -half_height_a)
+            x_intersection = x1 + (x2 - x1) * (y1 + half_height_a) / (y1 - y2)
+            if isfinite(x_intersection)
+                push!(final_vertices, VecType(x_intersection, -half_height_a))
+                push!(final_vertices, v2)
+            else
+                push!(final_vertices, (v1 .+ v2) ./ 2)
+                push!(final_vertices, v2)
+            end
+        end
+    end
+
+    # e2
+    initial_vertices = (final_vertices..., final_vertices[1])
+    final_vertices = VecType[]
+
+    for i in 1:length(initial_vertices) - 1
+        v1 = initial_vertices[i]
+        v2 = initial_vertices[i + 1]
+
+        x1 = v1[1]
+        y1 = v1[2]
+
+        x2 = v2[1]
+        y2 = v2[2]
+
+        # in-in
+        if (x1 <= half_width_a) && (x2 <= half_width_a)
+            push!(final_vertices, v2)
+        # in-out
+        elseif (x1 <= half_width_a) && (x2 > half_width_a)
+            y_intersection = y1 + (y2 - y1) * (half_width_a - x1) / (x2 - x1)
+            if isfinite(y_intersection)
+                push!(final_vertices, VecType(half_width_a, y_intersection))
+            else
+                push!(final_vertices, (v1 .+ v2) ./ 2)
+            end
+        # out-in
+        elseif (x1 > half_width_a) && (x2 <= half_width_a)
+            y_intersection = y1 + (y2 - y1) * (half_width_a - x1) / (x2 - x1)
+            if isfinite(y_intersection)
+                push!(final_vertices, VecType(half_width_a, y_intersection))
+                push!(final_vertices, v2)
+            else
+                push!(final_vertices, (v1 .+ v2) ./ 2)
+                push!(final_vertices, v2)
+            end
+        end
+    end
+
+    initial_vertices = (final_vertices..., final_vertices[1])
+    final_vertices = VecType[]
+
+    # e3
+    for i in 1:length(initial_vertices) - 1
+        v1 = initial_vertices[i]
+        v2 = initial_vertices[i + 1]
+
+        x1 = v1[1]
+        y1 = v1[2]
+
+        x2 = v2[1]
+        y2 = v2[2]
+
+        # in-in
+        if (y1 <= half_height_a) && (y2 <= half_height_a)
+            push!(final_vertices, v2)
+        # in-out
+        elseif (y1 <= half_height_a) && (y2 > half_height_a)
+            x_intersection = x1 + (x2 - x1) * (half_height_a - y1) / (y2 - y1)
+            if isfinite(x_intersection)
+                push!(final_vertices, VecType(x_intersection, half_height_a))
+            else
+                push!(final_vertices, (v1 .+ v2) ./ 2)
+            end
+        # out-in
+        elseif (y1 > half_height_a) && (y2 <= half_height_a)
+            x_intersection = x1 + (x2 - x1) * (half_height_a - y1) / (y2 - y1)
+            if isfinite(x_intersection)
+                push!(final_vertices, VecType(x_intersection, half_height_a))
+                push!(final_vertices, v2)
+            else
+                push!(final_vertices, (v1 .+ v2) ./ 2)
+                push!(final_vertices, v2)
+            end
+        end
+    end
+
+    # e4
+    initial_vertices = (final_vertices..., final_vertices[1])
+    final_vertices = VecType[]
+
+    for i in 1:length(initial_vertices) - 1
+        v1 = initial_vertices[i]
+        v2 = initial_vertices[i + 1]
+
+        x1 = v1[1]
+        y1 = v1[2]
+
+        x2 = v2[1]
+        y2 = v2[2]
+
+        # in-in
+        if (x1 >= -half_width_a) && (x2 >= -half_width_a)
+            push!(final_vertices, v2)
+        # in-out
+        elseif (x1 >= -half_width_a) && (x2 < -half_width_a)
+            y_intersection = y1 + (y2 - y1) * (x1 + half_width_a) / (x1 - x2)
+            if isfinite(y_intersection)
+                push!(final_vertices, VecType(-half_width_a, y_intersection))
+            else
+                push!(final_vertices, (v1 .+ v2) ./ 2)
+            end
+        # out-in
+        elseif (x1 < -half_width_a) && (x2 >= -half_width_a)
+            y_intersection = y1 + (y2 - y1) * (x1 + half_width_a) / (x1 - x2)
+            if isfinite(y_intersection)
+                push!(final_vertices, VecType(-half_width_a, y_intersection))
+                push!(final_vertices, v2)
+            else
+                push!(final_vertices, (v1 .+ v2) ./ 2)
+                push!(final_vertices, v2)
+            end
+        end
+    end
+
+    return final_vertices
+end
+
+function get_centroid(augmented_vertices...)
+    VecType = typeof(augmented_vertices[1])
+    T = eltype(augmented_vertices[1])
+    area = zero(T)
+    c_x_num = zero(T)
+    c_y_num = zero(T)
+    den = zero(T)
+
+    for i in 1:length(augmented_vertices) - 1
+        v_i = augmented_vertices[i]
+        v_i_plus_1 = augmented_vertices[i + 1]
+
+        x_i = v_i[1]
+        y_i = v_i[2]
+
+        x_i_plus_1 = v_i_plus_1[1]
+        y_i_plus_1 = v_i_plus_1[2]
+
+        cross = x_i * y_i_plus_1 - x_i_plus_1 * y_i
+        c_x_num += (x_i + x_i_plus_1) * cross
+        c_y_num += (y_i + y_i_plus_1) * cross
+        den += cross
+    end
+
+    c_x = c_x_num / (3 * den)
+    c_y = c_y_num / (3 * den)
+    if isfinite(c_x) && isfinite(c_y)
+        return VecType(c_x, c_y)
+    else
+        return reduce(+, augmented_vertices[1:end-1]) ./ (length(augmented_vertices) - 1)
+    end
+end
+
+function get_contact(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
+    clipped_vertices = get_clipped_vertices(a, b, pos_ba, axes_ba)
+    return get_centroid(clipped_vertices..., clipped_vertices[1])
+end
+
 function get_candidate_support(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
-    half_widths_a = maximum(a)
+    half_widths_a = get_top_right(a)
     half_width_a = half_widths_a[1]
     half_height_a = half_widths_a[2]
 
     vertices_ba = get_vertices(b, pos_ba, axes_ba)
 
-    max_value_1, max_vertex_1, max_vertex_id_1 = findmax(vertex -> vertex[2], vertices_ba)
-    max_penetration_1 = half_height_a + max_value_1
+    value_1, vertex_1, vertex_id_1 = findmax(vertex -> vertex[2], vertices_ba)
+    max_penetration_1 = half_height_a + value_1
 
-    min_value_2, max_vertex_2, max_vertex_id_2 = findmin(vertex -> vertex[1], vertices_ba)
-    max_penetration_2 = half_width_a - min_value_2
+    value_2, vertex_2, vertex_id_2 = findmin(vertex -> vertex[1], vertices_ba)
+    max_penetration_2 = half_width_a - value_2
 
-    min_value_3, max_vertex_3, max_vertex_id_3 = findmin(vertex -> vertex[2], vertices_ba)
-    max_penetration_3 = half_height_a - min_value_3
+    value_3, vertex_3, vertex_id_3 = findmin(vertex -> vertex[2], vertices_ba)
+    max_penetration_3 = half_height_a - value_3
 
-    max_value_4, max_vertex_4, max_vertex_id_4 = findmax(vertex -> vertex[1], vertices_ba)
-    max_penetration_4 = half_width_a + max_value_4
+    value_4, vertex_4, vertex_id_4 = findmax(vertex -> vertex[1], vertices_ba)
+    max_penetration_4 = half_width_a + value_4
 
-    max_penetration, candidate_support, max_edge_id = findmin(x -> x[1], ((max_penetration_1, max_vertex_1, max_vertex_id_1),
-                                          (max_penetration_2, max_vertex_2, max_vertex_id_2),
-                                          (max_penetration_3, max_vertex_3, max_vertex_id_3),
-                                          (max_penetration_4, max_vertex_4, max_vertex_id_4)))
+    penetration, (max_penetration, vertex_id), edge_id = findmin(x -> x[1], ((max_penetration_1, vertex_id_1),
+                                          (max_penetration_2, vertex_id_2),
+                                          (max_penetration_3, vertex_id_3),
+                                          (max_penetration_4, vertex_id_4)))
 
-    max_vertex = candidate_support[2]
-    max_vertex_id = candidate_support[3]
-
-    return max_penetration, max_vertex, max_vertex_id, max_edge_id
+    return penetration, vertex_id, edge_id
 end
 
 function Manifold(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
-    penetration_ba, vertex_ba, vertex_id_b, edge_id_a = get_candidate_support(a, b, pos_ba, axes_ba)
+    penetration_ba, vertex_id_b, edge_id_a = get_candidate_support(a, b, pos_ba, axes_ba)
 
     axes_ab = invert_relative_axes(axes_ba)
     pos_ab = -rotate(pos_ba, axes_ab)
-    penetration_ab, vertex_ab, vertex_id_a, edge_id_b = get_candidate_support(b, a, pos_ab, axes_ab)
+    penetration_ab, vertex_id_a, edge_id_b = get_candidate_support(b, a, pos_ab, axes_ab)
+
+    contact = get_contact(a, b, pos_ba, axes_ba)
 
     if penetration_ba <= penetration_ab
         penetration = penetration_ba
-        normals_aa = get_normals(a)
-        normal = normals_aa[edge_id_a]
+        normal = get_normals(a)[edge_id_a]
         tangent = rotate_minus_90(normal)
         axes = Axes(tangent, normal)
-        contact = vertex_ba .+ (penetration / 2) .* normal
         return Manifold(penetration, axes, contact)
     else
         penetration = penetration_ab
-        normals_ba = get_normals(b, pos_ba, axes_ba)
-        normal = normals_ba[edge_id_ab]
+        normal = get_normals(b, pos_ba, axes_ba)[edge_id_b]
         tangent = rotate_minus_90(normal)
         axes = Axes(tangent, normal)
-        vertices_aa = get_vertices(a)
-        vertex = vertices_aa[vertex_id_ab]
-        contact = vertex .+ (penetration / 2) .* normal
         return Manifold(penetration, axes, contact)
     end
 end
