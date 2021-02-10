@@ -10,11 +10,11 @@ const LA = LinearAlgebra
 import Requires
 import MacroTools
 
-include("printing.jl")
+include("utils.jl")
 include("shapes.jl")
+include("rigid_body.jl")
 include("collision_detection.jl")
 include("manifold.jl")
-include("rigid_body.jl")
 include("collision_resolution.jl")
 include("world.jl")
 

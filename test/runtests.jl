@@ -7,181 +7,571 @@ const LA = LinearAlgebra
 using Test
 
 function test_collision_list(collision_list)
-    for (a, b, value) in collision_list
-        @test PE2D.is_colliding(a, b) == value
-        @test PE2D.is_colliding(b, a) == value
+    for (a, b, pos_ba, axes_ba, value) in collision_list
+        # @show a
+        # @show b
+        # @show pos_ba
+        # @show axes_ba
+        @test PE2D.is_colliding(a, b, pos_ba, axes_ba) == value
     end
 end
 
 function test_manifold_list(manifold_list)
-    for (a, b, value) in manifold_list
-        manifold = PE2D.Manifold(a, b)
-        @test manifold.penetration ≈ value.penetration
-        @test manifold.normal ≈ value.normal
+    for (a, b, pos_ba, axes_ba, value) in manifold_list
+        manifold_ba = PE2D.Manifold(a, b, pos_ba, axes_ba)
+
+        @show a
+        @show b
+        @show pos_ba
+        @show axes_ba
+        @show manifold_ba
+
+        @test PE2D.get_penetration(manifold_ba) ≈ PE2D.get_penetration(value)
+        @test PE2D.get_normal(manifold_ba) ≈ PE2D.get_normal(value)
+        @test PE2D.get_tangent(manifold_ba) ≈ PE2D.get_tangent(value)
+        @test PE2D.get_contact(manifold_ba) ≈ PE2D.get_contact(value)
     end
 end
 
 @testset "PhysicsEngine2D.jl" begin
+    T = Float32
+    penetration = convert(T, 0.01)
+    d = convert(T, 0.01)
+
+    origin = zero(GB.Vec2{T})
+    VecType = typeof(origin)
+
+    std_axes = PE2D.Axes{T}()
+    i_cap = PE2D.get_x_cap(std_axes)
+    j_cap = PE2D.get_y_cap(std_axes)
+
+    theta = convert(T, π / 6)
+    rotated_axes = PE2D.Axes(theta)
+    theta_45 = convert(T, π / 4)
+    unit_45 = (i_cap .+ j_cap) / convert(T, sqrt(2))
+
+    l1 = GB.Line(convert(GB.Point, -i_cap), convert(GB.Point, i_cap))
+    p1_l1 = PE2D.get_point(l1, 1)
+    p2_l1 = PE2D.get_point(l1, 2)
+    half_width_l1 = p2_l1[1]
+
+    l2 = GB.Line(convert(GB.Point, -2 .* i_cap), convert(GB.Point, 2 .* i_cap))
+    p1_l2 = PE2D.get_point(l2, 1)
+    p2_l2 = PE2D.get_point(l2, 2)
+    half_width_l2 = p2_l2[1]
+
+    c1 = GB.HyperSphere(convert(GB.Point, origin), one(T))
+    r_c1 = c1.r
+
+    c2 = GB.HyperSphere(convert(GB.Point, origin), 2 * one(T))
+    r_c2 = c2.r
+
+    r1 = GB.Rect(origin .- VecType(1, 0.5), VecType(2, 1))
+    top_right_r1 = PE2D.get_top_right(r1)
+    half_width_r1 = top_right_r1[1]
+    half_height_r1 = top_right_r1[2]
+    theta_r1 = atan(half_height_r1, half_width_r1)
+
+    r2 = GB.Rect(origin .- VecType(2, 1), VecType(4, 2))
+    top_right_r2 = PE2D.get_top_right(r2)
+    half_width_r2 = top_right_r2[1]
+    half_height_r2 = top_right_r2[2]
+    theta_r2 = atan(half_height_r2, half_width_r2)
+
     @testset "Area computation" begin
         @testset "Rect2D" begin
-            a = GB.Rect(1, 2, 3, 4)
-            @test GB.area(a) == 12
+            @test PE2D.get_area(GB.Rect(1, 2, 3, 4)) == 12
         end
 
         @testset "Circle" begin
-            a = GB.HyperSphere(GB.Point(0, 0), 1)
-            @test GB.area(a) ≈ π
+            @test PE2D.get_area(GB.HyperSphere(GB.Point(0, 0), 1)) ≈ π
         end
     end
 
     @testset "Collision detection" begin
-        @testset "Point2 vs. Point2" begin
-            collision_list = [(GB.Vec(0, 0), GB.Vec(0, 0), true),
-                              (GB.Vec(0, 0), GB.Vec(1, 0), false)]
-            test_collision_list(collision_list)
-        end
-
-        @testset "Line segment vs. Point2" begin
-            collision_list = [(GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Vec(2, 3), true),
-                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Vec(1, 2), true),
-                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Vec(3, 4), true),
-                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Vec(2, 2), false),
-                              (GB.Line(GB.Point(1, 2), GB.Point(3, 4)), GB.Vec(0, 0), false)]
-            test_collision_list(collision_list)
-        end
-
         @testset "Line segment vs. Line segment" begin
-            collision_list = [(GB.Line(GB.Point2f0(0, 0), GB.Point2f0(1, 0)), GB.Line(GB.Point2f0(0, 0), GB.Point2f0(1, 0)), true),
-                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(1, -1), GB.Point2f0(1, 1)), true),
-                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(1, 0), GB.Point2f0(3, 0)), true),
-                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(0, 1), GB.Point2f0(2, -1)), true),
-                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(2, 0), GB.Point2f0(3, 0)), true),
-                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(1, 2), GB.Point2f0(3, 4)), false),
-                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(3, 0), GB.Point2f0(5, 0)), false),
-                              (GB.Line(GB.Point2f0(0, 0), GB.Point2f0(2, 0)), GB.Line(GB.Point2f0(1, -1), GB.Point2f0(3, -1)), false)]
+            collision_list = [
+            # std_axes
+            (l1, l2, origin, std_axes, true),
+
+            (l1, l2, (half_width_l1 + half_width_l2 + d) .* -i_cap, std_axes, false),
+            (l1, l2, (half_width_l1 + half_width_l2 - d) .* -i_cap, std_axes, true),
+            (l1, l2, (half_width_l1 + half_width_l2 - d) .* i_cap, std_axes, true),
+            (l1, l2, (half_width_l1 + half_width_l2 + d) .* i_cap, std_axes, false),
+
+            (l1, l2, d .* -j_cap, std_axes, false),
+            (l1, l2, d .* j_cap, std_axes, false),
+
+            # rotated_axes
+            (l1, l2, origin, rotated_axes, true),
+
+            (l1, l2, (half_width_l1 + half_width_l2 + d) .* -i_cap, rotated_axes, false),
+            (l1, l2, (half_width_l1 + half_width_l2 - d) .* -i_cap, rotated_axes, false),
+            (l1, l2, (half_width_l1 + d) .* -i_cap, rotated_axes, false),
+            (l1, l2, (half_width_l1 - d) .* -i_cap, rotated_axes, true),
+            (l1, l2, (half_width_l1 - d) .* i_cap, rotated_axes, true),
+            (l1, l2, (half_width_l1 + d) .* i_cap, rotated_axes, false),
+            (l1, l2, (half_width_l1 + half_width_l2 - d) .* i_cap, rotated_axes, false),
+            (l1, l2, (half_width_l1 + half_width_l2 + d) .* i_cap, rotated_axes, false),
+
+            (l2, l1, (half_width_l1 * sin(theta) + d) .* -j_cap, rotated_axes, false),
+            (l2, l1, (half_width_l1 * sin(theta) - d) .* -j_cap, rotated_axes, true),
+            (l2, l1, d .* -j_cap, rotated_axes, true),
+            (l2, l1, d .* j_cap, rotated_axes, true),
+            (l2, l1, (half_width_l1 * sin(theta) - d) .* j_cap, rotated_axes, true),
+            (l2, l1, (half_width_l1 * sin(theta) + d) .* j_cap, rotated_axes, false),
+            ]
+
             test_collision_list(collision_list)
         end
 
         @testset "Circle vs. Point2" begin
-            collision_list = [(GB.HyperSphere(GB.Point(0, 0), 1), GB.Vec(0, 0), true),
-                              (GB.HyperSphere(GB.Point(0, 0), 1), GB.Vec(1, 0), true),
-                              (GB.HyperSphere(GB.Point(0, 0), 1), GB.Vec(2, 0), false)]
+            collision_list = [
+            # std_axes
+            (c1, origin, origin, std_axes, true),
+
+            (c1, origin, (r_c1 + d) .* -i_cap, std_axes, false),
+            (c1, origin, (r_c1 - d) .* -i_cap, std_axes, true),
+            (c1, origin, (r_c1 - d) .* i_cap, std_axes, true),
+            (c1, origin, (r_c1 + d) .* i_cap, std_axes, false),
+
+            (c1, origin, (r_c1 + d) .* -j_cap, std_axes, false),
+            (c1, origin, (r_c1 - d) .* -j_cap, std_axes, true),
+            (c1, origin, (r_c1 - d) .* j_cap, std_axes, true),
+            (c1, origin, (r_c1 + d) .* j_cap, std_axes, false),
+
+            (c1, origin, (r_c1 + d) .* unit_45, std_axes, false),
+            (c1, origin, (r_c1 - d) .* unit_45, std_axes, true),
+
+            # reverse check with std_axes
+            (origin, c1, origin, std_axes, true),
+
+            (origin, c1, (r_c1 + d) .* -i_cap, std_axes, false),
+            (origin, c1, (r_c1 - d) .* -i_cap, std_axes, true),
+            (origin, c1, (r_c1 - d) .* i_cap, std_axes, true),
+            (origin, c1, (r_c1 + d) .* i_cap, std_axes, false),
+
+            (origin, c1, (r_c1 + d) .* -j_cap, std_axes, false),
+            (origin, c1, (r_c1 - d) .* -j_cap, std_axes, true),
+            (origin, c1, (r_c1 - d) .* j_cap, std_axes, true),
+            (origin, c1, (r_c1 + d) .* j_cap, std_axes, false),
+
+            (origin, c1, (r_c1 + d) .* unit_45, std_axes, false),
+            (origin, c1, (r_c1 - d) .* unit_45, std_axes, true),
+            ]
+
             test_collision_list(collision_list)
         end
 
         @testset "Circle vs. Line segment" begin
-            collision_list = [(GB.HyperSphere(GB.Point(0, 0), 1), GB.Line(GB.Point(0, 0), GB.Point(1, 0)), true),
-                              (GB.HyperSphere(GB.Point(0, 0), 1), GB.Line(GB.Point(0, 0), GB.Point(1, 1)), true),
-                              (GB.HyperSphere(GB.Point(0, 0), 2), GB.Line(GB.Point(1, 1), GB.Point(3, 4)), true),
-                              (GB.HyperSphere(GB.Point(0, 0), 2), GB.Line(GB.Point(1, -3), GB.Point(1, 4)), true),
-                              (GB.HyperSphere(GB.Point(0, 0), 2), GB.Line(GB.Point(-3, 3), GB.Point(3, 5)), false),
-                              (GB.HyperSphere(GB.Point(0, 0), 1), GB.Line(GB.Point(2, 3), GB.Point(3, 4)), false)]
+            collision_list = [
+            # std_axes
+            (l1, c2, origin, std_axes, true),
+            (l2, c1, origin, std_axes, true),
+
+            (l2, c1, (half_width_l2 + r_c1 + d) .* -i_cap, std_axes, false),
+            (l2, c1, (half_width_l2 + r_c1 - d) .* -i_cap, std_axes, true),
+            (l2, c1, (half_width_l2 + r_c1 - d) .* i_cap, std_axes, true),
+            (l2, c1, (half_width_l2 + r_c1 + d) .* i_cap, std_axes, false),
+
+            (l2, c1, (r_c1 + d) .* -j_cap, std_axes, false),
+            (l2, c1, (r_c1 - d) .* -j_cap, std_axes, true),
+            (l2, c1, (r_c1 - d) .* j_cap, std_axes, true),
+            (l2, c1, (r_c1 + d) .* j_cap, std_axes, false),
+
+            # reverse check with std_axes
+            (c2, l1, origin, std_axes, true),
+            (c1, l2, origin, std_axes, true),
+
+            (c1, l2, (half_width_l2 + r_c1 + d) .* -i_cap, std_axes, false),
+            (c1, l2, (half_width_l2 + r_c1 - d) .* -i_cap, std_axes, true),
+            (c1, l2, (half_width_l2 + r_c1 - d) .* i_cap, std_axes, true),
+            (c1, l2, (half_width_l2 + r_c1 + d) .* i_cap, std_axes, false),
+
+            (c1, l2, (r_c1 + d) .* -j_cap, std_axes, false),
+            (c1, l2, (r_c1 - d) .* -j_cap, std_axes, true),
+            (c1, l2, (r_c1 - d) .* j_cap, std_axes, true),
+            (c1, l2, (r_c1 + d) .* j_cap, std_axes, false),
+
+            # reverse check with rotated_axes
+            (c2, l1, origin, rotated_axes, true),
+            (c1, l2, origin, rotated_axes, true),
+
+            (c1, l1, (sqrt(r_c1 ^ 2 - (half_width_l1 * sin(theta)) ^ 2) + half_width_l1 * cos(theta) + d) .* -i_cap, rotated_axes, false),
+            (c1, l1, (sqrt(r_c1 ^ 2 - (half_width_l1 * sin(theta)) ^ 2) + half_width_l1 * cos(theta) - d) .* -i_cap, rotated_axes, true),
+            (c1, l1, (sqrt(r_c1 ^ 2 - (half_width_l1 * sin(theta)) ^ 2) + half_width_l1 * cos(theta) - d) .* i_cap, rotated_axes, true),
+            (c1, l1, (sqrt(r_c1 ^ 2 - (half_width_l1 * sin(theta)) ^ 2) + half_width_l1 * cos(theta) + d) .* i_cap, rotated_axes, false),
+
+            (c1, l2, (r_c1 / cos(theta) + d) .* -j_cap, rotated_axes, false),
+            (c1, l2, (r_c1 / cos(theta) - d) .* -j_cap, rotated_axes, true),
+            (c1, l2, (r_c1 / cos(theta) - d) .* j_cap, rotated_axes, true),
+            (c1, l2, (r_c1 / cos(theta) + d) .* j_cap, rotated_axes, false),
+            ]
+
             test_collision_list(collision_list)
         end
 
         @testset "Circle vs. Circle" begin
-            collision_list = [(GB.HyperSphere(GB.Point(0, 0), 1), GB.HyperSphere(GB.Point(0, 0), 1), true),
-                              (GB.HyperSphere(GB.Point(0, 0), 1), GB.HyperSphere(GB.Point(1, 0), 1), true),
-                              (GB.HyperSphere(GB.Point(0, 0), 1), GB.HyperSphere(GB.Point(2, 0), 1), true),
-                              (GB.HyperSphere(GB.Point(0, 0), 1), GB.HyperSphere(GB.Point(3, 0), 1), false)]
+            collision_list = [
+            # std_axes
+            (c1, c2, origin, std_axes, true),
+
+            (c1, c2, (r_c1 + r_c2 + d) .* -i_cap, std_axes, false),
+            (c1, c2, (r_c1 + r_c2 - d) .* -i_cap, std_axes, true),
+            (c1, c2, (r_c1 + r_c2 - d) .* i_cap, std_axes, true),
+            (c1, c2, (r_c1 + r_c2 + d) .* i_cap, std_axes, false),
+
+            (c1, c2, (r_c1 + r_c2 + d) .* -j_cap, std_axes, false),
+            (c1, c2, (r_c1 + r_c2 - d) .* -j_cap, std_axes, true),
+            (c1, c2, (r_c1 + r_c2 - d) .* j_cap, std_axes, true),
+            (c1, c2, (r_c1 + r_c2 + d) .* j_cap, std_axes, false),
+
+            (c1, c2, (r_c1 + r_c2 + d) .* unit_45, std_axes, false),
+            (c1, c2, (r_c1 + r_c2 - d) .* unit_45, std_axes, true),
+            ]
+
             test_collision_list(collision_list)
         end
 
         @testset "Rect2D vs. Point2" begin
-            collision_list = [(GB.Rect(1, 2, 5, 6), GB.Vec(3, 3), true),
-                              (GB.Rect(1, 2, 5, 6), GB.Vec(1, 3), true),
-                              (GB.Rect(1, 2, 5, 6), GB.Vec(1, 2), true),
-                              (GB.Rect(1, 2, 5, 6), GB.Vec(1, 1), false)]
+            collision_list = [
+            # std_axes
+            (r1, origin, origin, std_axes, true),
+
+            (r1, origin, (half_width_r1 + d) .* -i_cap, std_axes, false),
+            (r1, origin, (half_width_r1 - d) .* -i_cap, std_axes, true),
+            (r1, origin, (half_width_r1 - d) .* i_cap, std_axes, true),
+            (r1, origin, (half_width_r1 + d) .* i_cap, std_axes, false),
+
+            (r1, origin, (half_height_r1 + d) .* -j_cap, std_axes, false),
+            (r1, origin, (half_height_r1 - d) .* -j_cap, std_axes, true),
+            (r1, origin, (half_height_r1 - d) .* j_cap, std_axes, true),
+            (r1, origin, (half_height_r1 + d) .* j_cap, std_axes, false),
+
+            (r1, origin, top_right_r1 .+ d, std_axes, false),
+            (r1, origin, top_right_r1 .- d, std_axes, true),
+
+            # reverse check with std_axes
+            (origin, r1, origin, std_axes, true),
+
+            (origin, r1, (half_width_r1 + d) .* -i_cap, std_axes, false),
+            (origin, r1, (half_width_r1 - d) .* -i_cap, std_axes, true),
+            (origin, r1, (half_width_r1 - d) .* i_cap, std_axes, true),
+            (origin, r1, (half_width_r1 + d) .* i_cap, std_axes, false),
+
+            (origin, r1, (half_height_r1 + d) .* -j_cap, std_axes, false),
+            (origin, r1, (half_height_r1 - d) .* -j_cap, std_axes, true),
+            (origin, r1, (half_height_r1 - d) .* j_cap, std_axes, true),
+            (origin, r1, (half_height_r1 + d) .* j_cap, std_axes, false),
+
+            (origin, r1, top_right_r1 .+ d, std_axes, false),
+            (origin, r1, top_right_r1 .- d, std_axes, true),
+
+            # reverse check with rotated_axes
+            (origin, r1, origin, rotated_axes, true),
+
+            (origin, r1, (half_height_r1 / sin(theta) + d) .* -i_cap, rotated_axes, false),
+            (origin, r1, (half_height_r1 / sin(theta) - d) .* -i_cap, rotated_axes, true),
+            (origin, r1, (half_height_r1 / sin(theta) - d) .* i_cap, rotated_axes, true),
+            (origin, r1, (half_height_r1 / sin(theta) + d) .* i_cap, rotated_axes, false),
+
+            (origin, r1, (half_height_r1 / cos(theta) + d) .* -j_cap, rotated_axes, false),
+            (origin, r1, (half_height_r1 / cos(theta) - d) .* -j_cap, rotated_axes, true),
+            (origin, r1, (half_height_r1 / cos(theta) - d) .* j_cap, rotated_axes, true),
+            (origin, r1, (half_height_r1 / cos(theta) + d) .* j_cap, rotated_axes, false),
+            ]
+
             test_collision_list(collision_list)
         end
 
         @testset "Rect2D vs. Line segment" begin
-            collision_list = [(GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(5, 5)), true),
-                              (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(2, 0), GB.Point(4, 5)), true),
-                              (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(2, 3), GB.Point(4, 5)), true),
-                              (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(1, 1)), false),
-                              (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(1, 0)), false),
-                              (GB.Rect(1, 2, 5, 6), GB.Line(GB.Point(0, 0), GB.Point(10, 1)), false)]
+            collision_list = [
+            # std_axes
+            (r1, l1, origin, std_axes, true),
+            (r1, l2, origin, std_axes, true),
+
+            (r1, l1, (half_width_r1 + half_width_l1 + d) .* -i_cap, std_axes, false),
+            (r1, l1, (half_width_r1 + half_width_l1 - d) .* -i_cap, std_axes, true),
+            (r1, l1, (half_width_r1 + half_width_l1 - d) .* i_cap, std_axes, true),
+            (r1, l1, (half_width_r1 + half_width_l1 + d) .* i_cap, std_axes, false),
+
+            (r1, l1, (half_height_r1 + d) .* -j_cap, std_axes, false),
+            (r1, l1, (half_height_r1 - d) .* -j_cap, std_axes, true),
+            (r1, l1, (half_height_r1 - d) .* j_cap, std_axes, true),
+            (r1, l1, (half_height_r1 + d) .* j_cap, std_axes, false),
+
+            # rotated_axes
+            (r1, l1, origin, rotated_axes, true),
+            (r1, l2, origin, rotated_axes, true),
+
+            (r2, l1, (half_width_r2 + half_width_l1 * cos(theta) + d) .* -i_cap, rotated_axes, false),
+            (r2, l1, (half_width_r2 + half_width_l1 * cos(theta) - d) .* -i_cap, rotated_axes, true),
+            (r2, l1, (half_width_r2 + half_width_l1 * cos(theta) - d) .* i_cap, rotated_axes, true),
+            (r2, l1, (half_width_r2 + half_width_l1 * cos(theta) + d) .* i_cap, rotated_axes, false),
+
+            (r2, l1, (half_height_r2 + half_width_l1 * sin(theta) + d) .* -j_cap, rotated_axes, false),
+            (r2, l1, (half_height_r2 + half_width_l1 * sin(theta) - d) .* -j_cap, rotated_axes, true),
+            (r2, l1, (half_height_r2 + half_width_l1 * sin(theta) - d) .* j_cap, rotated_axes, true),
+            (r2, l1, (half_height_r2 + half_width_l1 * sin(theta) + d) .* j_cap, rotated_axes, false),
+
+            # reverse check with std_axes
+            (l1, r1, origin, std_axes, true),
+            (l2, r1, origin, std_axes, true),
+
+            (l1, r1, (half_width_r1 + half_width_l1 + d) .* -i_cap, std_axes, false),
+            (l1, r1, (half_width_r1 + half_width_l1 - d) .* -i_cap, std_axes, true),
+            (l1, r1, (half_width_r1 + half_width_l1 - d) .* i_cap, std_axes, true),
+            (l1, r1, (half_width_r1 + half_width_l1 + d) .* i_cap, std_axes, false),
+
+            (l1, r1, (half_height_r1 + d) .* -j_cap, std_axes, false),
+            (l1, r1, (half_height_r1 - d) .* -j_cap, std_axes, true),
+            (l1, r1, (half_height_r1 - d) .* j_cap, std_axes, true),
+            (l1, r1, (half_height_r1 + d) .* j_cap, std_axes, false),
+
+            # reverse check with rotated_axes
+            (l1, r1, origin, rotated_axes, true),
+            (l2, r1, origin, rotated_axes, true),
+
+            (l2, r2, (half_height_r2 / sin(theta) + half_width_l2 + d) .* -i_cap, rotated_axes, false),
+            (l2, r2, (half_height_r2 / sin(theta) + half_width_l2 - d) .* -i_cap, rotated_axes, true),
+            (l2, r2, (half_height_r2 / sin(theta) + half_width_l2 - d) .* i_cap, rotated_axes, true),
+            (l2, r2, (half_height_r2 / sin(theta) + half_width_l2 + d) .* i_cap, rotated_axes, false),
+
+            (l2, r2, (half_width_r2 * sin(theta) + half_height_r2 * cos(theta) + d) .* -j_cap, rotated_axes, false),
+            (l2, r2, (half_width_r2 * sin(theta) + half_height_r2 * cos(theta) - d) .* -j_cap, rotated_axes, true),
+            (l2, r2, (half_width_r2 * sin(theta) + half_height_r2 * cos(theta) - d) .* j_cap, rotated_axes, true),
+            (l2, r2, (half_width_r2 * sin(theta) + half_height_r2 * cos(theta) + d) .* j_cap, rotated_axes, false),
+            ]
+
             test_collision_list(collision_list)
         end
 
         @testset "Rect2D vs. Circle" begin
-            collision_list = [(GB.Rect(1, 2, 5, 6), GB.HyperSphere(GB.Point(3, 3), 1), true),
-                              (GB.Rect(1, 2, 5, 6), GB.HyperSphere(GB.Point(4, 4), 1), true),
-                              (GB.Rect(1, 2, 5, 6), GB.HyperSphere(GB.Point(4, 4), 10), true),
-                              (GB.Rect(1, 2, 5, 6), GB.HyperSphere(GB.Point(0, 0), 3), true),
-                              (GB.Rect(0, 1, 1, 1), GB.HyperSphere(GB.Point(0, 0), 1), true),
-                              (GB.Rect(1, 2, 5, 6), GB.HyperSphere(GB.Point(0, 0), 1), false)]
+            top_right = PE2D.get_top_right(r1)
+            theta_r1 = atan(top_right[2], top_right[1])
+
+            collision_list = [
+            # std_axes
+            (r1, c1, origin, std_axes, true),
+
+            (r1, c1, (half_width_r1 + r_c1 + d) .* -i_cap, std_axes, false),
+            (r1, c1, (half_width_r1 + r_c1 - d) .* -i_cap, std_axes, true),
+            (r1, c1, (half_width_r1 + r_c1 - d) .* i_cap, std_axes, true),
+            (r1, c1, (half_width_r1 + r_c1 + d) .* i_cap, std_axes, false),
+
+            (r1, c1, (half_height_r1 + r_c1 + d) .* -j_cap, std_axes, false),
+            (r1, c1, (half_height_r1 + r_c1 - d) .* -j_cap, std_axes, true),
+            (r1, c1, (half_height_r1 + r_c1 - d) .* j_cap, std_axes, true),
+            (r1, c1, (half_height_r1 + r_c1 + d) .* -j_cap, std_axes, false),
+
+            (r1, c1, top_right_r1 .+ (r_c1 + d) .* unit_45, std_axes, false),
+            (r1, c1, top_right_r1 .+ (r_c1 - d) .* unit_45, std_axes, true),
+
+            # reverse check with std_axes
+            (c1, r1, origin, std_axes, true),
+
+            (c1, r1, (half_width_r1 + r_c1 + d) .* -i_cap, std_axes, false),
+            (c1, r1, (half_width_r1 + r_c1 - d) .* -i_cap, std_axes, true),
+            (c1, r1, (half_width_r1 + r_c1 - d) .* i_cap, std_axes, true),
+            (c1, r1, (half_width_r1 + r_c1 + d) .* i_cap, std_axes, false),
+
+            (c1, r1, (half_height_r1 + r_c1 + d) .* -j_cap, std_axes, false),
+            (c1, r1, (half_height_r1 + r_c1 - d) .* -j_cap, std_axes, true),
+            (c1, r1, (half_height_r1 + r_c1 - d) .* j_cap, std_axes, true),
+            (c1, r1, (half_height_r1 + r_c1 + d) .* -j_cap, std_axes, false),
+
+            (c1, r1, top_right_r1 .+ (r_c1 + d) .* unit_45, std_axes, false),
+            (c1, r1, top_right_r1 .+ (r_c1 - d) .* unit_45, std_axes, true),
+
+            # reverse check with rotated_axes
+            (c2, r2, origin, rotated_axes, true),
+
+            (c2, r2, (sqrt(r_c2 ^ 2 - (half_width_r2 * sin(theta) - half_height_r2 * cos(theta)) ^ 2) + half_width_r2 * cos(theta) + half_height_r2 * sin(theta) + d) .* -i_cap, rotated_axes, false),
+            (c2, r2, (sqrt(r_c2 ^ 2 - (half_width_r2 * sin(theta) - half_height_r2 * cos(theta)) ^ 2) + half_width_r2 * cos(theta) + half_height_r2 * sin(theta) - d) .* -i_cap, rotated_axes, true),
+            (c2, r2, (sqrt(r_c2 ^ 2 - (half_width_r2 * sin(theta) - half_height_r2 * cos(theta)) ^ 2) + half_width_r2 * cos(theta) + half_height_r2 * sin(theta) - d) .* i_cap, rotated_axes, true),
+            (c2, r2, (sqrt(r_c2 ^ 2 - (half_width_r2 * sin(theta) - half_height_r2 * cos(theta)) ^ 2) + half_width_r2 * cos(theta) + half_height_r2 * sin(theta) + d) .* i_cap, rotated_axes, false),
+
+            (c2, r2, ((r_c2 + half_height_r2) / cos(theta) + d) .* -j_cap, rotated_axes, false),
+            (c2, r2, ((r_c2 + half_height_r2) / cos(theta) - d) .* -j_cap, rotated_axes, true),
+            (c2, r2, ((r_c2 + half_height_r2) / cos(theta) - d) .* j_cap, rotated_axes, true),
+            (c2, r2, ((r_c2 + half_height_r2) / cos(theta) + d) .* j_cap, rotated_axes, false),
+            ]
+
             test_collision_list(collision_list)
         end
 
         @testset "Rect2D vs. Rect2D" begin
-            collision_list = [(GB.Rect(1, 2, 3, 4), GB.Rect(3, 4, 5, 6), true),
-                              (GB.Rect(1, 2, 3, 4), GB.Rect(4, 6, 1, 2), true),
-                              (GB.Rect(1, 2, 3, 4), GB.Rect(0, 0, 6, 6), true),
-                              (GB.Rect(1, 2, 3, 4), GB.Rect(4, 2, 1, 2), true),
-                              (GB.Rect(1, 2, 3, 4), GB.Rect(5, 6, 7, 8), false)]
+            collision_list = [
+            # std_axes
+            (r2, r1, origin, std_axes, true),
+
+            (r2, r1, (half_width_r1 + half_width_r2 + d) .* -i_cap, std_axes, false),
+            (r2, r1, (half_width_r1 + half_width_r2 - d) .* -i_cap, std_axes, true),
+            (r2, r1, (half_width_r1 + half_width_r2 - d) .* i_cap, std_axes, true),
+            (r2, r1, (half_width_r1 + half_width_r2 + d) .* i_cap, std_axes, false),
+
+            (r2, r1, (half_height_r1 + half_height_r2 + d) .* -j_cap, std_axes, false),
+            (r2, r1, (half_height_r1 + half_height_r2 - d) .* -j_cap, std_axes, true),
+            (r2, r1, (half_height_r1 + half_height_r2 - d) .* j_cap, std_axes, true),
+            (r2, r1, (half_height_r1 + half_height_r2 + d) .* j_cap, std_axes, false),
+
+            (r2, r1, top_right_r1 .+ top_right_r2 .+ d, std_axes, false),
+            (r2, r1, top_right_r1 .+ top_right_r2 .- d, std_axes, true),
+
+            # rotated_axes
+            (r2, r1, origin, rotated_axes, true),
+
+            (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) + d) .* -i_cap, rotated_axes, false),
+            (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) - d) .* -i_cap, rotated_axes, true),
+            (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) - d) .* i_cap, rotated_axes, true),
+            (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) + d) .* i_cap, rotated_axes, false),
+
+            (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) + d) .* -j_cap, rotated_axes, false),
+            (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) - d) .* -j_cap, rotated_axes, true),
+            (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) - d) .* j_cap, rotated_axes, true),
+            (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) + d) .* j_cap, rotated_axes, false),
+            ]
+
             test_collision_list(collision_list)
         end
     end
 
     @testset "Manifold generation" begin
         @testset "Circle vs. Circle" begin
-            manifold_list = [(GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 2.0f0), PE2D.Manifold(3.0f0, GB.Vec(1.0f0, 0.0f0), GB.Vec(0.0f0, 0.0f0))),
-                             (GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 1.0f0), 1.0f0), PE2D.Manifold(1.0f0, GB.Vec(0.0f0, 1.0f0), GB.Vec(0.0f0, 0.5f0))),
-                             (GB.HyperSphere(GB.Point(0.0f0, 0.0f0), 1.0f0), GB.HyperSphere(GB.Point(0.0f0, 2.0f0), 1.0f0), PE2D.Manifold(0.0f0, GB.Vec(0.0f0, 1.0f0), GB.Vec(0.0f0, 1.0f0)))]
+            manifold_list = [
+            # std_axes
+            (c1, c2, (r_c1 + r_c2 - d) .* -i_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_90(std_axes), (r_c1 - d / 2) .* -i_cap)),
+            (c1, c2, r_c2 .* -i_cap, std_axes, PE2D.Manifold(r_c1, PE2D.rotate_90(std_axes), (r_c1 / 2) .* -i_cap)),
+            (c1, c2, r_c2 .* i_cap, std_axes, PE2D.Manifold(r_c1, PE2D.rotate_minus_90(std_axes), (r_c1 / 2) .* i_cap)),
+            (c1, c2, (r_c1 + r_c2 - d) .* i_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_minus_90(std_axes), (r_c1 - d / 2) .* i_cap)),
+
+            (c1, c2, (r_c1 + r_c2 - d) .* -j_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_180(std_axes), (r_c1 - d / 2) .* -j_cap)),
+            (c1, c2, r_c2 .* -j_cap, std_axes, PE2D.Manifold(r_c1, PE2D.rotate_180(std_axes), (r_c1 / 2) .* -j_cap)),
+            (c1, c2, r_c2 .* j_cap, std_axes, PE2D.Manifold(r_c1, std_axes, (r_c1 / 2) .* j_cap)),
+            (c1, c2, (r_c1 + r_c2 - d) .* j_cap, std_axes, PE2D.Manifold(d, std_axes, (r_c1 - d / 2) .* j_cap)),
+
+            (c1, c2, (r_c1 + r_c2 - d) .* unit_45, std_axes, PE2D.Manifold(d, PE2D.Axes(-theta_45), (r_c1 - d / 2) .* unit_45)),
+            (c1, c2, r_c2 .* unit_45, std_axes, PE2D.Manifold(r_c1, PE2D.Axes(-theta_45), (r_c1 / 2) .* unit_45)),
+            ]
+
             test_manifold_list(manifold_list)
         end
 
         @testset "Rect2D vs. Circle" begin
-            manifold_list = [(GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperSphere(GB.Point(0.5f0, 1.75f0), 1.0f0), PE2D.Manifold(1.0f0 - sqrt(0.5f0^2 + 0.25f0^2), LA.normalize(GB.Vec(-0.5f0, -0.25f0)), GB.Vec(1.0f0, 2.0f0))),
-                             (GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperSphere(GB.Point(0.5f0, 2.25f0), 1.0f0), PE2D.Manifold(0.5f0, GB.Vec(-1.0f0, 0.0f0), GB.Vec(1.0f0, 2.25f0))),
-                             (GB.HyperRectangle(1.0f0, 2.0f0, 4.0f0, 5.0f0), GB.HyperSphere(GB.Point(3.0f0, 3.0f0), 0.5f0), PE2D.Manifold(1.5f0, GB.Vec(0.0f0, -1.0f0), GB.Vec(3.0f0, 2.75f0))),
-                             (GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperSphere(GB.Point(1.5f0, 2.25f0), 1.0f0), PE2D.Manifold(1.25f0, GB.Vec(0.0f0, -1.0f0), GB.Vec(1.5f0, 2.25f0 + 1.0f0 - 0.25f0 / 2)))]
+            manifold_list = [
+            # std_axes
+            (r1, c1, (half_width_r1 + r_c1 - d) .* -i_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_90(std_axes), (half_width_r1 - d / 2) .* -i_cap)),
+            (r1, c1, (half_width_r1 + d) .* -i_cap, std_axes, PE2D.Manifold(r_c1 - d, PE2D.rotate_90(std_axes), (half_width_r1 - (r_c1 - d) / 2) .* -i_cap)),
+            (r1, c1, (half_width_r1 - d) .* -i_cap, std_axes, PE2D.Manifold(r_c1 + d, PE2D.rotate_90(std_axes), (half_width_r1 - (r_c1 + d) / 2) .* -i_cap)),
+            (r1, c1, (half_width_r1 - d) .* i_cap, std_axes, PE2D.Manifold(r_c1 + d, PE2D.rotate_minus_90(std_axes), (half_width_r1 - (r_c1 + d) / 2) .* i_cap)),
+            (r1, c1, (half_width_r1 + d) .* i_cap, std_axes, PE2D.Manifold(r_c1 - d, PE2D.rotate_minus_90(std_axes), (half_width_r1 - (r_c1 - d) / 2) .* i_cap)),
+            (r1, c1, (half_width_r1 + r_c1 - d) .* i_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_minus_90(std_axes), (half_width_r1 - d / 2) .* i_cap)),
+
+            (r1, c1, (half_height_r1 + r_c1 - d) .* -j_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_180(std_axes), (half_height_r1 - d / 2) .* -j_cap)),
+            (r1, c1, (half_height_r1 + d) .* -j_cap, std_axes, PE2D.Manifold(r_c1 - d, PE2D.rotate_180(std_axes), (half_height_r1 - (r_c1 - d) / 2) .* -j_cap)),
+            (r1, c1, (half_height_r1 - d) .* -j_cap, std_axes, PE2D.Manifold(r_c1 + d, PE2D.rotate_180(std_axes), (half_height_r1 - (r_c1 + d) / 2) .* -j_cap)),
+            (r1, c1, (half_height_r1 - d) .* j_cap, std_axes, PE2D.Manifold(r_c1 + d, std_axes, (half_height_r1 - (r_c1 + d) / 2) .* j_cap)),
+            (r1, c1, (half_height_r1 + d) .* j_cap, std_axes, PE2D.Manifold(r_c1 - d, std_axes, (half_height_r1 - (r_c1 - d) / 2) .* j_cap)),
+            (r1, c1, (half_height_r1 + r_c1 - d) .* j_cap, std_axes, PE2D.Manifold(d, std_axes, (half_height_r1 - d / 2) .* j_cap)),
+
+            (r1, c1, top_right_r1 .+ (r_c1 - d) .* unit_45, std_axes, PE2D.Manifold(d, PE2D.Axes(-theta_45), top_right_r1 .+ (d / 2) .* -unit_45)),
+
+            # reverse check with std_axes
+            (c1, r1, (half_width_r1 + r_c1 - d) .* -i_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_90(std_axes), (r_c1 - d / 2) .* -i_cap)),
+            (c1, r1, (half_width_r1 + d) .* -i_cap, std_axes, PE2D.Manifold(r_c1 - d, PE2D.rotate_90(std_axes), (r_c1 - (r_c1 - d) / 2) .* -i_cap)),
+            (c1, r1, (half_width_r1 - d) .* -i_cap, std_axes, PE2D.Manifold(r_c1 + d, PE2D.rotate_90(std_axes), (r_c1 - (r_c1 + d) / 2) .* -i_cap)),
+            (c1, r1, (half_width_r1 - d) .* i_cap, std_axes, PE2D.Manifold(r_c1 + d, PE2D.rotate_minus_90(std_axes), (r_c1 - (r_c1 + d) / 2) .* i_cap)),
+            (c1, r1, (half_width_r1 + d) .* i_cap, std_axes, PE2D.Manifold(r_c1 - d, PE2D.rotate_minus_90(std_axes), (r_c1 - (r_c1 - d) / 2) .* i_cap)),
+            (c1, r1, (half_width_r1 + r_c1 - d) .* i_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_minus_90(std_axes), (r_c1 - d / 2) .* i_cap)),
+
+            (c1, r1, (half_height_r1 + r_c1 - d) .* -j_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_180(std_axes), (r_c1 - d / 2) .* -j_cap)),
+            (c1, r1, (half_height_r1 + d) .* -j_cap, std_axes, PE2D.Manifold(r_c1 - d, PE2D.rotate_180(std_axes), (r_c1 - (r_c1 - d) / 2) .* -j_cap)),
+            (c1, r1, (half_height_r1 - d) .* -j_cap, std_axes, PE2D.Manifold(r_c1 + d, PE2D.rotate_180(std_axes), (r_c1 - (r_c1 + d) / 2) .* -j_cap)),
+            (c1, r1, (half_height_r1 - d) .* j_cap, std_axes, PE2D.Manifold(r_c1 + d, std_axes, (r_c1 - (r_c1 + d) / 2) .* j_cap)),
+            (c1, r1, (half_height_r1 + d) .* j_cap, std_axes, PE2D.Manifold(r_c1 - d, std_axes, (r_c1 - (r_c1 - d) / 2) .* j_cap)),
+            (c1, r1, (half_height_r1 + r_c1 - d) .* j_cap, std_axes, PE2D.Manifold(d, std_axes, (r_c1 - d / 2) .* j_cap)),
+
+            (c1, r1, top_right_r1 .+ (r_c1 - d) .* unit_45, std_axes, PE2D.Manifold(d, PE2D.Axes(-theta_45), (r_c1 - d / 2) .* unit_45)),
+
+            # reverse check with rotated_axes
+            (c1, r1, (r_c1 - d) .* unit_45 .+ PE2D.rotate(top_right_r1, rotated_axes), rotated_axes, PE2D.Manifold(d, PE2D.Axes(-theta_45), (r_c1 - d / 2) .* unit_45)),
+            ]
+
             test_manifold_list(manifold_list)
         end
 
         @testset "Rect2D vs. Rect2D" begin
-            manifold_list = [(GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(0.0f0, 0.0f0, 1.1f0, 5.0f0), PE2D.Manifold(0.1f0, GB.Vec(-1.0f0, 0.0f0), GB.Vec(1.05f0, 3.5f0))),
-                             (GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(2.0f0, 0.0f0, 5.0f0, 2.1f0), PE2D.Manifold(0.1f0, GB.Vec(0.0f0, -1.0f0), GB.Vec(3.0f0, 2.05f0))),
-                             (GB.HyperRectangle(1.0f0, 2.0f0, 3.0f0, 4.0f0), GB.HyperRectangle(2.0f0, 0.0f0, 5.0f0, 2.0f0), PE2D.Manifold(0.0f0, GB.Vec(0.0f0, -1.0f0), GB.Vec(3.0f0, 2.0f0)))]
+            manifold_list = [
+            # std_axes
+            (r2, r1, (half_height_r2 + half_height_r1 - d) .* -j_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_180(std_axes), (half_height_r2 - d/2) .* -j_cap)),
+            (r2, r1, (half_height_r2 + d) .* -j_cap, std_axes, PE2D.Manifold(half_height_r1 - d, PE2D.rotate_180(std_axes), (half_height_r2 - (half_height_r1 - d)/2) .* -j_cap)),
+            (r2, r1, (half_height_r2 - d) .* -j_cap, std_axes, PE2D.Manifold(half_height_r1 + d, PE2D.rotate_180(std_axes), (half_height_r2 - (half_height_r1 + d)/2) .* -j_cap)),
+            (r2, r1, d .* -j_cap, std_axes, PE2D.Manifold(half_height_r2 + half_height_r1 - d, PE2D.rotate_180(std_axes), d .* -j_cap)),
+            (r2, r1, d .* j_cap, std_axes, PE2D.Manifold(half_height_r2 + half_height_r1 - d, std_axes, d .* j_cap)),
+            (r2, r1, (half_height_r2 - d) .* j_cap, std_axes, PE2D.Manifold(half_height_r1 + d, std_axes, (half_height_r2 - (half_height_r1 + d)/2) .* j_cap)),
+            (r2, r1, (half_height_r2 + d) .* j_cap, std_axes, PE2D.Manifold(half_height_r1 - d, std_axes, (half_height_r2 - (half_height_r1 - d)/2) .* j_cap)),
+            (r2, r1, (half_height_r2 + half_height_r1 - d) .* j_cap, std_axes, PE2D.Manifold(d, std_axes, (half_height_r2 - d/2) .* j_cap)),
+
+            (r2, r1, (half_width_r2 + half_width_r1 - d) .* -i_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_90(std_axes), (half_width_r2 - d/2) .* -i_cap)),
+            (r2, r1, (half_width_r2 + d) .* -i_cap, std_axes, PE2D.Manifold(half_width_r1 - d, PE2D.rotate_90(std_axes), (half_width_r2 - (half_width_r1 - d)/2) .* -i_cap)),
+            (r2, r1, (half_width_r2 - d) .* -i_cap, std_axes, PE2D.Manifold(half_width_r1 + d, PE2D.rotate_90(std_axes), (half_width_r2 - (half_width_r1 + d)/2) .* -i_cap)),
+            (r2, r1, (half_width_r2 - d) .* i_cap, std_axes, PE2D.Manifold(half_width_r1 + d, PE2D.rotate_minus_90(std_axes), (half_width_r2 - (half_width_r1 + d)/2) .* i_cap)),
+            (r2, r1, (half_width_r2 + d) .* i_cap, std_axes, PE2D.Manifold(half_width_r1 - d, PE2D.rotate_minus_90(std_axes), (half_width_r2 - (half_width_r1 - d)/2) .* i_cap)),
+            (r2, r1, (half_width_r2 + half_width_r1 - d) .* i_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_minus_90(std_axes), (half_width_r2 - d/2) .* i_cap)),
+
+            (r2, r1, top_right_r2 .- d, std_axes, PE2D.Manifold(half_height_r1 + d, std_axes, top_right_r2 .+ (half_width_r1 + d)/2 .* -i_cap .+ (half_height_r1 + d)/2 .* -j_cap)),
+            (r2, r1, top_right_r2, std_axes, PE2D.Manifold(half_height_r1, std_axes, top_right_r2 .+ (half_width_r1/2) .* -i_cap .+ (half_height_r1/2) .* -j_cap)),
+            (r2, r1, top_right_r2 .+ d, std_axes, PE2D.Manifold(half_height_r1 - d, std_axes, top_right_r2 .+ (half_width_r1 - d)/2 .* -i_cap .+ (half_height_r1 - d)/2 .* -j_cap)),
+
+            # rotated_axes
+            (r2, r1, (half_height_r2 - d) .* -j_cap .- PE2D.rotate(top_right_r1, rotated_axes), rotated_axes, PE2D.Manifold(d, PE2D.rotate_180(std_axes), ((zero(T) - d / tan(theta) + d * tan(theta)) ./ 3) .* i_cap .+ ((-half_height_r2 + d - half_height_r2 - half_height_r2) ./ 3) .* j_cap)),
+            (r2, r1, (half_height_r2 - d) .* j_cap .+ PE2D.rotate(top_right_r1, rotated_axes), rotated_axes, PE2D.Manifold(d, std_axes, ((zero(T) + d / tan(theta) - d * tan(theta)) ./ 3) .* i_cap .+ ((half_height_r2 - d + half_height_r2 + half_height_r2) ./ 3) .* j_cap)),
+
+            (r2, r1, (half_width_r2 + LA.norm(top_right_r1) * cos(-theta_r1 + theta) - d) .* -i_cap, rotated_axes, PE2D.Manifold(d, PE2D.rotate_90(std_axes), ((-half_width_r2 + d - half_width_r2 - half_width_r2) ./ 3) .* i_cap .+ (LA.norm(top_right_r1) * sin(-theta_r1 + theta) + (d / tan(theta) - d * tan(theta)) / 3) .* j_cap)),
+            (r2, r1, (half_width_r2 + LA.norm(top_right_r1) * cos(-theta_r1 + theta) - d) .* i_cap, rotated_axes, PE2D.Manifold(d, PE2D.rotate_minus_90(std_axes), ((half_width_r2 - d + half_width_r2 + half_width_r2) ./ 3) .* i_cap .+ (LA.norm(top_right_r1) * sin(convert(T, pi - theta_r1) + theta) + (d * tan(theta) - d / tan(theta)) / 3) .* j_cap)),
+            ]
+
             test_manifold_list(manifold_list)
         end
     end
 
-    @testset "Simulation: frictionless collision of rotating circles" begin
-        T = Float32
-        NUM_ITER = 500
-        DT = 0.01
-        FRAME_RATE = 1 / DT
+    # @testset "Simulation: frictionless collision of rotating circles" begin
+        # T = Float32
+        # NUM_ITER = 500
+        # DT = 1 / 60
+        # FRAME_RATE = 1 / DT
 
-        shape1 = GB.HyperSphere(GB.Point2{T}(5.0f0, 1.0f0), one(T))
-        material_data1 = PE2D.MaterialData{T}()
-        mass_data1 = PE2D.MassData(material_data1.density, shape1)
-        position_accumulator1 = PE2D.Accumulator(GB.Vec2{T}(5.0f0, 1.0f0), zero(GB.Vec2{T}))
-        velocity_accumulator1 = PE2D.Accumulator(GB.Vec2{T}(0.0f0, 1.0f0), zero(GB.Vec2{T}))
-        force_accumulator1 = PE2D.Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
-        inertia_data1 = PE2D.InertiaData(material_data1.density, shape1)
-        angle_accumulator1 = PE2D.Accumulator(zero(T), zero(T))
-        angular_velocity_accumulator1 = PE2D.Accumulator(one(T), zero(T))
-        torque_accumulator1 = PE2D.Accumulator(zero(T), zero(T))
-        body1 = PE2D.RigidBody(shape1, material_data1, mass_data1, position_accumulator1, velocity_accumulator1, force_accumulator1, inertia_data1, angle_accumulator1, angular_velocity_accumulator1, torque_accumulator1)
+        # shape1 = GB.HyperSphere(GB.Point2{T}(5, 1), one(T))
+        # material_data1 = PE2D.MaterialData{T}()
+        # mass_data1 = PE2D.MassData(material_data1.density, shape1)
+        # position_accumulator1 = PE2D.Accumulator(GB.Vec2{T}(5, 1), zero(GB.Vec2{T}))
+        # velocity_accumulator1 = PE2D.Accumulator(GB.Vec2{T}(0, 1), zero(GB.Vec2{T}))
+        # force_accumulator1 = PE2D.Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
+        # inertia_data1 = PE2D.InertiaData(material_data1.density, shape1)
+        # angle1 = zero(T)
+        # angle_accumulator1 = PE2D.Accumulator(angle1, zero(T))
+        # angular_velocity_accumulator1 = PE2D.Accumulator(one(T), zero(T))
+        # torque_accumulator1 = PE2D.Accumulator(zero(T), zero(T))
+        # direction1 = GB.Vec2{T}(cos(angle1), sin(angle1))
+        # body1 = PE2D.RigidBody(shape1, material_data1, mass_data1, position_accumulator1, velocity_accumulator1, force_accumulator1, inertia_data1, angle_accumulator1, angular_velocity_accumulator1, torque_accumulator1, direction1)
 
-        shape2 = GB.HyperSphere(GB.Point2{T}(1.0f0, 5.0f0), one(T))
-        material_data2 = PE2D.MaterialData{T}()
-        mass_data2 = PE2D.MassData(material_data2.density, shape2)
-        position_accumulator2 = PE2D.Accumulator(GB.Vec2{T}(1.0f0, 5.0f0), zero(GB.Vec2{T}))
-        velocity_accumulator2 = PE2D.Accumulator(GB.Vec2{T}(1.0f0, 0.0f0), zero(GB.Vec2{T}))
-        force_accumulator2 = PE2D.Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
-        inertia_data2 = PE2D.InertiaData(material_data2.density, shape2)
-        angle_accumulator2 = PE2D.Accumulator(zero(T), zero(T))
-        angular_velocity_accumulator2 = PE2D.Accumulator(one(T), zero(T))
-        torque_accumulator2 = PE2D.Accumulator(zero(T), zero(T))
-        body2 = PE2D.RigidBody(shape2, material_data2, mass_data2, position_accumulator2, velocity_accumulator2, force_accumulator2, inertia_data2, angle_accumulator2, angular_velocity_accumulator2, torque_accumulator2)
+        # shape2 = GB.HyperSphere(GB.Point2{T}(1, 5), one(T))
+        # material_data2 = PE2D.MaterialData{T}()
+        # mass_data2 = PE2D.MassData(material_data2.density, shape2)
+        # position_accumulator2 = PE2D.Accumulator(GB.Vec2{T}(1, 5), zero(GB.Vec2{T}))
+        # velocity_accumulator2 = PE2D.Accumulator(GB.Vec2{T}(1, 0), zero(GB.Vec2{T}))
+        # force_accumulator2 = PE2D.Accumulator(zero(GB.Vec2{T}), zero(GB.Vec2{T}))
+        # inertia_data2 = PE2D.InertiaData(material_data2.density, shape2)
+        # angle2 = zero(T)
+        # angle_accumulator2 = PE2D.Accumulator(angle2, zero(T))
+        # angular_velocity_accumulator2 = PE2D.Accumulator(one(T), zero(T))
+        # torque_accumulator2 = PE2D.Accumulator(zero(T), zero(T))
+        # direction2 = GB.Vec2{T}(cos(angle2), sin(angle2))
+        # body2 = PE2D.RigidBody(shape2, material_data2, mass_data2, position_accumulator2, velocity_accumulator2, force_accumulator2, inertia_data2, angle_accumulator2, angular_velocity_accumulator2, torque_accumulator2, direction2)
 
-        bodies = [body1, body2]
-        world = PE2D.World(bodies)
-        PE2D.simulate!(world, 500, 0.01)
-    end
+        # bodies = [body1, body2]
+        # world = PE2D.World(bodies)
+        # PE2D.simulate!(world, NUM_ITER, DT)
+    # end
 
 end

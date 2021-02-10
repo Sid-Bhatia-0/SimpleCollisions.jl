@@ -1,54 +1,46 @@
-const ATOL = 1e-7
+function is_colliding(a::RigidBody, b::RigidBody)
+    shape_a = get_shape(a)
+    shape_b = get_shape(b)
 
-#####
-# Point vs. Point
-#####
+    pos_a = get_position(a)
+    pos_b = get_position(b)
+    pos_ba = position_b .- position_a
 
-is_colliding(a::GB.Vec{N}, b::GB.Vec{N}) where {N} = all(ab -> isapprox(ab[1], ab[2], atol = ATOL), zip(a, b))
+    axes_a = get_axes(a)
+    axes_b = get_axes(b)
+    axes_ba = get_relative_axes(axes_a, axes_b)
 
-#####
-# Line vs. Point
-#####
-
-function is_colliding(a::GB.Line{N}, b::GB.Vec{N}) where {N}
-    T = eltype(b)
-    p1 = a.points[1]
-    p2 = a.points[2]
-    p1_b = p1 .- b
-    p2_b = p2 .- b
-    return LA.dot(p1_b, p2_b) <= zero(T) && isapprox(get_area(b, p1, p2), zero(T), atol = ATOL)
+    is_colliding(shape_a, shape_b, pos_ba, axes_ba)
 end
-
-is_colliding(a::GB.Vec{N}, b::GB.Line{N}) where {N} = is_colliding(b, a)
 
 #####
 # Line vs. Line
 #####
 
-get_point(a::GB.Line, i) = convert(GB.Vec, a.points[i])
-
-function is_colliding(a::GB.Line{2}, b::GB.Line{2})
+function is_colliding(a::GB.Line, b::GB.Line, pos_ba, axes_ba)
     p1 = get_point(a, 1)
     p2 = get_point(a, 2)
-    q1 = get_point(b, 1)
-    q2 = get_point(b, 2)
-    p2_p1 = p2 .- p1
-    q2_q1 = q2 .- q1
 
-    normal_a = GB.Vec(-p2_p1[2], p2_p1[1])
-    x = LA.dot(q2_q1, normal_a)
-    if isapprox(x, zero(x), atol = ATOL)
-        return is_colliding(a, q1) || is_colliding(a, q2)
+    half_width_b = get_point(b, 2)[1]
+    x_cap_b = get_x_cap(axes_ba)
+    q1 = pos_ba .- half_width_b .* x_cap_b
+    q2 = pos_ba .+ half_width_b .* x_cap_b
+
+    x1_a = p1[1]
+    x2_a = p2[1]
+
+    x1_b = q1[1]
+    y1_b = q1[2]
+    x2_b = q2[1]
+    y2_b = q2[2]
+
+    t = y1_b / (y1_b - y2_b)
+
+    if isfinite(t)
+        x_intersection = x1_b + t * (x2_b - x1_b)
+        return (zero(t) <= t <= one(t)) && (x1_a <= x_intersection <= x2_a)
     else
-        normal_b = GB.Vec(-q2_q1[2], q2_q1[1])
-        y = LA.dot(p2_p1, normal_b)
-        g = LA.dot(q1 .- p1, normal_b) / y # note that since the lines are not parallel (since x is non-zero), y will not be zero
-        h = LA.dot(p1 .- q1, normal_a) / x
-        if zero(g) <= g <= one(g) && zero(h) <= h <= one(h)
-            return true
-        else
-            return false
-        end
+        return (y1_b == zero(y1_b)) && (y2_b == zero(y2_b)) && !((x2_a < x1_b) || (x2_b < x1_a))
     end
 end
 
@@ -56,104 +48,141 @@ end
 # HyperSphere vs. Point
 #####
 
-function is_colliding(a::GB.HyperSphere{N}, b::GB.Vec{N}) where {N}
-    center_a = get_center(a)
-    ba = b .- center_a
-    return LA.dot(ba, ba) <= a.r ^ 2
-end
-
-is_colliding(a::GB.Vec{N}, b::GB.HyperSphere{N}) where {N} = is_colliding(b, a)
+is_colliding(a::GB.HyperSphere, b::GB.Vec, pos_ba) = LA.dot(pos_ba, pos_ba) <= a.r ^ 2
+is_colliding(a::GB.HyperSphere, b::GB.Vec, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
+is_colliding(a::GB.Vec, b::GB.HyperSphere, pos_ba, axes_ba) = is_colliding(b, a, pos_ba)
 
 #####
 # HyperSphere vs. Line
 #####
 
-function is_colliding(a::GB.HyperSphere{N}, b::GB.Line{N}) where {N}
-    p1 = get_point(b, 1)
-    p2 = get_point(b, 2)
-    if is_colliding(a, p1) || is_colliding(a, p2)
-        return true
+function is_colliding(a::GB.HyperSphere, b::GB.Line, pos_ba, axes_ba)
+    axes_ab = invert_relative_axes(axes_ba)
+    pos_ab = -rotate(pos_ba, axes_ab)
+    is_colliding(b, a, pos_ab, axes_ab)
+end
+
+is_colliding(a::GB.Line, b::GB.HyperSphere, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
+
+function project(a::GB.Line, b::GB.HyperSphere, pos_ba)
+    VecType = typeof(pos_ba)
+    half_width_a = get_point(a, 2)[1]
+    x_b = pos_ba[1]
+    if x_b < -half_width_a
+        return get_point(a, 1)
+    elseif x_b > half_width_a
+        return get_point(a, 2)
     else
-        center_a = get_center(a)
-        area = get_area(center_a, p1, p2)
-        p2_p1 = p2 .- p1
-        height_squared = 4 * area ^ 2 / LA.dot(p2_p1, p2_p1)
-        if height_squared > a.r ^ 2
-            return false
-        else
-            a_p1 = center_a .- p1
-            a_p2 = center_a .- p2
-            x = LA.dot(a_p1, p2_p1) * LA.dot(a_p2, p2_p1)
-            return x < zero(x)
-        end
+        return VecType(x_b, zero(x_b))
     end
 end
 
-is_colliding(a::GB.Line{N}, b::GB.HyperSphere{N}) where {N} = is_colliding(b, a)
+function is_colliding(a::GB.Line, b::GB.HyperSphere, pos_ba)
+    closest_point_ba = project(a, b, pos_ba)
+    vec = pos_ba .- closest_point_ba
+    return LA.dot(vec, vec) <= b.r ^ 2
+end
 
 #####
 # HyperSphere vs. HyperSphere
 #####
 
-function is_colliding(a::GB.HyperSphere{N}, b::GB.HyperSphere{N}) where {N}
-    center_a = get_center(a)
-    center_b = get_center(b)
-    ba = center_b .- center_a
-    return LA.dot(ba, ba) <= (a.r + b.r) ^ 2
-end
+is_colliding(a::GB.HyperSphere, b::GB.HyperSphere, pos_ba) = LA.dot(pos_ba, pos_ba) <= (a.r + b.r) ^ 2
+is_colliding(a::GB.HyperSphere, b::GB.HyperSphere, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
 
 #####
 # HyperRectangle vs. Point
 #####
 
-is_colliding(a::GB.HyperRectangle{N}, b::GB.Vec{N}) where {N} = minimum(a) <= b <= maximum(a)
-
-is_colliding(a::GB.Vec{N}, b::GB.HyperRectangle{N}) where {N} = is_colliding(b, a)
+is_colliding(a::GB.Rect, b::GB.Vec, pos_ba) = all(minimum(a) .<= pos_ba .<= maximum(a))
+is_colliding(a::GB.Rect, b::GB.Vec, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
+function is_colliding(a::GB.Vec, b::GB.Rect, pos_ba, axes_ba)
+    axes_ab = invert_relative_axes(axes_ba)
+    pos_ab = -rotate(pos_ba, axes_ab)
+    return is_colliding(b, a, pos_ab, axes_ab)
+end
 
 #####
 # HyperRectangle vs. Line
 #####
 
-function is_colliding(a::GB.HyperRectangle{N}, b::GB.Line{N}) where {N}
-    if is_colliding(a, get_point(b, 1)) || is_colliding(a, get_point(b, 2))
+function is_colliding(a::GB.Rect, b::GB.Line, pos_ba, axes_ba)
+    origin = zero(a.origin)
+    half_width_b = get_point(b, 2)[1]
+    x_cap_ba = get_x_cap(axes_ba)
+    q1 = pos_ba .+ half_width_b .* x_cap_ba
+    q2 = pos_ba .- half_width_b .* x_cap_ba
+
+    if is_colliding(a, origin, q1) || is_colliding(a, origin, q2)
         return true
     else
-        lines = get_lines(a)
-        return any(line -> is_colliding(line, b), lines)
+        half_widths_a = get_half_widths(a)
+        half_width_a = half_widths_a[1]
+        half_height_a = half_widths_a[2]
+
+        PointType = typeof(b.points[1])
+        VecType = typeof(pos_ba)
+
+        x_ba = pos_ba[1]
+        y_ba = pos_ba[2]
+
+        zero_val = zero(half_width_a)
+        horizontal_line = GB.Line(PointType(-half_width_a, zero_val), PointType(half_width_a, zero_val))
+        vertical_line = GB.Line(PointType(-half_height_a, zero_val), PointType(half_height_a, zero_val))
+
+        axis_ba_minus_90 = rotate_minus_90(axes_ba)
+        return any([is_colliding(horizontal_line, b, VecType(x_ba, y_ba + half_height_a), axes_ba),
+                    is_colliding(vertical_line, b, VecType(y_ba, half_width_a - x_ba), axis_ba_minus_90),
+                    is_colliding(horizontal_line, b, VecType(x_ba, y_ba - half_height_a), axes_ba),
+                    is_colliding(vertical_line, b, VecType(y_ba, - half_width_a - x_ba), axis_ba_minus_90)])
     end
 end
 
-is_colliding(a::GB.Line{N}, b::GB.HyperRectangle{N}) where {N} = is_colliding(b, a)
+function is_colliding(a::GB.Line, b::GB.Rect, pos_ba, axes_ba)
+    axes_ab = invert_relative_axes(axes_ba)
+    pos_ab = -rotate(pos_ba, axes_ab)
+    return is_colliding(b, a, pos_ab, axes_ab)
+end
 
 #####
 # HyperRectangle vs. HyperSphere
 #####
 
-function is_colliding(a::GB.HyperRectangle{N}, b::GB.HyperSphere{N}) where {N}
-    center_a = get_center(a)
-    center_b = get_center(b)
-    ba = center_b .- center_a
+project(a::GB.Rect, b::GB.HyperSphere, pos_ba) = clamp.(pos_ba, minimum(a), maximum(a))
 
-    half_widths = get_half_widths(a)
-    ba_clamped = clamp.(ba, -half_widths, half_widths)
-
-    closest_point = center_a .+ ba_clamped
-
-    return is_colliding(b, closest_point)
+function is_colliding(a::GB.Rect, b::GB.HyperSphere, pos_ba)
+    closest_point_ba = project(a, b, pos_ba)
+    vec = pos_ba .- closest_point_ba
+    return LA.dot(vec, vec) <= b.r ^ 2
 end
 
-is_colliding(a::GB.HyperSphere{N}, b::GB.HyperRectangle{N}) where {N} = is_colliding(b, a)
+is_colliding(a::GB.Rect, b::GB.HyperSphere, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
+function is_colliding(a::GB.HyperSphere, b::GB.Rect, pos_ba, axes_ba)
+    axes_ab = invert_relative_axes(axes_ba)
+    pos_ab = -rotate(pos_ba, axes_ab)
+    return is_colliding(b, a, pos_ab, axes_ab)
+end
+
 
 #####
 # HyperRectangle vs. HyperRectangle
 #####
 
-function is_colliding(a::GB.HyperRectangle{N}, b::GB.HyperRectangle{N}) where {N}
-    for i in 1:N
-        if (a.origin[i] + a.widths[i] < b.origin[i]) || (b.origin[i] + b.widths[i] < a.origin[i])
-            return false
-        end
-    end
+function is_separate(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
+    half_widths_a = get_top_right(a)
+    half_width_a = half_widths_a[1]
+    half_height_a = half_widths_a[2]
 
-    return true
+    bottom_left_ba, bottom_right_ba, top_right_ba, top_left_ba = get_vertices(b, pos_ba, axes_ba)
+
+    min_x_ba, max_x_ba = extrema((bottom_left_ba[1], bottom_right_ba[1], top_right_ba[1], top_left_ba[1]))
+    min_y_ba, max_y_ba = extrema((bottom_left_ba[2], bottom_right_ba[2], top_right_ba[2], top_left_ba[2]))
+
+    return ((half_width_a <= min_x_ba) || (max_x_ba <= -half_width_a) || (half_height_a <= min_y_ba) || (max_y_ba <= -half_height_a))
+end
+
+function is_colliding(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
+    axes_ab = invert_relative_axes(axes_ba)
+    pos_ab = -rotate(pos_ba, axes_ab)
+    return !(is_separate(a, b, pos_ba, axes_ba) || is_separate(b, a, pos_ab, axes_ab))
 end

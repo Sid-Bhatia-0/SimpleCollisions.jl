@@ -1,13 +1,31 @@
+get_point(a::GB.Line, i) = convert(GB.Vec, a.points[i])
 get_center(a::GB.HyperSphere) = convert(GB.Vec, a.center)
 get_center(a::GB.HyperRectangle) = convert(GB.Vec, a.origin .+ a.widths ./ 2)
 get_half_widths(a::GB.HyperRectangle) = convert(GB.Vec, a.widths ./ 2)
 get_bottom_left(a::GB.HyperRectangle) = minimum(a)
-get_bottom_right(a::GB.HyperRectangle) = minimum(a) .+ GB.Vec(GB.widths[1], zero(eltype(a.origin)))
+get_bottom_right(a::GB.HyperRectangle{N, T}) where {N, T} = minimum(a) .+ GB.Vec(GB.widths[1], zero(T))
 get_top_right(a::GB.HyperRectangle) = maximum(a)
-get_top_left(a::GB.HyperRectangle) = minimum(a) .+ GB.Vec(zero(eltype(a.origin)), GB.widths[2])
+get_top_left(a::GB.HyperRectangle) = minimum(a) .+ GB.Vec(zero(T), GB.widths[2])
 
-GB.area(a::GB.Rect2D) = prod(a.widths)
-GB.area(a::GB.Circle) = π * a.r * a.r
+get_area(a::GB.Rect2D) = prod(a.widths)
+get_area(a::GB.Circle) = π * a.r * a.r
+function get_area(vertices)
+    area = zero(eltype(vertices[1]))
+
+    for i in 1:length(vertices) - 1
+        v1 = augmented_vertices[i]
+        v2 = augmented_vertices[i + 1]
+        area = area + v1[1] * v2[2] - v2[1] * v1[2]
+    end
+
+    last_vertex = vertices[end]
+    first_vertex = vertices[1]
+
+    area = (area + last_vertex[1] * first_vertex[2] - first_vertex[1] * last_vertex[2]) / 2
+
+    return area
+end
+
 function get_area(p1, p2, p3)
     x1 = p1[1]
     y1 = p1[2]
@@ -18,20 +36,61 @@ function get_area(p1, p2, p3)
     return abs(x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2
 end
 
-function get_lines(a::GB.Rect{2, T}) where {T}
-    bottom_left = convert(GB.Point, minimum(a))
-    bottom_right = convert(GB.Point, bottom_left .+ GB.Point(a.widths[1], zero(T)))
-    top_right = convert(GB.Point, maximum(a))
-    top_left = convert(GB.Point, bottom_left .+ GB.Point(zero(T), a.widths[2]))
+function get_edges(a::GB.Rect2D)
+    bottom_left = convert(GB.Point, get_bottom_left(a))
+    bottom_right = convert(GB.Point, get_bottom_right(a))
+    top_right = convert(GB.Point, get_top_right(a))
+    top_left = convert(GB.Point, get_top_left(a))
 
-    l1 = GB.Line(bottom_left, bottom_right)
-    l2 = GB.Line(bottom_right, top_right)
-    l3 = GB.Line(top_right, top_left)
-    l4 = GB.Line(top_left, bottom_left)
-    return (l1, l2, l3, l4)
+    e1 = GB.Line(bottom_left, bottom_right)
+    e2 = GB.Line(bottom_right, top_right)
+    e3 = GB.Line(top_right, top_left)
+    e4 = GB.Line(top_left, bottom_left)
+
+    return (e1, e2, e3, e4)
 end
 
-get_mass(density::Number, shape::GB.GeometryPrimitive{2}) = density * GB.area(shape)
+function get_vertices(a::GB.Rect, pos, axes)
+    half_widths = maximum(a)
+    half_width = half_widths[1]
+    half_height = half_widths[2]
 
-get_inertia(density::Number, shape::GB.Circle) = get_mass(density, shape) * shape.r * shape.r / 2
-get_inertia(density::Number, shape::GB.Rect2D) = get_mass(density, shape) * LA.dot(shape.widths, shape.widths) / 12
+    x_cap = get_x_cap(axes)
+    y_cap = get_y_cap(axes)
+
+    bottom_left = pos .- half_width .* x_cap .- half_height .* y_cap
+    bottom_right = pos .+ half_width .* x_cap .- half_height .* y_cap
+    top_right = pos .+ half_width .* x_cap .+ half_height .* y_cap
+    top_left = pos .- half_width .* x_cap .+ half_height .* y_cap
+
+    return (bottom_left, bottom_right, top_right, top_left)
+end
+
+function get_vertices(a::GB.Rect)
+    half_widths = maximum(a)
+    half_width = half_widths[1]
+    half_height = half_widths[2]
+
+    VecType = typeof(half_widths)
+
+    bottom_left = VecType(-half_width, -half_height)
+    bottom_right = VecType(half_width, -half_height)
+    top_right = VecType(half_width, half_height)
+    top_left = VecType(-half_width, half_height)
+
+    return (bottom_left, bottom_right, top_right, top_left)
+end
+
+function get_normals(a::GB.Rect)
+    T = eltype(a.origin)
+    axes = Axes{T}()
+    x_cap = get_x_cap(axes)
+    y_cap = get_y_cap(axes)
+    return (-y_cap, x_cap, y_cap, -x_cap)
+end
+
+function get_normals(a::GB.Rect, pos, axes)
+    x_cap = get_x_cap(axes)
+    y_cap = get_y_cap(axes)
+    return (-y_cap, x_cap, y_cap, -x_cap)
+end
