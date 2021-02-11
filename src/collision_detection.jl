@@ -1,188 +1,207 @@
-function is_colliding(a::RigidBody, b::RigidBody)
-    shape_a = get_shape(a)
-    shape_b = get_shape(b)
+#####
+# StdLine vs. StdLine
+#####
 
-    pos_a = get_position(a)
-    pos_b = get_position(b)
-    pos_ba = position_b .- position_a
-
-    axes_a = get_axes(a)
-    axes_b = get_axes(b)
-    axes_ba = get_relative_axes(axes_a, axes_b)
-
-    is_colliding(shape_a, shape_b, pos_ba, axes_ba)
+function is_colliding(l1::StdLine{T}, l2::StdLine{T}, pos::GB.Vec{2, T}) where {T}
+    y = get_y(pos)
+    if iszero(y)
+        x = get_x(pos_ba)
+        half_length_1 = get_half_length(l1)
+        half_length_2 = get_half_length(l2)
+        return !((x + half_length_2 <= -half_length_1) || (x - half_length_2 >= half_length_1))
+    else
+        return false
+    end
 end
 
-#####
-# Line vs. Line
-#####
+function is_colliding(l1::StdLine{T}, l2::StdLine{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T}
+    half_length = get_half_length(l1)
 
-function is_colliding(a::GB.Line, b::GB.Line, pos_ba, axes_ba)
-    p1 = get_point(a, 1)
-    p2 = get_point(a, 2)
+    tail_l2, head_l2 = get_vertices(l2, pos, axes)
 
-    half_width_b = get_point(b, 2)[1]
-    x_cap_b = get_x_cap(axes_ba)
-    q1 = pos_ba .- half_width_b .* x_cap_b
-    q2 = pos_ba .+ half_width_b .* x_cap_b
+    x1 = tail_l2[1]
+    y1 = tail_l2[2]
 
-    x1_a = p1[1]
-    x2_a = p2[1]
+    x2 = head_l2[1]
+    y2 = head_l2[2]
 
-    x1_b = q1[1]
-    y1_b = q1[2]
-    x2_b = q2[1]
-    y2_b = q2[2]
-
-    t = y1_b / (y1_b - y2_b)
+    t = y1 / (y1 - y2)
 
     if isfinite(t)
-        x_intersection = x1_b + t * (x2_b - x1_b)
-        return (zero(t) <= t <= one(t)) && (x1_a <= x_intersection <= x2_a)
+        x_intersection = x1 + t * (x2 - x1)
+        return (zero(t) < t < one(t)) && (-half_length < x_intersection < half_length)
     else
-        return (y1_b == zero(y1_b)) && (y2_b == zero(y2_b)) && !((x2_a < x1_b) || (x2_b < x1_a))
+        return (iszero(y1)) && (iszero(y2)) && !((half_length <= x1) || (x2 <= -half_length))
     end
 end
 
 #####
-# HyperSphere vs. Point
+# StdCircle vs. StdPoint
 #####
 
-is_colliding(a::GB.HyperSphere, b::GB.Vec, pos_ba) = LA.dot(pos_ba, pos_ba) <= a.r ^ 2
-is_colliding(a::GB.HyperSphere, b::GB.Vec, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
-is_colliding(a::GB.Vec, b::GB.HyperSphere, pos_ba, axes_ba) = is_colliding(b, a, pos_ba)
-
-#####
-# HyperSphere vs. Line
-#####
-
-function is_colliding(a::GB.HyperSphere, b::GB.Line, pos_ba, axes_ba)
-    axes_ab = invert_relative_axes(axes_ba)
-    pos_ab = -rotate(pos_ba, axes_ab)
-    is_colliding(b, a, pos_ab, axes_ab)
+function is_inside(circle::StdCircle{T}, pos::GB.Vec{2, T}) where {T}
+    radius = get_radius(circle)
+    return LA.dot(pos, pos) < radius * radius
 end
 
-is_colliding(a::GB.Line, b::GB.HyperSphere, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
+is_colliding(circle::StdCircle{T}, point::StdPoint{T}, pos::GB.Vec{2, T}) where {T} = is_inside(circle, pos)
+is_colliding(point::StdPoint{T}, circle::StdCircle{T}, pos::GB.Vec{2, T}) where {T} = is_inside(circle, pos) # no need to reverse pos because of symmetry
 
-function project(a::GB.Line, b::GB.HyperSphere, pos_ba)
-    VecType = typeof(pos_ba)
-    half_width_a = get_point(a, 2)[1]
-    x_b = pos_ba[1]
-    if x_b < -half_width_a
-        return get_point(a, 1)
-    elseif x_b > half_width_a
-        return get_point(a, 2)
+is_colliding(circle::StdCircle{T}, point::StdPoint{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T} = is_inside(circle, pos)
+is_colliding(point::StdPoint{T}, circle::StdCircle{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T} = is_inside(circle, pos) # no need to reverse pos because of symmetry
+
+#####
+# StdCircle vs. StdLine
+#####
+
+function get_projection(line::StdLine{T}, pos::GB.Vec{2, T}) where {T}
+    half_length = get_half_length(line)
+    x = get_x(pos)
+    if x < -half_length
+        return get_tail(line)
+    elseif x > half_length
+        return get_head(line)
     else
-        return VecType(x_b, zero(x_b))
+        return typeof(pos)(x, zero(x))
     end
 end
 
-function is_colliding(a::GB.Line, b::GB.HyperSphere, pos_ba)
-    closest_point_ba = project(a, b, pos_ba)
-    vec = pos_ba .- closest_point_ba
-    return LA.dot(vec, vec) <= b.r ^ 2
+function is_colliding(line::StdLine{T}, circle::StdCircle{T}, pos::GB.Vec{2, T}) where {T}
+    projection = get_projection(line, pos)
+    vec = pos .- projection
+    radius = get_radius(circle)
+    return LA.dot(vec, vec) < radius * radius
 end
 
-#####
-# HyperSphere vs. HyperSphere
-#####
+is_colliding(circle::StdCircle{T}, line::StdLine{T}, pos::GB.Vec{2, T}) where {T} = is_colliding(line, circle, pos) # no need to reverse pos because of symmetry
 
-is_colliding(a::GB.HyperSphere, b::GB.HyperSphere, pos_ba) = LA.dot(pos_ba, pos_ba) <= (a.r + b.r) ^ 2
-is_colliding(a::GB.HyperSphere, b::GB.HyperSphere, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
+is_colliding(line::StdLine{T}, circle::StdCircle{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T} = is_colliding(line, circle, pos)
+is_colliding(circle::StdCircle{T}, line::StdLine{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T} = is_colliding(line, circle, invert(pos, axes)...)
 
 #####
-# HyperRectangle vs. Point
+# StdCircle vs. StdCircle
 #####
 
-is_colliding(a::GB.Rect, b::GB.Vec, pos_ba) = all(minimum(a) .<= pos_ba .<= maximum(a))
-is_colliding(a::GB.Rect, b::GB.Vec, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
-function is_colliding(a::GB.Vec, b::GB.Rect, pos_ba, axes_ba)
-    axes_ab = invert_relative_axes(axes_ba)
-    pos_ab = -rotate(pos_ba, axes_ab)
-    return is_colliding(b, a, pos_ab, axes_ab)
+function is_colliding(c1::StdCircle{T}, c2::StdCircle{T}, pos::GB.Vec{2, T}) where {T}
+    r1 = get_radius(c1)
+    r2 = get_radius(c2)
+    r = r1 + r2
+    return LA.dot(pos, pos) < r * r
 end
 
-#####
-# HyperRectangle vs. Line
-#####
-
-function is_colliding(a::GB.Rect, b::GB.Line, pos_ba, axes_ba)
-    origin = zero(a.origin)
-    half_width_b = get_point(b, 2)[1]
-    x_cap_ba = get_x_cap(axes_ba)
-    q1 = pos_ba .+ half_width_b .* x_cap_ba
-    q2 = pos_ba .- half_width_b .* x_cap_ba
-
-    if is_colliding(a, origin, q1) || is_colliding(a, origin, q2)
-        return true
-    else
-        half_widths_a = get_half_widths(a)
-        half_width_a = half_widths_a[1]
-        half_height_a = half_widths_a[2]
-
-        PointType = typeof(b.points[1])
-        VecType = typeof(pos_ba)
-
-        x_ba = pos_ba[1]
-        y_ba = pos_ba[2]
-
-        zero_val = zero(half_width_a)
-        horizontal_line = GB.Line(PointType(-half_width_a, zero_val), PointType(half_width_a, zero_val))
-        vertical_line = GB.Line(PointType(-half_height_a, zero_val), PointType(half_height_a, zero_val))
-
-        axis_ba_minus_90 = rotate_minus_90(axes_ba)
-        return any([is_colliding(horizontal_line, b, VecType(x_ba, y_ba + half_height_a), axes_ba),
-                    is_colliding(vertical_line, b, VecType(y_ba, half_width_a - x_ba), axis_ba_minus_90),
-                    is_colliding(horizontal_line, b, VecType(x_ba, y_ba - half_height_a), axes_ba),
-                    is_colliding(vertical_line, b, VecType(y_ba, - half_width_a - x_ba), axis_ba_minus_90)])
-    end
-end
-
-function is_colliding(a::GB.Line, b::GB.Rect, pos_ba, axes_ba)
-    axes_ab = invert_relative_axes(axes_ba)
-    pos_ab = -rotate(pos_ba, axes_ab)
-    return is_colliding(b, a, pos_ab, axes_ab)
-end
+is_colliding(c1::StdCircle{T}, c2::StdCircle{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T} = is_colliding(c1, c2, pos)
 
 #####
-# HyperRectangle vs. HyperSphere
+# StdRect vs. StdPoint
 #####
 
-project(a::GB.Rect, b::GB.HyperSphere, pos_ba) = clamp.(pos_ba, minimum(a), maximum(a))
+function is_inside(rect::StdRect{T}, pos::GB.Vec{2, T}) where {T}
+    half_width = get_half_width(rect)
+    half_height = get_half_height(rect)
 
-function is_colliding(a::GB.Rect, b::GB.HyperSphere, pos_ba)
-    closest_point_ba = project(a, b, pos_ba)
-    vec = pos_ba .- closest_point_ba
-    return LA.dot(vec, vec) <= b.r ^ 2
+    x = get_x(pos)
+    y = get_y(pos)
+
+    return (-half_width < x < half_width) && (-half_height < y < half_height)
 end
 
-is_colliding(a::GB.Rect, b::GB.HyperSphere, pos_ba, axes_ba) = is_colliding(a, b, pos_ba)
-function is_colliding(a::GB.HyperSphere, b::GB.Rect, pos_ba, axes_ba)
-    axes_ab = invert_relative_axes(axes_ba)
-    pos_ab = -rotate(pos_ba, axes_ab)
-    return is_colliding(b, a, pos_ab, axes_ab)
-end
+is_colliding(rect::StdRect{T}, point::StdPoint{T}, pos::GB.Vec{2, T}) where {T} = is_inside(rect, pos)
+is_colliding(point::StdPoint{T}, rect::StdRect{T}, pos::GB.Vec{2, T}) where {T} = is_inside(rect, pos) # no need to reverse pos because of symmetry
 
+is_colliding(rect::StdRect{T}, point::StdPoint{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T} = is_inside(rect, pos)
+is_colliding(point::StdPoint{T}, rect::StdRect{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T} = is_colliding(rect, point, invert(pos, axes)...)
 
 #####
-# HyperRectangle vs. HyperRectangle
+# StdRect vs. StdLine
 #####
 
-function is_separate(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
-    half_widths_a = get_top_right(a)
-    half_width_a = half_widths_a[1]
-    half_height_a = half_widths_a[2]
+function separating_axis_exists(rect::StdRect{T}, line::StdLine{T}, pos::GB.Vec{2, T}) where {T}
+    half_height = get_half_height(rect)
+    half_width = get_half_width(rect)
 
-    bottom_left_ba, bottom_right_ba, top_right_ba, top_left_ba = get_vertices(b, pos_ba, axes_ba)
+    x = get_x(pos)
+    y = get_y(pos)
+    half_length = get_half_length(line)
 
-    min_x_ba, max_x_ba = extrema((bottom_left_ba[1], bottom_right_ba[1], top_right_ba[1], top_left_ba[1]))
-    min_y_ba, max_y_ba = extrema((bottom_left_ba[2], bottom_right_ba[2], top_right_ba[2], top_left_ba[2]))
-
-    return ((half_width_a <= min_x_ba) || (max_x_ba <= -half_width_a) || (half_height_a <= min_y_ba) || (max_y_ba <= -half_height_a))
+    return (y <= -half_height) || (y >= half_height) || (x + half_length <= -half_width) || (x - half_length >= half_width)
 end
 
-function is_colliding(a::GB.Rect, b::GB.Rect, pos_ba, axes_ba)
-    axes_ab = invert_relative_axes(axes_ba)
-    pos_ab = -rotate(pos_ba, axes_ab)
-    return !(is_separate(a, b, pos_ba, axes_ba) || is_separate(b, a, pos_ab, axes_ab))
+is_colliding(rect::StdRect{T}, line::StdLine{T}, pos::GB.Vec{2, T}) where {T} = separating_axis_exists(rect, line, pos)
+is_colliding(line::StdLine{T}, rect::StdRect{T}, pos::GB.Vec{2, T}) where {T} = is_colliding(rect, line, pos) # no need to reverse pos because of symmetry
+
+function separating_axis_exists(rect::StdRect{T}, line::StdLine{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T}
+    half_width = get_half_width(rect)
+    half_height = get_half_height(rect)
+
+    tail, head = get_vertices(line, pos, axes)
+
+    min_x, max_x = minmax(tail[1], head[1])
+    min_y, max_y = minmax(tail[2], head[2])
+
+    return (max_x <= -half_width) || (min_x >= half_width) || (max_y <= -half_height) || (min_y >= half_height)
 end
+
+function separating_axis_exists(line::StdLine{T}, rect::StdRect{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T}
+    half_length = get_half_length(line)
+
+    bottom_left, bottom_right, top_right, top_left = get_vertices(rect, pos, axes)
+
+    min_x, max_x = extrema((bottom_left[1], bottom_right[1], top_right[1], top_left[1]))
+    min_y, max_y = extrema((bottom_left[2], bottom_right[2], top_right[2], top_left[2]))
+
+    return (max_x <= -half_length) || (min_x >= half_length) || (max_y <= zero(T)) || (min_y >= zero(T))
+end
+
+is_colliding(rect::StdRect{T}, line::StdLine{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T} = !(separating_axis_exists(rect, line, pos, axes) || separating_axis_exists(line, rect, invert(pos, axes)...))
+is_colliding(line::StdLine{T}, rect::StdRect{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T} = !(separating_axis_exists(line, rect, pos, axes) || separating_axis_exists(rect, line, invert(pos, axes)...))
+
+#####
+# StdRect vs. StdCircle
+#####
+
+get_projection(rect::StdRect{T}, pos::GB.Vec{2, T}) where {T} = clamp.(pos, get_bottom_left(rect), get_top_right(rect))
+
+function is_colliding(rect::StdRect{T}, circle::StdCircle{T}, pos::GB.Vec{2, T}) where {T}
+    projection = get_projection(rect, pos)
+    vec = pos .- projection
+    radius = get_radius(circle)
+    return LA.dot(vec, vec) < radius * radius
+end
+
+is_colliding(circle::StdCircle{T}, rect::StdRect{T}, pos::GB.Vec{2, T}) where {T} = is_colliding(rect, circle, pos) # no need to invert pos because of symmetry
+
+is_colliding(rect::StdRect{T}, circle::StdCircle{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T} = is_colliding(rect, circle, pos)
+is_colliding(circle::StdCircle{T}, rect::StdRect{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T} = is_colliding(rect, circle, invert(pos, axes)...)
+
+#####
+# StdRect vs. StdRect
+#####
+
+function separating_axis_exists(r1::StdRect{T}, r2::StdRect{T}, pos::GB.Vec{2, T}) where {T}
+    half_width_r1 = get_half_width(r1)
+    half_height_r1 = get_half_height(r1)
+
+    half_width_r2 = get_half_width(r2)
+    half_height_r2 = get_half_height(r2)
+
+    x = get_x(pos)
+    y = get_y(pos)
+
+    return (x + half_width_r2 <= -half_width_r1) || (x - half_width_r2 >= half_width_r1) || (y + half_height_r2 <= -half_height_r1) || (y - half_height_r2 >= half_height_r1)
+end
+
+is_colliding(r1::StdRect{T}, r2::StdRect{T}, pos::GB.Vec{2, T}) where {T} = separating_axis_exists(r1, r2, pos)
+
+function separating_axis_exists(r1::StdRect{T}, r2::StdRect{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T}
+    half_width_r1 = get_half_width(r1)
+    half_height_r1 = get_half_height(r1)
+
+    bottom_left_r2, bottom_right_r2, top_right_r2, top_left_r2 = get_vertices(r2, pos, axes)
+
+    min_x_r2, max_x_r2 = extrema((bottom_left_r2[1], bottom_right_r2[1], top_right_r2[1], top_left_r2[1]))
+    min_y_r2, max_y_r2 = extrema((bottom_left_r2[2], bottom_right_r2[2], top_right_r2[2], top_left_r2[2]))
+
+    return ((half_width_r1 <= min_x_r2) || (max_x_r2 <= -half_width_r1) || (half_height_r1 <= min_y_r2) || (max_y_r2 <= -half_height_r1))
+end
+
+is_colliding(r1::StdRect{T}, r2::StdRect{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T} = !(separating_axis_exists(r1, r2, pos, axes) || separating_axis_exists(r2, r1, invert(pos, axes)...))
