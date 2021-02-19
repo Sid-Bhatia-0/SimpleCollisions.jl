@@ -64,7 +64,9 @@ struct StdRect{T} <: AbstractStdShape{T}
 end
 
 get_half_width(rect::StdRect) = rect.half_width
+get_width(rect::StdRect) = 2 * get_half_width(rect)
 get_half_height(rect::StdRect) = rect.half_height
+get_height(rect::StdRect) = 2 * get_half_height(rect)
 
 get_bottom_left(rect::StdRect) = GB.Vec(-get_half_width(rect), -get_half_height(rect))
 get_bottom_right(rect::StdRect) = GB.Vec(get_half_width(rect), -get_half_height(rect))
@@ -72,6 +74,13 @@ get_top_right(rect::StdRect) = GB.Vec(get_half_width(rect), get_half_height(rect
 get_top_left(rect::StdRect) = GB.Vec(-get_half_width(rect), get_half_height(rect))
 
 get_vertices(rect::StdRect{T}) where {T} = (get_bottom_left(rect), get_bottom_right(rect), get_top_right(rect), get_top_left(rect))
+
+get_bottom_left(rect::StdRect{T}, pos::GB.Vec{2, T}) where {T} = pos .+ GB.Vec(-get_half_width(rect), -get_half_height(rect))
+get_bottom_right(rect::StdRect{T}, pos::GB.Vec{2, T}) where {T} = pos .+ GB.Vec(get_half_width(rect), -get_half_height(rect))
+get_top_right(rect::StdRect{T}, pos::GB.Vec{2, T}) where {T} = pos .+ GB.Vec(get_half_width(rect), get_half_height(rect))
+get_top_left(rect::StdRect{T}, pos::GB.Vec{2, T}) where {T} = pos .+ GB.Vec(-get_half_width(rect), get_half_height(rect))
+
+get_vertices(rect::StdRect{T}, pos::GB.Vec{2, T}) where {T} = (get_bottom_left(rect, pos), get_bottom_right(rect, pos), get_top_right(rect, pos), get_top_left(rect, pos))
 
 function get_vertices(rect::StdRect{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T}
     half_width = get_half_width(rect)
