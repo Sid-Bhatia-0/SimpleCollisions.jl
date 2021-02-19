@@ -1,7 +1,7 @@
-module PhysicsEngine2D
+module PhysicsPrimitives2D
 
-export PE2D
-const PE2D = PhysicsEngine2D
+export PP2D
+const PP2D = PhysicsPrimitives2D
 
 import GeometryBasics
 const GB = GeometryBasics
