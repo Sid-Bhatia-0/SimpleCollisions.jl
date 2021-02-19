@@ -13,5 +13,8 @@ include("axes.jl")
 include("shapes.jl")
 include("collision_detection.jl")
 include("manifold.jl")
+include("body.jl")
+include("physics.jl")
+include("rendering.jl")
 
 end
