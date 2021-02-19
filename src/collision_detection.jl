@@ -2,13 +2,13 @@
 # StdLine vs. StdLine
 #####
 
-function is_colliding(l1::StdLine{T}, l2::StdLine{T}, pos::GB.Vec{2, T}) where {T}
-    y = get_y(pos)
+function is_colliding(a::StdLine{T}, b::StdLine{T}, pos_ba::GB.Vec{2, T}) where {T}
+    y = get_y(pos_ba)
     if iszero(y)
         x = get_x(pos_ba)
-        half_length_1 = get_half_length(l1)
-        half_length_2 = get_half_length(l2)
-        return !((x + half_length_2 <= -half_length_1) || (x - half_length_2 >= half_length_1))
+        half_length_a = get_half_length(a)
+        half_length_b = get_half_length(b)
+        return !((x + half_length_b <= -half_length_a) || (x - half_length_b >= half_length_a))
     else
         return false
     end
@@ -126,7 +126,7 @@ function separating_axis_exists(rect::StdRect{T}, line::StdLine{T}, pos::GB.Vec{
     return (y <= -half_height) || (y >= half_height) || (x + half_length <= -half_width) || (x - half_length >= half_width)
 end
 
-is_colliding(rect::StdRect{T}, line::StdLine{T}, pos::GB.Vec{2, T}) where {T} = separating_axis_exists(rect, line, pos)
+is_colliding(rect::StdRect{T}, line::StdLine{T}, pos::GB.Vec{2, T}) where {T} = !separating_axis_exists(rect, line, pos)
 is_colliding(line::StdLine{T}, rect::StdRect{T}, pos::GB.Vec{2, T}) where {T} = is_colliding(rect, line, pos) # no need to reverse pos because of symmetry
 
 function separating_axis_exists(rect::StdRect{T}, line::StdLine{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T}
@@ -190,7 +190,7 @@ function separating_axis_exists(r1::StdRect{T}, r2::StdRect{T}, pos::GB.Vec{2, T
     return (x + half_width_r2 <= -half_width_r1) || (x - half_width_r2 >= half_width_r1) || (y + half_height_r2 <= -half_height_r1) || (y - half_height_r2 >= half_height_r1)
 end
 
-is_colliding(r1::StdRect{T}, r2::StdRect{T}, pos::GB.Vec{2, T}) where {T} = separating_axis_exists(r1, r2, pos)
+is_colliding(a::StdRect{T}, b::StdRect{T}, pos_ba::GB.Vec{2, T}) where {T} = !separating_axis_exists(a, b, pos_ba)
 
 function separating_axis_exists(r1::StdRect{T}, r2::StdRect{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T}
     half_width_r1 = get_half_width(r1)

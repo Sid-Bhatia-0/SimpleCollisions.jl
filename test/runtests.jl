@@ -12,6 +12,12 @@ function test_collision_list(collision_list)
     end
 end
 
+function test_collision_list_no_axes(collision_list_no_axes)
+    for (a, b, pos_ba, value) in collision_list_no_axes
+        @test PE2D.is_colliding(a, b, pos_ba) == value
+    end
+end
+
 function test_manifold_list(manifold_list)
     for (i, (a, b, pos_ba, axes_ba, value)) in enumerate(manifold_list)
         manifold_ba = PE2D.Manifold(a, b, pos_ba, axes_ba)
@@ -113,6 +119,21 @@ end
             ]
 
             test_collision_list(collision_list)
+
+            collision_list_no_axes = [
+            # std_axes
+            (l1, l2, origin, true),
+
+            (l1, l2, (half_length_l1 + half_length_l2 + d) .* -i_cap, false),
+            (l1, l2, (half_length_l1 + half_length_l2 - d) .* -i_cap, true),
+            (l1, l2, (half_length_l1 + half_length_l2 - d) .* i_cap, true),
+            (l1, l2, (half_length_l1 + half_length_l2 + d) .* i_cap, false),
+
+            (l1, l2, d .* -j_cap, false),
+            (l1, l2, d .* j_cap, false),
+            ]
+
+            test_collision_list_no_axes(collision_list_no_axes)
         end
 
         @testset "StdCircle vs. StdPoint" begin
@@ -151,6 +172,42 @@ end
             ]
 
             test_collision_list(collision_list)
+
+            collision_list_no_axes = [
+            # std_axes
+            (c1, point, origin, true),
+
+            (c1, point, (r_c1 + d) .* -i_cap, false),
+            (c1, point, (r_c1 - d) .* -i_cap, true),
+            (c1, point, (r_c1 - d) .* i_cap, true),
+            (c1, point, (r_c1 + d) .* i_cap, false),
+
+            (c1, point, (r_c1 + d) .* -j_cap, false),
+            (c1, point, (r_c1 - d) .* -j_cap, true),
+            (c1, point, (r_c1 - d) .* j_cap, true),
+            (c1, point, (r_c1 + d) .* j_cap, false),
+
+            (c1, point, (r_c1 + d) .* unit_45, false),
+            (c1, point, (r_c1 - d) .* unit_45, true),
+
+            # reverse check with std_axes
+            (point, c1, origin, true),
+
+            (point, c1, (r_c1 + d) .* -i_cap, false),
+            (point, c1, (r_c1 - d) .* -i_cap, true),
+            (point, c1, (r_c1 - d) .* i_cap, true),
+            (point, c1, (r_c1 + d) .* i_cap, false),
+
+            (point, c1, (r_c1 + d) .* -j_cap, false),
+            (point, c1, (r_c1 - d) .* -j_cap, true),
+            (point, c1, (r_c1 - d) .* j_cap, true),
+            (point, c1, (r_c1 + d) .* j_cap, false),
+
+            (point, c1, (r_c1 + d) .* unit_45, false),
+            (point, c1, (r_c1 - d) .* unit_45, true),
+            ]
+
+            test_collision_list_no_axes(collision_list_no_axes)
         end
 
         @testset "StdCircle vs. StdLine" begin
@@ -199,6 +256,38 @@ end
             ]
 
             test_collision_list(collision_list)
+
+            collision_list_no_axes = [
+            # std_axes
+            (l1, c2, origin, true),
+            (l2, c1, origin, true),
+
+            (l2, c1, (half_length_l2 + r_c1 + d) .* -i_cap, false),
+            (l2, c1, (half_length_l2 + r_c1 - d) .* -i_cap, true),
+            (l2, c1, (half_length_l2 + r_c1 - d) .* i_cap, true),
+            (l2, c1, (half_length_l2 + r_c1 + d) .* i_cap, false),
+
+            (l2, c1, (r_c1 + d) .* -j_cap, false),
+            (l2, c1, (r_c1 - d) .* -j_cap, true),
+            (l2, c1, (r_c1 - d) .* j_cap, true),
+            (l2, c1, (r_c1 + d) .* j_cap, false),
+
+            # reverse check with std_axes
+            (c2, l1, origin, true),
+            (c1, l2, origin, true),
+
+            (c1, l2, (half_length_l2 + r_c1 + d) .* -i_cap, false),
+            (c1, l2, (half_length_l2 + r_c1 - d) .* -i_cap, true),
+            (c1, l2, (half_length_l2 + r_c1 - d) .* i_cap, true),
+            (c1, l2, (half_length_l2 + r_c1 + d) .* i_cap, false),
+
+            (c1, l2, (r_c1 + d) .* -j_cap, false),
+            (c1, l2, (r_c1 - d) .* -j_cap, true),
+            (c1, l2, (r_c1 - d) .* j_cap, true),
+            (c1, l2, (r_c1 + d) .* j_cap, false),
+            ]
+
+            test_collision_list_no_axes(collision_list_no_axes)
         end
 
         @testset "StdCircle vs. StdCircle" begin
@@ -221,6 +310,26 @@ end
             ]
 
             test_collision_list(collision_list)
+
+            collision_list_no_axes = [
+            # std_axes
+            (c1, c2, origin, true),
+
+            (c1, c2, (r_c1 + r_c2 + d) .* -i_cap, false),
+            (c1, c2, (r_c1 + r_c2 - d) .* -i_cap, true),
+            (c1, c2, (r_c1 + r_c2 - d) .* i_cap, true),
+            (c1, c2, (r_c1 + r_c2 + d) .* i_cap, false),
+
+            (c1, c2, (r_c1 + r_c2 + d) .* -j_cap, false),
+            (c1, c2, (r_c1 + r_c2 - d) .* -j_cap, true),
+            (c1, c2, (r_c1 + r_c2 - d) .* j_cap, true),
+            (c1, c2, (r_c1 + r_c2 + d) .* j_cap, false),
+
+            (c1, c2, (r_c1 + r_c2 + d) .* unit_45, false),
+            (c1, c2, (r_c1 + r_c2 - d) .* unit_45, true),
+            ]
+
+            test_collision_list_no_axes(collision_list_no_axes)
         end
 
         @testset "StdRect vs. StdPoint" begin
@@ -272,6 +381,42 @@ end
             ]
 
             test_collision_list(collision_list)
+
+            collision_list_no_axes = [
+            # std_axes
+            (r1, point, origin, true),
+
+            (r1, point, (half_width_r1 + d) .* -i_cap, false),
+            (r1, point, (half_width_r1 - d) .* -i_cap, true),
+            (r1, point, (half_width_r1 - d) .* i_cap, true),
+            (r1, point, (half_width_r1 + d) .* i_cap, false),
+
+            (r1, point, (half_height_r1 + d) .* -j_cap, false),
+            (r1, point, (half_height_r1 - d) .* -j_cap, true),
+            (r1, point, (half_height_r1 - d) .* j_cap, true),
+            (r1, point, (half_height_r1 + d) .* j_cap, false),
+
+            (r1, point, top_right_r1 .+ d, false),
+            (r1, point, top_right_r1 .- d, true),
+
+            # reverse check with std_axes
+            (point, r1, origin, true),
+
+            (point, r1, (half_width_r1 + d) .* -i_cap, false),
+            (point, r1, (half_width_r1 - d) .* -i_cap, true),
+            (point, r1, (half_width_r1 - d) .* i_cap, true),
+            (point, r1, (half_width_r1 + d) .* i_cap, false),
+
+            (point, r1, (half_height_r1 + d) .* -j_cap, false),
+            (point, r1, (half_height_r1 - d) .* -j_cap, true),
+            (point, r1, (half_height_r1 - d) .* j_cap, true),
+            (point, r1, (half_height_r1 + d) .* j_cap, false),
+
+            (point, r1, top_right_r1 .+ d, false),
+            (point, r1, top_right_r1 .- d, true),
+            ]
+
+            test_collision_list_no_axes(collision_list_no_axes)
         end
 
         @testset "StdRect vs. StdLine" begin
@@ -334,12 +479,41 @@ end
             ]
 
             test_collision_list(collision_list)
+
+            collision_list_no_axes = [
+            # std_axes
+            (r1, l1, origin, true),
+            (r1, l2, origin, true),
+
+            (r1, l1, (half_width_r1 + half_length_l1 + d) .* -i_cap, false),
+            (r1, l1, (half_width_r1 + half_length_l1 - d) .* -i_cap, true),
+            (r1, l1, (half_width_r1 + half_length_l1 - d) .* i_cap, true),
+            (r1, l1, (half_width_r1 + half_length_l1 + d) .* i_cap, false),
+
+            (r1, l1, (half_height_r1 + d) .* -j_cap, false),
+            (r1, l1, (half_height_r1 - d) .* -j_cap, true),
+            (r1, l1, (half_height_r1 - d) .* j_cap, true),
+            (r1, l1, (half_height_r1 + d) .* j_cap, false),
+
+            # reverse check with std_axes
+            (l1, r1, origin, true),
+            (l2, r1, origin, true),
+
+            (l1, r1, (half_width_r1 + half_length_l1 + d) .* -i_cap, false),
+            (l1, r1, (half_width_r1 + half_length_l1 - d) .* -i_cap, true),
+            (l1, r1, (half_width_r1 + half_length_l1 - d) .* i_cap, true),
+            (l1, r1, (half_width_r1 + half_length_l1 + d) .* i_cap, false),
+
+            (l1, r1, (half_height_r1 + d) .* -j_cap, false),
+            (l1, r1, (half_height_r1 - d) .* -j_cap, true),
+            (l1, r1, (half_height_r1 - d) .* j_cap, true),
+            (l1, r1, (half_height_r1 + d) .* j_cap, false),
+            ]
+
+            test_collision_list_no_axes(collision_list_no_axes)
         end
 
         @testset "StdRect vs. StdCircle" begin
-            top_right = PE2D.get_top_right(r1)
-            theta_r1 = atan(top_right[2], top_right[1])
-
             collision_list = [
             # std_axes
             (r1, c1, origin, std_axes, true),
@@ -388,6 +562,42 @@ end
             ]
 
             test_collision_list(collision_list)
+
+            collision_list_no_axes = [
+            # std_axes
+            (r1, c1, origin, true),
+
+            (r1, c1, (half_width_r1 + r_c1 + d) .* -i_cap, false),
+            (r1, c1, (half_width_r1 + r_c1 - d) .* -i_cap, true),
+            (r1, c1, (half_width_r1 + r_c1 - d) .* i_cap, true),
+            (r1, c1, (half_width_r1 + r_c1 + d) .* i_cap, false),
+
+            (r1, c1, (half_height_r1 + r_c1 + d) .* -j_cap, false),
+            (r1, c1, (half_height_r1 + r_c1 - d) .* -j_cap, true),
+            (r1, c1, (half_height_r1 + r_c1 - d) .* j_cap, true),
+            (r1, c1, (half_height_r1 + r_c1 + d) .* -j_cap, false),
+
+            (r1, c1, top_right_r1 .+ (r_c1 + d) .* unit_45, false),
+            (r1, c1, top_right_r1 .+ (r_c1 - d) .* unit_45, true),
+
+            # reverse check with std_axes
+            (c1, r1, origin, true),
+
+            (c1, r1, (half_width_r1 + r_c1 + d) .* -i_cap, false),
+            (c1, r1, (half_width_r1 + r_c1 - d) .* -i_cap, true),
+            (c1, r1, (half_width_r1 + r_c1 - d) .* i_cap, true),
+            (c1, r1, (half_width_r1 + r_c1 + d) .* i_cap, false),
+
+            (c1, r1, (half_height_r1 + r_c1 + d) .* -j_cap, false),
+            (c1, r1, (half_height_r1 + r_c1 - d) .* -j_cap, true),
+            (c1, r1, (half_height_r1 + r_c1 - d) .* j_cap, true),
+            (c1, r1, (half_height_r1 + r_c1 + d) .* -j_cap, false),
+
+            (c1, r1, top_right_r1 .+ (r_c1 + d) .* unit_45, false),
+            (c1, r1, top_right_r1 .+ (r_c1 - d) .* unit_45, true),
+            ]
+
+            test_collision_list_no_axes(collision_list_no_axes)
         end
 
         @testset "Rect2D vs. Rect2D" begin
@@ -423,6 +633,26 @@ end
             ]
 
             test_collision_list(collision_list)
+
+            collision_list_no_axes = [
+            # std_axes
+            (r2, r1, origin, true),
+
+            (r2, r1, (half_width_r1 + half_width_r2 + d) .* -i_cap, false),
+            (r2, r1, (half_width_r1 + half_width_r2 - d) .* -i_cap, true),
+            (r2, r1, (half_width_r1 + half_width_r2 - d) .* i_cap, true),
+            (r2, r1, (half_width_r1 + half_width_r2 + d) .* i_cap, false),
+
+            (r2, r1, (half_height_r1 + half_height_r2 + d) .* -j_cap, false),
+            (r2, r1, (half_height_r1 + half_height_r2 - d) .* -j_cap, true),
+            (r2, r1, (half_height_r1 + half_height_r2 - d) .* j_cap, true),
+            (r2, r1, (half_height_r1 + half_height_r2 + d) .* j_cap, false),
+
+            (r2, r1, top_right_r1 .+ top_right_r2 .+ d, false),
+            (r2, r1, top_right_r1 .+ top_right_r2 .- d, true),
+            ]
+
+            test_collision_list_no_axes(collision_list_no_axes)
         end
     end
 
