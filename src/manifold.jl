@@ -79,7 +79,7 @@ function Manifold(a::StdCircle{T}, b::StdRect{T}, pos_ba::GB.Vec{2, T}) where {T
 
     penetration = get_penetration(manifold_ab)
     axes = manifold_ab |> get_axes |> rotate_180
-    contact = pos .+ contact
+    contact = pos_ba .+ get_contact(manifold_ab)
     return Manifold(penetration, axes, contact)
 end
 
@@ -99,6 +99,34 @@ end
 #####
 # StdRect vs. StdRect
 #####
+
+function Manifold(a::StdRect{T}, b::StdRect{T}, pos_ba::GB.Vec{2, T}) where {T}
+    half_width_a = get_half_width(a)
+    half_height_a = get_half_height(a)
+
+    bottom_left = max.(get_bottom_left(a), get_bottom_left(b, pos_ba))
+    top_right = min.(get_top_right(a), get_top_right(b, pos_ba))
+
+    contact = (top_right .+ bottom_left) ./ 2
+    x_contact = get_x(contact)
+    y_contact = get_y(contact)
+
+    half_widths_intersection = (top_right .- bottom_left) ./ 2
+    half_width_intersection = half_widths_intersection[1]
+    half_height_intersection = half_widths_intersection[2]
+
+    penetration, edge_id = findmin((half_height_a + y_contact + half_height_intersection,
+                                    half_width_a - x_contact + half_width_intersection,
+                                    half_height_a - y_contact + half_height_intersection,
+                                    half_width_a + x_contact + half_width_intersection,
+                                   ))
+
+    normal = get_normals(a)[edge_id]
+    tangent = rotate_minus_90(normal)
+    axes = Axes(tangent, normal)
+
+    return Manifold(penetration, axes, contact)
+end
 
 function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::GB.Vec{2, T}, axes_ba::Axes{T}) where {T}
     half_width_a = get_half_width(a)

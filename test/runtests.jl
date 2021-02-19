@@ -6,15 +6,31 @@ import LinearAlgebra
 const LA = LinearAlgebra
 using Test
 
+function test_collision_list_no_axes(collision_list_no_axes)
+    for (a, b, pos_ba, value) in collision_list_no_axes
+        @test PE2D.is_colliding(a, b, pos_ba) == value
+    end
+end
+
 function test_collision_list(collision_list)
     for (a, b, pos_ba, axes_ba, value) in collision_list
         @test PE2D.is_colliding(a, b, pos_ba, axes_ba) == value
     end
 end
 
-function test_collision_list_no_axes(collision_list_no_axes)
-    for (a, b, pos_ba, value) in collision_list_no_axes
-        @test PE2D.is_colliding(a, b, pos_ba) == value
+function test_manifold_list_no_axes(manifold_list_no_axes)
+    for (i, (a, b, pos_ba, value)) in enumerate(manifold_list_no_axes)
+        manifold_ba = PE2D.Manifold(a, b, pos_ba)
+        @show a
+        @show b
+        @show pos_ba
+        @show value
+        @show manifold_ba
+
+        @test PE2D.get_penetration(manifold_ba) ≈ PE2D.get_penetration(value)
+        @test PE2D.get_normal(manifold_ba) ≈ PE2D.get_normal(value)
+        @test PE2D.get_tangent(manifold_ba) ≈ PE2D.get_tangent(value)
+        @test PE2D.get_contact(manifold_ba) ≈ PE2D.get_contact(value)
     end
 end
 
@@ -678,6 +694,44 @@ end
         end
 
         @testset "StdRect vs. StdCircle" begin
+            manifold_list_no_axes = [
+            # std_axes
+            (r1, c1, (half_width_r1 + r_c1 - d) .* -i_cap, PE2D.Manifold(d, PE2D.rotate_90(std_axes), (half_width_r1 - d / 2) .* -i_cap)),
+            (r1, c1, (half_width_r1 + d) .* -i_cap, PE2D.Manifold(r_c1 - d, PE2D.rotate_90(std_axes), (half_width_r1 - (r_c1 - d) / 2) .* -i_cap)),
+            (r1, c1, (half_width_r1 - d) .* -i_cap, PE2D.Manifold(r_c1 + d, PE2D.rotate_90(std_axes), (half_width_r1 - (r_c1 + d) / 2) .* -i_cap)),
+            (r1, c1, (half_width_r1 - d) .* i_cap, PE2D.Manifold(r_c1 + d, PE2D.rotate_minus_90(std_axes), (half_width_r1 - (r_c1 + d) / 2) .* i_cap)),
+            (r1, c1, (half_width_r1 + d) .* i_cap, PE2D.Manifold(r_c1 - d, PE2D.rotate_minus_90(std_axes), (half_width_r1 - (r_c1 - d) / 2) .* i_cap)),
+            (r1, c1, (half_width_r1 + r_c1 - d) .* i_cap, PE2D.Manifold(d, PE2D.rotate_minus_90(std_axes), (half_width_r1 - d / 2) .* i_cap)),
+
+            (r1, c1, (half_height_r1 + r_c1 - d) .* -j_cap, PE2D.Manifold(d, PE2D.rotate_180(std_axes), (half_height_r1 - d / 2) .* -j_cap)),
+            (r1, c1, (half_height_r1 + d) .* -j_cap, PE2D.Manifold(r_c1 - d, PE2D.rotate_180(std_axes), (half_height_r1 - (r_c1 - d) / 2) .* -j_cap)),
+            (r1, c1, (half_height_r1 - d) .* -j_cap, PE2D.Manifold(r_c1 + d, PE2D.rotate_180(std_axes), (half_height_r1 - (r_c1 + d) / 2) .* -j_cap)),
+            (r1, c1, (half_height_r1 - d) .* j_cap, PE2D.Manifold(r_c1 + d, std_axes, (half_height_r1 - (r_c1 + d) / 2) .* j_cap)),
+            (r1, c1, (half_height_r1 + d) .* j_cap, PE2D.Manifold(r_c1 - d, std_axes, (half_height_r1 - (r_c1 - d) / 2) .* j_cap)),
+            (r1, c1, (half_height_r1 + r_c1 - d) .* j_cap, PE2D.Manifold(d, std_axes, (half_height_r1 - d / 2) .* j_cap)),
+
+            (r1, c1, top_right_r1 .+ (r_c1 - d) .* unit_45, PE2D.Manifold(d, PE2D.Axes(-theta_45), top_right_r1 .+ (d / 2) .* -unit_45)),
+
+            # reverse check with std_axes
+            (c1, r1, (half_width_r1 + r_c1 - d) .* -i_cap, PE2D.Manifold(d, PE2D.rotate_90(std_axes), (r_c1 - d / 2) .* -i_cap)),
+            (c1, r1, (half_width_r1 + d) .* -i_cap, PE2D.Manifold(r_c1 - d, PE2D.rotate_90(std_axes), (r_c1 - (r_c1 - d) / 2) .* -i_cap)),
+            (c1, r1, (half_width_r1 - d) .* -i_cap, PE2D.Manifold(r_c1 + d, PE2D.rotate_90(std_axes), (r_c1 - (r_c1 + d) / 2) .* -i_cap)),
+            (c1, r1, (half_width_r1 - d) .* i_cap, PE2D.Manifold(r_c1 + d, PE2D.rotate_minus_90(std_axes), (r_c1 - (r_c1 + d) / 2) .* i_cap)),
+            (c1, r1, (half_width_r1 + d) .* i_cap, PE2D.Manifold(r_c1 - d, PE2D.rotate_minus_90(std_axes), (r_c1 - (r_c1 - d) / 2) .* i_cap)),
+            (c1, r1, (half_width_r1 + r_c1 - d) .* i_cap, PE2D.Manifold(d, PE2D.rotate_minus_90(std_axes), (r_c1 - d / 2) .* i_cap)),
+
+            (c1, r1, (half_height_r1 + r_c1 - d) .* -j_cap, PE2D.Manifold(d, PE2D.rotate_180(std_axes), (r_c1 - d / 2) .* -j_cap)),
+            (c1, r1, (half_height_r1 + d) .* -j_cap, PE2D.Manifold(r_c1 - d, PE2D.rotate_180(std_axes), (r_c1 - (r_c1 - d) / 2) .* -j_cap)),
+            (c1, r1, (half_height_r1 - d) .* -j_cap, PE2D.Manifold(r_c1 + d, PE2D.rotate_180(std_axes), (r_c1 - (r_c1 + d) / 2) .* -j_cap)),
+            (c1, r1, (half_height_r1 - d) .* j_cap, PE2D.Manifold(r_c1 + d, std_axes, (r_c1 - (r_c1 + d) / 2) .* j_cap)),
+            (c1, r1, (half_height_r1 + d) .* j_cap, PE2D.Manifold(r_c1 - d, std_axes, (r_c1 - (r_c1 - d) / 2) .* j_cap)),
+            (c1, r1, (half_height_r1 + r_c1 - d) .* j_cap, PE2D.Manifold(d, std_axes, (r_c1 - d / 2) .* j_cap)),
+
+            (c1, r1, top_right_r1 .+ (r_c1 - d) .* unit_45, PE2D.Manifold(d, PE2D.Axes(-theta_45), (r_c1 - d / 2) .* unit_45)),
+            ]
+
+            test_manifold_list_no_axes(manifold_list_no_axes)
+
             manifold_list = [
             # std_axes
             (r1, c1, (half_width_r1 + r_c1 - d) .* -i_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_90(std_axes), (half_width_r1 - d / 2) .* -i_cap)),
@@ -721,6 +775,31 @@ end
         end
 
         @testset "Rect2D vs. Rect2D" begin
+            manifold_list_no_axes = [
+            # std_axes
+            (r2, r1, (half_height_r2 + half_height_r1 - d) .* -j_cap, PE2D.Manifold(d, PE2D.rotate_180(std_axes), (half_height_r2 - d/2) .* -j_cap)),
+            (r2, r1, (half_height_r2 + d) .* -j_cap, PE2D.Manifold(half_height_r1 - d, PE2D.rotate_180(std_axes), (half_height_r2 - (half_height_r1 - d)/2) .* -j_cap)),
+            (r2, r1, (half_height_r2 - d) .* -j_cap, PE2D.Manifold(half_height_r1 + d, PE2D.rotate_180(std_axes), (half_height_r2 - (half_height_r1 + d)/2) .* -j_cap)),
+            (r2, r1, d .* -j_cap, PE2D.Manifold(half_height_r2 + half_height_r1 - d, PE2D.rotate_180(std_axes), d .* -j_cap)),
+            (r2, r1, d .* j_cap, PE2D.Manifold(half_height_r2 + half_height_r1 - d, std_axes, d .* j_cap)),
+            (r2, r1, (half_height_r2 - d) .* j_cap, PE2D.Manifold(half_height_r1 + d, std_axes, (half_height_r2 - (half_height_r1 + d)/2) .* j_cap)),
+            (r2, r1, (half_height_r2 + d) .* j_cap, PE2D.Manifold(half_height_r1 - d, std_axes, (half_height_r2 - (half_height_r1 - d)/2) .* j_cap)),
+            (r2, r1, (half_height_r2 + half_height_r1 - d) .* j_cap, PE2D.Manifold(d, std_axes, (half_height_r2 - d/2) .* j_cap)),
+
+            (r2, r1, (half_width_r2 + half_width_r1 - d) .* -i_cap, PE2D.Manifold(d, PE2D.rotate_90(std_axes), (half_width_r2 - d/2) .* -i_cap)),
+            (r2, r1, (half_width_r2 + d) .* -i_cap, PE2D.Manifold(half_width_r1 - d, PE2D.rotate_90(std_axes), (half_width_r2 - (half_width_r1 - d)/2) .* -i_cap)),
+            (r2, r1, (half_width_r2 - d) .* -i_cap, PE2D.Manifold(half_width_r1 + d, PE2D.rotate_90(std_axes), (half_width_r2 - (half_width_r1 + d)/2) .* -i_cap)),
+            (r2, r1, (half_width_r2 - d) .* i_cap, PE2D.Manifold(half_width_r1 + d, PE2D.rotate_minus_90(std_axes), (half_width_r2 - (half_width_r1 + d)/2) .* i_cap)),
+            (r2, r1, (half_width_r2 + d) .* i_cap, PE2D.Manifold(half_width_r1 - d, PE2D.rotate_minus_90(std_axes), (half_width_r2 - (half_width_r1 - d)/2) .* i_cap)),
+            (r2, r1, (half_width_r2 + half_width_r1 - d) .* i_cap, PE2D.Manifold(d, PE2D.rotate_minus_90(std_axes), (half_width_r2 - d/2) .* i_cap)),
+
+            (r2, r1, top_right_r2 .- d, PE2D.Manifold(half_height_r1 + d, std_axes, top_right_r2 .+ (half_width_r1 + d)/2 .* -i_cap .+ (half_height_r1 + d)/2 .* -j_cap)),
+            (r2, r1, top_right_r2, PE2D.Manifold(half_height_r1, std_axes, top_right_r2 .+ (half_width_r1/2) .* -i_cap .+ (half_height_r1/2) .* -j_cap)),
+            (r2, r1, top_right_r2 .+ d, PE2D.Manifold(half_height_r1 - d, std_axes, top_right_r2 .+ (half_width_r1 - d)/2 .* -i_cap .+ (half_height_r1 - d)/2 .* -j_cap)),
+            ]
+
+            test_manifold_list_no_axes(manifold_list_no_axes)
+
             manifold_list = [
             # std_axes
             (r2, r1, (half_height_r2 + half_height_r1 - d) .* -j_cap, std_axes, PE2D.Manifold(d, PE2D.rotate_180(std_axes), (half_height_r2 - d/2) .* -j_cap)),
