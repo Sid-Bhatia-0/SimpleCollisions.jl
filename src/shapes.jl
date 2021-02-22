@@ -27,8 +27,8 @@ get_tail(line::StdLine{T}, pos::SA.SVector{2, T}) where {T} = pos .+ get_tail(li
 get_vertices(line::StdLine{T}, pos::SA.SVector{2, T}) where {T} = (get_tail(line, pos), get_head(line, pos))
 
 # head, tail, and vertices for StdLine at arbitrary position and orientation
-get_head(line::StdLine{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = pos .+ get_half_length(line) .* get_x_cap(axes)
-get_tail(line::StdLine{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = pos .+ get_half_length(line) .* -get_x_cap(axes)
+get_head(line::StdLine{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = pos .+ (get_half_length(line) * get_x_cap(axes))
+get_tail(line::StdLine{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = pos .- (get_half_length(line) * get_x_cap(axes))
 get_vertices(line::StdLine{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = (get_tail(line, pos, axes), get_head(line, pos, axes))
 
 #####
@@ -76,10 +76,11 @@ get_top_left(rect::StdRect{T}, pos::SA.SVector{2, T}) where {T} = pos .+ SA.SVec
 get_vertices(rect::StdRect{T}, pos::SA.SVector{2, T}) where {T} = (get_bottom_left(rect, pos), get_bottom_right(rect, pos), get_top_right(rect, pos), get_top_left(rect, pos))
 
 # bottom_left, bottom_right, top_left, top_right, and vertices for StdRect at arbitrary position and orientation
-get_bottom_left(rect::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = pos .- get_half_width(rect) .* get_x_cap(axes) .- get_half_height(rect) .* get_y_cap(axes)
-get_bottom_right(rect::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = pos .+ get_half_width(rect) .* get_x_cap(axes) .- get_half_height(rect) .* get_y_cap(axes)
-get_top_right(rect::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = pos .+ get_half_width(rect) .* get_x_cap(axes) .+ get_half_height(rect) .* get_y_cap(axes)
-get_top_left(rect::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = pos .- get_half_width(rect) .* get_x_cap(axes) .+ get_half_height(rect) .* get_y_cap(axes)
+get_bottom_left(rect::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = pos .- (get_half_width(rect) * get_x_cap(axes)) .- (get_half_height(rect) * get_y_cap(axes))
+get_bottom_right(rect::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = pos .+ (get_half_width(rect) * get_x_cap(axes)) .- (get_half_height(rect) * get_y_cap(axes))
+get_top_right(rect::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = pos .+ (get_half_width(rect) * get_x_cap(axes)) .+ (get_half_height(rect) * get_y_cap(axes))
+get_top_left(rect::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = pos .- (get_half_width(rect) * get_x_cap(axes)) .+ (get_half_height(rect) * get_y_cap(axes))
+
 get_vertices(rect::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = (get_bottom_left(rect, pos, axes), get_bottom_right(rect, pos, axes), get_top_right(rect, pos, axes), get_top_left(rect, pos, axes))
 
 get_area(rect::StdRect{T}) where {T} = convert(T, 4 * get_half_width(rect) * get_half_height(rect))

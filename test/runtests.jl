@@ -4,47 +4,41 @@ import StaticArrays
 const SA = StaticArrays
 import LinearAlgebra
 const LA = LinearAlgebra
-using Test
+import Test
 
 function test_collision_list_no_axes(collision_list_no_axes)
     for (a, b, pos_ba, value) in collision_list_no_axes
-        @test PP2D.is_colliding(a, b, pos_ba) == value
+        Test.@test PP2D.is_colliding(a, b, pos_ba) == value
     end
 end
 
 function test_collision_list(collision_list)
     for (a, b, pos_ba, axes_ba, value) in collision_list
-        @test PP2D.is_colliding(a, b, pos_ba, axes_ba) == value
+        Test.@test PP2D.is_colliding(a, b, pos_ba, axes_ba) == value
     end
 end
 
 function test_manifold_list_no_axes(manifold_list_no_axes)
     for (i, (a, b, pos_ba, value)) in enumerate(manifold_list_no_axes)
         manifold_ba = PP2D.Manifold(a, b, pos_ba)
-        @show a
-        @show b
-        @show pos_ba
-        @show value
-        @show manifold_ba
-
-        @test PP2D.get_penetration(manifold_ba) ≈ PP2D.get_penetration(value)
-        @test PP2D.get_normal(manifold_ba) ≈ PP2D.get_normal(value)
-        @test PP2D.get_tangent(manifold_ba) ≈ PP2D.get_tangent(value)
-        @test PP2D.get_contact(manifold_ba) ≈ PP2D.get_contact(value)
+        Test.@test PP2D.get_penetration(manifold_ba) ≈ PP2D.get_penetration(value)
+        Test.@test PP2D.get_normal(manifold_ba) ≈ PP2D.get_normal(value)
+        Test.@test PP2D.get_tangent(manifold_ba) ≈ PP2D.get_tangent(value)
+        Test.@test PP2D.get_contact(manifold_ba) ≈ PP2D.get_contact(value)
     end
 end
 
 function test_manifold_list(manifold_list)
     for (i, (a, b, pos_ba, axes_ba, value)) in enumerate(manifold_list)
         manifold_ba = PP2D.Manifold(a, b, pos_ba, axes_ba)
-        @test PP2D.get_penetration(manifold_ba) ≈ PP2D.get_penetration(value)
-        @test PP2D.get_normal(manifold_ba) ≈ PP2D.get_normal(value)
-        @test PP2D.get_tangent(manifold_ba) ≈ PP2D.get_tangent(value)
-        @test PP2D.get_contact(manifold_ba) ≈ PP2D.get_contact(value)
+        Test.@test PP2D.get_penetration(manifold_ba) ≈ PP2D.get_penetration(value)
+        Test.@test PP2D.get_normal(manifold_ba) ≈ PP2D.get_normal(value)
+        Test.@test PP2D.get_tangent(manifold_ba) ≈ PP2D.get_tangent(value)
+        Test.@test PP2D.get_contact(manifold_ba) ≈ PP2D.get_contact(value)
     end
 end
 
-@testset "PhysicsPrimitives2D.jl" begin
+Test.@testset "PhysicsPrimitives2D.jl" begin
     T = Float32
     VecType = SA.SVector{2, T}
 
@@ -90,18 +84,18 @@ end
     top_right_r2 = PP2D.get_top_right(r2)
     theta_r2 = atan(half_height_r2, half_width_r2)
 
-    @testset "Area" begin
-        @testset "StdRect" begin
-            @test PP2D.get_area(r2) == convert(T, 8)
+    Test.@testset "Area" begin
+        Test.@testset "StdRect" begin
+            Test.@test PP2D.get_area(r2) == convert(T, 8)
         end
 
-        @testset "StdCircle" begin
-            @test PP2D.get_area(c1) ≈ convert(T, π)
+        Test.@testset "StdCircle" begin
+            Test.@test PP2D.get_area(c1) ≈ convert(T, π)
         end
     end
 
-    @testset "Collision detection" begin
-        @testset "StdLine vs. StdLine" begin
+    Test.@testset "Collision detection" begin
+        Test.@testset "StdLine vs. StdLine" begin
             collision_list = [
             # std_axes
             (l1, l2, origin, std_axes, true),
@@ -152,7 +146,7 @@ end
             test_collision_list_no_axes(collision_list_no_axes)
         end
 
-        @testset "StdCircle vs. StdPoint" begin
+        Test.@testset "StdCircle vs. StdPoint" begin
             collision_list = [
             # std_axes
             (c1, point, origin, std_axes, true),
@@ -226,7 +220,7 @@ end
             test_collision_list_no_axes(collision_list_no_axes)
         end
 
-        @testset "StdCircle vs. StdLine" begin
+        Test.@testset "StdCircle vs. StdLine" begin
             collision_list = [
             # std_axes
             (l1, c2, origin, std_axes, true),
@@ -306,7 +300,7 @@ end
             test_collision_list_no_axes(collision_list_no_axes)
         end
 
-        @testset "StdCircle vs. StdCircle" begin
+        Test.@testset "StdCircle vs. StdCircle" begin
             collision_list = [
             # std_axes
             (c1, c2, origin, std_axes, true),
@@ -348,7 +342,7 @@ end
             test_collision_list_no_axes(collision_list_no_axes)
         end
 
-        @testset "StdRect vs. StdPoint" begin
+        Test.@testset "StdRect vs. StdPoint" begin
             collision_list = [
             # std_axes
             (r1, point, origin, std_axes, true),
@@ -435,7 +429,7 @@ end
             test_collision_list_no_axes(collision_list_no_axes)
         end
 
-        @testset "StdRect vs. StdLine" begin
+        Test.@testset "StdRect vs. StdLine" begin
             collision_list = [
             # std_axes
             (r1, l1, origin, std_axes, true),
@@ -529,7 +523,7 @@ end
             test_collision_list_no_axes(collision_list_no_axes)
         end
 
-        @testset "StdRect vs. StdCircle" begin
+        Test.@testset "StdRect vs. StdCircle" begin
             collision_list = [
             # std_axes
             (r1, c1, origin, std_axes, true),
@@ -616,7 +610,7 @@ end
             test_collision_list_no_axes(collision_list_no_axes)
         end
 
-        @testset "Rect2D vs. Rect2D" begin
+        Test.@testset "Rect2D vs. Rect2D" begin
             collision_list = [
             # std_axes
             (r2, r1, origin, std_axes, true),
@@ -672,8 +666,8 @@ end
         end
     end
 
-    @testset "Manifold generation" begin
-        @testset "StdCircle vs. StdCircle" begin
+    Test.@testset "Manifold generation" begin
+        Test.@testset "StdCircle vs. StdCircle" begin
             manifold_list = [
             # std_axes
             (c1, c2, (r_c1 + r_c2 - d) .* -i_cap, std_axes, PP2D.Manifold(d, PP2D.rotate_plus_90(std_axes), (r_c1 - d / 2) .* -i_cap)),
@@ -693,7 +687,7 @@ end
             test_manifold_list(manifold_list)
         end
 
-        @testset "StdRect vs. StdCircle" begin
+        Test.@testset "StdRect vs. StdCircle" begin
             manifold_list_no_axes = [
             # std_axes
             (r1, c1, (half_width_r1 + r_c1 - d) .* -i_cap, PP2D.Manifold(d, PP2D.rotate_plus_90(std_axes), (half_width_r1 - d / 2) .* -i_cap)),
@@ -774,7 +768,7 @@ end
             test_manifold_list(manifold_list)
         end
 
-        @testset "Rect2D vs. Rect2D" begin
+        Test.@testset "Rect2D vs. Rect2D" begin
             manifold_list_no_axes = [
             # std_axes
             (r2, r1, (half_height_r2 + half_height_r1 - d) .* -j_cap, PP2D.Manifold(d, PP2D.rotate_180(std_axes), (half_height_r2 - d/2) .* -j_cap)),

@@ -22,13 +22,13 @@ function Manifold(a::StdCircle{T}, b::StdCircle{T}, pos_ba::SA.SVector{2, T}) wh
         penetration = r_a + r_b - LA.norm(pos_ba)
         tangent = rotate_minus_90(normal)
         axes = Axes(tangent, normal)
-        contact = (r_a - penetration / 2) .* normal
+        contact = (r_a - penetration / 2) * normal
         return Manifold(penetration, axes, contact)
     else
         penetration = r_a + r_b
         axes = rotate_minus_90(Axes{T}())
         normal = get_x_cap(axes)
-        contact = (r_a - penetration / 2) .* normal
+        contact = (r_a - penetration / 2) * normal
         return Manifold(penetration, axes, contact)
     end
 end
@@ -60,7 +60,7 @@ function Manifold(a::StdRect{T}, b::StdCircle{T}, pos_ba::SA.SVector{2, T}) wher
         penetration = r_b - LA.norm(vec)
         tangent = rotate_minus_90(normal)
         axes = Axes(tangent, normal)
-        contact = pos_ba .+ (r_b - penetration / 2) .* -normal
+        contact = pos_ba .- (r_b - penetration / 2) * normal
         return Manifold(penetration, axes, contact)
     else
         d, edge_id = get_closest_edge_from_inside(a, pos_ba)
@@ -68,7 +68,7 @@ function Manifold(a::StdRect{T}, b::StdCircle{T}, pos_ba::SA.SVector{2, T}) wher
         normal = get_normals(a)[edge_id]
         tangent = rotate_minus_90(normal)
         axes = Axes(tangent, normal)
-        contact = pos_ba .+ (r_b - penetration / 2) .* -normal
+        contact = pos_ba .- (r_b - penetration / 2) * normal
         return Manifold(penetration, axes, contact)
     end
 end
@@ -375,7 +375,7 @@ function Manifold(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, axes_b
         return Manifold(penetration, axes, contact)
     else
         penetration = penetration_ab
-        normal = get_normals(b, pos_ba, axes_ba)[edge_id_b]
+        normal = get_normals(b, axes_ba)[edge_id_b]
         tangent = rotate_minus_90(normal)
         axes = Axes(tangent, normal)
         return Manifold(penetration, axes, contact)
