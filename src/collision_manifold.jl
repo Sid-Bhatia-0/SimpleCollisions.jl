@@ -375,7 +375,7 @@ function Manifold(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, axes_b
         return Manifold(penetration, axes, contact)
     else
         penetration = penetration_ab
-        normal = get_normals(b, pos_ba, axes_ba)[edge_id_b]
+        normal = get_normals(b, axes_ba)[edge_id_b]
         tangent = rotate_minus_90(normal)
         axes = Axes(tangent, normal)
         return Manifold(penetration, axes, contact)
