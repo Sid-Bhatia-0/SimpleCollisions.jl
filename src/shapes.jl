@@ -1,14 +1,3 @@
-#####
-# Vec
-#####
-
-get_x(vec::SA.SVector) = vec[1]
-get_y(vec::SA.SVector) = vec[2]
-
-#####
-# StdShape
-#####
-
 abstract type AbstractStdShape{T} end
 
 #####

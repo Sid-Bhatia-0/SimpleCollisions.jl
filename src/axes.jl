@@ -1,4 +1,18 @@
 #####
+# Vec
+#####
+
+get_x(vec::SA.SVector) = vec[1]
+get_y(vec::SA.SVector) = vec[2]
+
+rotate_90(vec::SA.SVector{2}) = typeof(vec)(-vec[2], vec[1])
+rotate_minus_90(vec::SA.SVector{2}) = typeof(vec)(vec[2], -vec[1])
+rotate_180(vec::SA.SVector{2}) = -vec
+
+rotate(x::T, y::T, c::T, s::T) where {T} = SA.SVector(c * x - s * y, s * x + c * y)
+rotate(vec::SA.SVector{2, T}, theta::T) where {T} = rotate(vec[1], vec[2], cos(theta), sin(theta))
+
+#####
 # Axes
 #####
 
@@ -21,17 +35,6 @@ function Axes(angle::T) where {T}
     y_cap = rotate_90(x_cap)
     return Axes(x_cap, y_cap)
 end
-
-#####
-# rotation related methods
-#####
-
-rotate_90(vec::SA.SVector{2}) = typeof(vec)(-vec[2], vec[1])
-rotate_180(vec::SA.SVector{2}) = -vec
-rotate_minus_90(vec::SA.SVector{2}) = typeof(vec)(vec[2], -vec[1])
-
-rotate(x::T, y::T, c::T, s::T) where {T} = SA.SVector(c * x - s * y, s * x + c * y)
-rotate(vec::SA.SVector{2, T}, theta::T) where {T} = rotate(vec[1], vec[2], cos(theta), sin(theta))
 
 rotate_90(axes::Axes) = Axes(get_y_cap(axes), -get_x_cap(axes))
 rotate_180(axes::Axes) = Axes(-get_x_cap(axes), -get_y_cap(axes))
