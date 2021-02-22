@@ -2,8 +2,8 @@
 # Vec
 #####
 
-get_x(vec::GB.Vec) = vec[1]
-get_y(vec::GB.Vec) = vec[2]
+get_x(vec::SA.SVector) = vec[1]
+get_y(vec::SA.SVector) = vec[2]
 
 #####
 # StdShape
@@ -27,11 +27,11 @@ end
 
 get_half_length(line::StdLine) = line.half_length
 
-get_head(line::StdLine{T}) where {T} = GB.Vec(get_half_length(line), zero(T))
-get_tail(line::StdLine{T}) where {T} = GB.Vec(-get_half_length(line), zero(T))
+get_head(line::StdLine{T}) where {T} = SA.SVector(get_half_length(line), zero(T))
+get_tail(line::StdLine{T}) where {T} = SA.SVector(-get_half_length(line), zero(T))
 get_vertices(line::StdLine) = (get_head(line), get_tail(line))
 
-function get_vertices(line::StdLine{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T}
+function get_vertices(line::StdLine{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T}
     half_length = get_half_length(line)
     x_cap = get_x_cap(axes)
     tail = pos .+ half_length .* -x_cap
@@ -68,21 +68,21 @@ get_width(rect::StdRect) = 2 * get_half_width(rect)
 get_half_height(rect::StdRect) = rect.half_height
 get_height(rect::StdRect) = 2 * get_half_height(rect)
 
-get_bottom_left(rect::StdRect) = GB.Vec(-get_half_width(rect), -get_half_height(rect))
-get_bottom_right(rect::StdRect) = GB.Vec(get_half_width(rect), -get_half_height(rect))
-get_top_right(rect::StdRect) = GB.Vec(get_half_width(rect), get_half_height(rect))
-get_top_left(rect::StdRect) = GB.Vec(-get_half_width(rect), get_half_height(rect))
+get_bottom_left(rect::StdRect) = SA.SVector(-get_half_width(rect), -get_half_height(rect))
+get_bottom_right(rect::StdRect) = SA.SVector(get_half_width(rect), -get_half_height(rect))
+get_top_right(rect::StdRect) = SA.SVector(get_half_width(rect), get_half_height(rect))
+get_top_left(rect::StdRect) = SA.SVector(-get_half_width(rect), get_half_height(rect))
 
 get_vertices(rect::StdRect{T}) where {T} = (get_bottom_left(rect), get_bottom_right(rect), get_top_right(rect), get_top_left(rect))
 
-get_bottom_left(rect::StdRect{T}, pos::GB.Vec{2, T}) where {T} = pos .+ GB.Vec(-get_half_width(rect), -get_half_height(rect))
-get_bottom_right(rect::StdRect{T}, pos::GB.Vec{2, T}) where {T} = pos .+ GB.Vec(get_half_width(rect), -get_half_height(rect))
-get_top_right(rect::StdRect{T}, pos::GB.Vec{2, T}) where {T} = pos .+ GB.Vec(get_half_width(rect), get_half_height(rect))
-get_top_left(rect::StdRect{T}, pos::GB.Vec{2, T}) where {T} = pos .+ GB.Vec(-get_half_width(rect), get_half_height(rect))
+get_bottom_left(rect::StdRect{T}, pos::SA.SVector{2, T}) where {T} = pos .+ SA.SVector(-get_half_width(rect), -get_half_height(rect))
+get_bottom_right(rect::StdRect{T}, pos::SA.SVector{2, T}) where {T} = pos .+ SA.SVector(get_half_width(rect), -get_half_height(rect))
+get_top_right(rect::StdRect{T}, pos::SA.SVector{2, T}) where {T} = pos .+ SA.SVector(get_half_width(rect), get_half_height(rect))
+get_top_left(rect::StdRect{T}, pos::SA.SVector{2, T}) where {T} = pos .+ SA.SVector(-get_half_width(rect), get_half_height(rect))
 
-get_vertices(rect::StdRect{T}, pos::GB.Vec{2, T}) where {T} = (get_bottom_left(rect, pos), get_bottom_right(rect, pos), get_top_right(rect, pos), get_top_left(rect, pos))
+get_vertices(rect::StdRect{T}, pos::SA.SVector{2, T}) where {T} = (get_bottom_left(rect, pos), get_bottom_right(rect, pos), get_top_right(rect, pos), get_top_left(rect, pos))
 
-function get_vertices(rect::StdRect{T}, pos::GB.Vec{2, T}, axes::Axes{T}) where {T}
+function get_vertices(rect::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T}
     half_width = get_half_width(rect)
     half_height = get_half_height(rect)
 

@@ -1,7 +1,9 @@
 import PhysicsPrimitives2D
 import PhysicsPrimitives2D: PP2D
-import GeometryBasics
-const GB = GeometryBasics
+# import GeometryBasics
+# const GB = GeometryBasics
+import StaticArrays
+const SA = StaticArrays
 import LinearAlgebra
 const LA = LinearAlgebra
 using Test
@@ -46,7 +48,7 @@ end
 
 @testset "PhysicsPrimitives2D.jl" begin
     T = Float32
-    VecType = GB.Vec{2, T}
+    VecType = SA.SVector{2, T}
 
     origin = zero(VecType)
     d = convert(T, 0.01)
