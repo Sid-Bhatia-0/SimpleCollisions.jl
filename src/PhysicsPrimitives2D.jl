@@ -17,6 +17,5 @@ include("collision_detection.jl")
 include("manifold.jl")
 include("body.jl")
 include("physics.jl")
-include("rendering.jl")
 
 end
