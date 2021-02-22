@@ -1,7 +1,7 @@
 struct Manifold{T}
     penetration::T
     axes::Axes{T}
-    contact::GB.Vec{2, T}
+    contact::SA.SVector{2, T}
 end
 
 get_penetration(manifold::Manifold) = manifold.penetration
@@ -14,7 +14,7 @@ get_contact(manifold::Manifold) = manifold.contact
 # StdCircle vs. StdCircle
 #####
 
-function Manifold(a::StdCircle{T}, b::StdCircle{T}, pos_ba::GB.Vec{2, T}) where {T}
+function Manifold(a::StdCircle{T}, b::StdCircle{T}, pos_ba::SA.SVector{2, T}) where {T}
     r_a = get_radius(a)
     r_b = get_radius(b)
     normal = LA.normalize(pos_ba)
@@ -33,13 +33,13 @@ function Manifold(a::StdCircle{T}, b::StdCircle{T}, pos_ba::GB.Vec{2, T}) where 
     end
 end
 
-Manifold(a::StdCircle{T}, b::StdCircle{T}, pos_ba::GB.Vec{2, T}, axes_ba::Axes{T}) where {T} = Manifold(a, b, pos_ba)
+Manifold(a::StdCircle{T}, b::StdCircle{T}, pos_ba::SA.SVector{2, T}, axes_ba::Axes{T}) where {T} = Manifold(a, b, pos_ba)
 
 #####
 # HyperRectangle vs. HyperSphere
 #####
 
-function get_closest_edge_from_inside(rect::StdRect{T}, pos::GB.Vec{2, T}) where {T}
+function get_closest_edge_from_inside(rect::StdRect{T}, pos::SA.SVector{2, T}) where {T}
     half_width = get_half_width(rect)
     half_height = get_half_height(rect)
 
@@ -51,7 +51,7 @@ function get_closest_edge_from_inside(rect::StdRect{T}, pos::GB.Vec{2, T}) where
     return (penetration, edge_id)
 end
 
-function Manifold(a::StdRect{T}, b::StdCircle{T}, pos_ba::GB.Vec{2, T}) where {T}
+function Manifold(a::StdRect{T}, b::StdCircle{T}, pos_ba::SA.SVector{2, T}) where {T}
     r_b = get_radius(b)
     projection = get_projection(a, pos_ba)
     vec = pos_ba .- projection
@@ -73,7 +73,7 @@ function Manifold(a::StdRect{T}, b::StdCircle{T}, pos_ba::GB.Vec{2, T}) where {T
     end
 end
 
-function Manifold(a::StdCircle{T}, b::StdRect{T}, pos_ba::GB.Vec{2, T}) where {T}
+function Manifold(a::StdCircle{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}) where {T}
     pos_ab = -pos_ba
     manifold_ab = Manifold(b, a, pos_ab)
 
@@ -83,9 +83,9 @@ function Manifold(a::StdCircle{T}, b::StdRect{T}, pos_ba::GB.Vec{2, T}) where {T
     return Manifold(penetration, axes, contact)
 end
 
-Manifold(a::StdRect{T}, b::StdCircle{T}, pos_ba::GB.Vec{2, T}, axes_ba::Axes{T}) where {T} = Manifold(a, b, pos_ba)
+Manifold(a::StdRect{T}, b::StdCircle{T}, pos_ba::SA.SVector{2, T}, axes_ba::Axes{T}) where {T} = Manifold(a, b, pos_ba)
 
-function Manifold(a::StdCircle{T}, b::StdRect{T}, pos_ba::GB.Vec{2, T}, axes_ba::Axes{T}) where {T}
+function Manifold(a::StdCircle{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, axes_ba::Axes{T}) where {T}
     axes_ab = invert_relative_axes(axes_ba)
     pos_ab = -rotate(pos_ba, axes_ab)
     manifold_ab = Manifold(b, a, pos_ab, axes_ab)
@@ -100,7 +100,7 @@ end
 # StdRect vs. StdRect
 #####
 
-function Manifold(a::StdRect{T}, b::StdRect{T}, pos_ba::GB.Vec{2, T}) where {T}
+function Manifold(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}) where {T}
     half_width_a = get_half_width(a)
     half_height_a = get_half_height(a)
 
@@ -128,7 +128,7 @@ function Manifold(a::StdRect{T}, b::StdRect{T}, pos_ba::GB.Vec{2, T}) where {T}
     return Manifold(penetration, axes, contact)
 end
 
-function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::GB.Vec{2, T}, axes_ba::Axes{T}) where {T}
+function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, axes_ba::Axes{T}) where {T}
     half_width_a = get_half_width(a)
     half_height_a = get_half_height(a)
 
@@ -290,7 +290,7 @@ function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::GB.Vec{2, T}
     return final_vertices
 end
 
-function get_centroid(vertices::Vararg{GB.Vec{2, T}}) where {T}
+function get_centroid(vertices::Vararg{SA.SVector{2, T}}) where {T}
     VecType = typeof(vertices[1])
     area = zero(T)
     c_x_num = zero(T)
@@ -328,12 +328,12 @@ function get_centroid(vertices::Vararg{GB.Vec{2, T}}) where {T}
     end
 end
 
-function get_contact(a::StdRect{T}, b::StdRect{T}, pos_ba::GB.Vec{2, T}, axes_ba::Axes{T}) where {T}
+function get_contact(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, axes_ba::Axes{T}) where {T}
     clipped_vertices = get_clipped_vertices(a, b, pos_ba, axes_ba)
     return get_centroid(clipped_vertices...)
 end
 
-function get_candidate_support(a::StdRect{T}, b::StdRect{T}, pos_ba::GB.Vec{2, T}, axes_ba::Axes{T}) where {T}
+function get_candidate_support(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, axes_ba::Axes{T}) where {T}
     half_width_a = get_half_width(a)
     half_height_a = get_half_height(a)
 
@@ -359,7 +359,7 @@ function get_candidate_support(a::StdRect{T}, b::StdRect{T}, pos_ba::GB.Vec{2, T
     return penetration, vertex_id, edge_id
 end
 
-function Manifold(a::StdRect{T}, b::StdRect{T}, pos_ba::GB.Vec{2, T}, axes_ba::Axes{T}) where {T}
+function Manifold(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, axes_ba::Axes{T}) where {T}
     penetration_ba, vertex_id_b, edge_id_a = get_candidate_support(a, b, pos_ba, axes_ba)
 
     pos_ab, axes_ab = invert(pos_ba, axes_ba)
