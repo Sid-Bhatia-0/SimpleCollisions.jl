@@ -1,7 +1,5 @@
 import PhysicsPrimitives2D
 import PhysicsPrimitives2D: PP2D
-# import GeometryBasics
-# const GB = GeometryBasics
 import StaticArrays
 const SA = StaticArrays
 import LinearAlgebra
@@ -678,8 +676,8 @@ end
         @testset "StdCircle vs. StdCircle" begin
             manifold_list = [
             # std_axes
-            (c1, c2, (r_c1 + r_c2 - d) .* -i_cap, std_axes, PP2D.Manifold(d, PP2D.rotate_90(std_axes), (r_c1 - d / 2) .* -i_cap)),
-            (c1, c2, r_c2 .* -i_cap, std_axes, PP2D.Manifold(r_c1, PP2D.rotate_90(std_axes), (r_c1 / 2) .* -i_cap)),
+            (c1, c2, (r_c1 + r_c2 - d) .* -i_cap, std_axes, PP2D.Manifold(d, PP2D.rotate_plus_90(std_axes), (r_c1 - d / 2) .* -i_cap)),
+            (c1, c2, r_c2 .* -i_cap, std_axes, PP2D.Manifold(r_c1, PP2D.rotate_plus_90(std_axes), (r_c1 / 2) .* -i_cap)),
             (c1, c2, r_c2 .* i_cap, std_axes, PP2D.Manifold(r_c1, PP2D.rotate_minus_90(std_axes), (r_c1 / 2) .* i_cap)),
             (c1, c2, (r_c1 + r_c2 - d) .* i_cap, std_axes, PP2D.Manifold(d, PP2D.rotate_minus_90(std_axes), (r_c1 - d / 2) .* i_cap)),
 
@@ -698,9 +696,9 @@ end
         @testset "StdRect vs. StdCircle" begin
             manifold_list_no_axes = [
             # std_axes
-            (r1, c1, (half_width_r1 + r_c1 - d) .* -i_cap, PP2D.Manifold(d, PP2D.rotate_90(std_axes), (half_width_r1 - d / 2) .* -i_cap)),
-            (r1, c1, (half_width_r1 + d) .* -i_cap, PP2D.Manifold(r_c1 - d, PP2D.rotate_90(std_axes), (half_width_r1 - (r_c1 - d) / 2) .* -i_cap)),
-            (r1, c1, (half_width_r1 - d) .* -i_cap, PP2D.Manifold(r_c1 + d, PP2D.rotate_90(std_axes), (half_width_r1 - (r_c1 + d) / 2) .* -i_cap)),
+            (r1, c1, (half_width_r1 + r_c1 - d) .* -i_cap, PP2D.Manifold(d, PP2D.rotate_plus_90(std_axes), (half_width_r1 - d / 2) .* -i_cap)),
+            (r1, c1, (half_width_r1 + d) .* -i_cap, PP2D.Manifold(r_c1 - d, PP2D.rotate_plus_90(std_axes), (half_width_r1 - (r_c1 - d) / 2) .* -i_cap)),
+            (r1, c1, (half_width_r1 - d) .* -i_cap, PP2D.Manifold(r_c1 + d, PP2D.rotate_plus_90(std_axes), (half_width_r1 - (r_c1 + d) / 2) .* -i_cap)),
             (r1, c1, (half_width_r1 - d) .* i_cap, PP2D.Manifold(r_c1 + d, PP2D.rotate_minus_90(std_axes), (half_width_r1 - (r_c1 + d) / 2) .* i_cap)),
             (r1, c1, (half_width_r1 + d) .* i_cap, PP2D.Manifold(r_c1 - d, PP2D.rotate_minus_90(std_axes), (half_width_r1 - (r_c1 - d) / 2) .* i_cap)),
             (r1, c1, (half_width_r1 + r_c1 - d) .* i_cap, PP2D.Manifold(d, PP2D.rotate_minus_90(std_axes), (half_width_r1 - d / 2) .* i_cap)),
@@ -715,9 +713,9 @@ end
             (r1, c1, top_right_r1 .+ (r_c1 - d) .* unit_45, PP2D.Manifold(d, PP2D.Axes(-theta_45), top_right_r1 .+ (d / 2) .* -unit_45)),
 
             # reverse check with std_axes
-            (c1, r1, (half_width_r1 + r_c1 - d) .* -i_cap, PP2D.Manifold(d, PP2D.rotate_90(std_axes), (r_c1 - d / 2) .* -i_cap)),
-            (c1, r1, (half_width_r1 + d) .* -i_cap, PP2D.Manifold(r_c1 - d, PP2D.rotate_90(std_axes), (r_c1 - (r_c1 - d) / 2) .* -i_cap)),
-            (c1, r1, (half_width_r1 - d) .* -i_cap, PP2D.Manifold(r_c1 + d, PP2D.rotate_90(std_axes), (r_c1 - (r_c1 + d) / 2) .* -i_cap)),
+            (c1, r1, (half_width_r1 + r_c1 - d) .* -i_cap, PP2D.Manifold(d, PP2D.rotate_plus_90(std_axes), (r_c1 - d / 2) .* -i_cap)),
+            (c1, r1, (half_width_r1 + d) .* -i_cap, PP2D.Manifold(r_c1 - d, PP2D.rotate_plus_90(std_axes), (r_c1 - (r_c1 - d) / 2) .* -i_cap)),
+            (c1, r1, (half_width_r1 - d) .* -i_cap, PP2D.Manifold(r_c1 + d, PP2D.rotate_plus_90(std_axes), (r_c1 - (r_c1 + d) / 2) .* -i_cap)),
             (c1, r1, (half_width_r1 - d) .* i_cap, PP2D.Manifold(r_c1 + d, PP2D.rotate_minus_90(std_axes), (r_c1 - (r_c1 + d) / 2) .* i_cap)),
             (c1, r1, (half_width_r1 + d) .* i_cap, PP2D.Manifold(r_c1 - d, PP2D.rotate_minus_90(std_axes), (r_c1 - (r_c1 - d) / 2) .* i_cap)),
             (c1, r1, (half_width_r1 + r_c1 - d) .* i_cap, PP2D.Manifold(d, PP2D.rotate_minus_90(std_axes), (r_c1 - d / 2) .* i_cap)),
@@ -736,9 +734,9 @@ end
 
             manifold_list = [
             # std_axes
-            (r1, c1, (half_width_r1 + r_c1 - d) .* -i_cap, std_axes, PP2D.Manifold(d, PP2D.rotate_90(std_axes), (half_width_r1 - d / 2) .* -i_cap)),
-            (r1, c1, (half_width_r1 + d) .* -i_cap, std_axes, PP2D.Manifold(r_c1 - d, PP2D.rotate_90(std_axes), (half_width_r1 - (r_c1 - d) / 2) .* -i_cap)),
-            (r1, c1, (half_width_r1 - d) .* -i_cap, std_axes, PP2D.Manifold(r_c1 + d, PP2D.rotate_90(std_axes), (half_width_r1 - (r_c1 + d) / 2) .* -i_cap)),
+            (r1, c1, (half_width_r1 + r_c1 - d) .* -i_cap, std_axes, PP2D.Manifold(d, PP2D.rotate_plus_90(std_axes), (half_width_r1 - d / 2) .* -i_cap)),
+            (r1, c1, (half_width_r1 + d) .* -i_cap, std_axes, PP2D.Manifold(r_c1 - d, PP2D.rotate_plus_90(std_axes), (half_width_r1 - (r_c1 - d) / 2) .* -i_cap)),
+            (r1, c1, (half_width_r1 - d) .* -i_cap, std_axes, PP2D.Manifold(r_c1 + d, PP2D.rotate_plus_90(std_axes), (half_width_r1 - (r_c1 + d) / 2) .* -i_cap)),
             (r1, c1, (half_width_r1 - d) .* i_cap, std_axes, PP2D.Manifold(r_c1 + d, PP2D.rotate_minus_90(std_axes), (half_width_r1 - (r_c1 + d) / 2) .* i_cap)),
             (r1, c1, (half_width_r1 + d) .* i_cap, std_axes, PP2D.Manifold(r_c1 - d, PP2D.rotate_minus_90(std_axes), (half_width_r1 - (r_c1 - d) / 2) .* i_cap)),
             (r1, c1, (half_width_r1 + r_c1 - d) .* i_cap, std_axes, PP2D.Manifold(d, PP2D.rotate_minus_90(std_axes), (half_width_r1 - d / 2) .* i_cap)),
@@ -753,9 +751,9 @@ end
             (r1, c1, top_right_r1 .+ (r_c1 - d) .* unit_45, std_axes, PP2D.Manifold(d, PP2D.Axes(-theta_45), top_right_r1 .+ (d / 2) .* -unit_45)),
 
             # reverse check with std_axes
-            (c1, r1, (half_width_r1 + r_c1 - d) .* -i_cap, std_axes, PP2D.Manifold(d, PP2D.rotate_90(std_axes), (r_c1 - d / 2) .* -i_cap)),
-            (c1, r1, (half_width_r1 + d) .* -i_cap, std_axes, PP2D.Manifold(r_c1 - d, PP2D.rotate_90(std_axes), (r_c1 - (r_c1 - d) / 2) .* -i_cap)),
-            (c1, r1, (half_width_r1 - d) .* -i_cap, std_axes, PP2D.Manifold(r_c1 + d, PP2D.rotate_90(std_axes), (r_c1 - (r_c1 + d) / 2) .* -i_cap)),
+            (c1, r1, (half_width_r1 + r_c1 - d) .* -i_cap, std_axes, PP2D.Manifold(d, PP2D.rotate_plus_90(std_axes), (r_c1 - d / 2) .* -i_cap)),
+            (c1, r1, (half_width_r1 + d) .* -i_cap, std_axes, PP2D.Manifold(r_c1 - d, PP2D.rotate_plus_90(std_axes), (r_c1 - (r_c1 - d) / 2) .* -i_cap)),
+            (c1, r1, (half_width_r1 - d) .* -i_cap, std_axes, PP2D.Manifold(r_c1 + d, PP2D.rotate_plus_90(std_axes), (r_c1 - (r_c1 + d) / 2) .* -i_cap)),
             (c1, r1, (half_width_r1 - d) .* i_cap, std_axes, PP2D.Manifold(r_c1 + d, PP2D.rotate_minus_90(std_axes), (r_c1 - (r_c1 + d) / 2) .* i_cap)),
             (c1, r1, (half_width_r1 + d) .* i_cap, std_axes, PP2D.Manifold(r_c1 - d, PP2D.rotate_minus_90(std_axes), (r_c1 - (r_c1 - d) / 2) .* i_cap)),
             (c1, r1, (half_width_r1 + r_c1 - d) .* i_cap, std_axes, PP2D.Manifold(d, PP2D.rotate_minus_90(std_axes), (r_c1 - d / 2) .* i_cap)),
@@ -788,9 +786,9 @@ end
             (r2, r1, (half_height_r2 + d) .* j_cap, PP2D.Manifold(half_height_r1 - d, std_axes, (half_height_r2 - (half_height_r1 - d)/2) .* j_cap)),
             (r2, r1, (half_height_r2 + half_height_r1 - d) .* j_cap, PP2D.Manifold(d, std_axes, (half_height_r2 - d/2) .* j_cap)),
 
-            (r2, r1, (half_width_r2 + half_width_r1 - d) .* -i_cap, PP2D.Manifold(d, PP2D.rotate_90(std_axes), (half_width_r2 - d/2) .* -i_cap)),
-            (r2, r1, (half_width_r2 + d) .* -i_cap, PP2D.Manifold(half_width_r1 - d, PP2D.rotate_90(std_axes), (half_width_r2 - (half_width_r1 - d)/2) .* -i_cap)),
-            (r2, r1, (half_width_r2 - d) .* -i_cap, PP2D.Manifold(half_width_r1 + d, PP2D.rotate_90(std_axes), (half_width_r2 - (half_width_r1 + d)/2) .* -i_cap)),
+            (r2, r1, (half_width_r2 + half_width_r1 - d) .* -i_cap, PP2D.Manifold(d, PP2D.rotate_plus_90(std_axes), (half_width_r2 - d/2) .* -i_cap)),
+            (r2, r1, (half_width_r2 + d) .* -i_cap, PP2D.Manifold(half_width_r1 - d, PP2D.rotate_plus_90(std_axes), (half_width_r2 - (half_width_r1 - d)/2) .* -i_cap)),
+            (r2, r1, (half_width_r2 - d) .* -i_cap, PP2D.Manifold(half_width_r1 + d, PP2D.rotate_plus_90(std_axes), (half_width_r2 - (half_width_r1 + d)/2) .* -i_cap)),
             (r2, r1, (half_width_r2 - d) .* i_cap, PP2D.Manifold(half_width_r1 + d, PP2D.rotate_minus_90(std_axes), (half_width_r2 - (half_width_r1 + d)/2) .* i_cap)),
             (r2, r1, (half_width_r2 + d) .* i_cap, PP2D.Manifold(half_width_r1 - d, PP2D.rotate_minus_90(std_axes), (half_width_r2 - (half_width_r1 - d)/2) .* i_cap)),
             (r2, r1, (half_width_r2 + half_width_r1 - d) .* i_cap, PP2D.Manifold(d, PP2D.rotate_minus_90(std_axes), (half_width_r2 - d/2) .* i_cap)),
@@ -813,9 +811,9 @@ end
             (r2, r1, (half_height_r2 + d) .* j_cap, std_axes, PP2D.Manifold(half_height_r1 - d, std_axes, (half_height_r2 - (half_height_r1 - d)/2) .* j_cap)),
             (r2, r1, (half_height_r2 + half_height_r1 - d) .* j_cap, std_axes, PP2D.Manifold(d, std_axes, (half_height_r2 - d/2) .* j_cap)),
 
-            (r2, r1, (half_width_r2 + half_width_r1 - d) .* -i_cap, std_axes, PP2D.Manifold(d, PP2D.rotate_90(std_axes), (half_width_r2 - d/2) .* -i_cap)),
-            (r2, r1, (half_width_r2 + d) .* -i_cap, std_axes, PP2D.Manifold(half_width_r1 - d, PP2D.rotate_90(std_axes), (half_width_r2 - (half_width_r1 - d)/2) .* -i_cap)),
-            (r2, r1, (half_width_r2 - d) .* -i_cap, std_axes, PP2D.Manifold(half_width_r1 + d, PP2D.rotate_90(std_axes), (half_width_r2 - (half_width_r1 + d)/2) .* -i_cap)),
+            (r2, r1, (half_width_r2 + half_width_r1 - d) .* -i_cap, std_axes, PP2D.Manifold(d, PP2D.rotate_plus_90(std_axes), (half_width_r2 - d/2) .* -i_cap)),
+            (r2, r1, (half_width_r2 + d) .* -i_cap, std_axes, PP2D.Manifold(half_width_r1 - d, PP2D.rotate_plus_90(std_axes), (half_width_r2 - (half_width_r1 - d)/2) .* -i_cap)),
+            (r2, r1, (half_width_r2 - d) .* -i_cap, std_axes, PP2D.Manifold(half_width_r1 + d, PP2D.rotate_plus_90(std_axes), (half_width_r2 - (half_width_r1 + d)/2) .* -i_cap)),
             (r2, r1, (half_width_r2 - d) .* i_cap, std_axes, PP2D.Manifold(half_width_r1 + d, PP2D.rotate_minus_90(std_axes), (half_width_r2 - (half_width_r1 + d)/2) .* i_cap)),
             (r2, r1, (half_width_r2 + d) .* i_cap, std_axes, PP2D.Manifold(half_width_r1 - d, PP2D.rotate_minus_90(std_axes), (half_width_r2 - (half_width_r1 - d)/2) .* i_cap)),
             (r2, r1, (half_width_r2 + half_width_r1 - d) .* i_cap, std_axes, PP2D.Manifold(d, PP2D.rotate_minus_90(std_axes), (half_width_r2 - d/2) .* i_cap)),
@@ -828,7 +826,7 @@ end
             (r2, r1, (half_height_r2 - d) .* -j_cap .- PP2D.rotate(top_right_r1, rotated_axes), rotated_axes, PP2D.Manifold(d, PP2D.rotate_180(std_axes), ((zero(T) - d / tan(theta) + d * tan(theta)) ./ 3) .* i_cap .+ ((-half_height_r2 + d - half_height_r2 - half_height_r2) ./ 3) .* j_cap)),
             (r2, r1, (half_height_r2 - d) .* j_cap .+ PP2D.rotate(top_right_r1, rotated_axes), rotated_axes, PP2D.Manifold(d, std_axes, ((zero(T) + d / tan(theta) - d * tan(theta)) ./ 3) .* i_cap .+ ((half_height_r2 - d + half_height_r2 + half_height_r2) ./ 3) .* j_cap)),
 
-            (r2, r1, (half_width_r2 + LA.norm(top_right_r1) * cos(-theta_r1 + theta) - d) .* -i_cap, rotated_axes, PP2D.Manifold(d, PP2D.rotate_90(std_axes), ((-half_width_r2 + d - half_width_r2 - half_width_r2) ./ 3) .* i_cap .+ (LA.norm(top_right_r1) * sin(-theta_r1 + theta) + (d / tan(theta) - d * tan(theta)) / 3) .* j_cap)),
+            (r2, r1, (half_width_r2 + LA.norm(top_right_r1) * cos(-theta_r1 + theta) - d) .* -i_cap, rotated_axes, PP2D.Manifold(d, PP2D.rotate_plus_90(std_axes), ((-half_width_r2 + d - half_width_r2 - half_width_r2) ./ 3) .* i_cap .+ (LA.norm(top_right_r1) * sin(-theta_r1 + theta) + (d / tan(theta) - d * tan(theta)) / 3) .* j_cap)),
             (r2, r1, (half_width_r2 + LA.norm(top_right_r1) * cos(-theta_r1 + theta) - d) .* i_cap, rotated_axes, PP2D.Manifold(d, PP2D.rotate_minus_90(std_axes), ((half_width_r2 - d + half_width_r2 + half_width_r2) ./ 3) .* i_cap .+ (LA.norm(top_right_r1) * sin(convert(T, pi - theta_r1) + theta) + (d * tan(theta) - d / tan(theta)) / 3) .* j_cap)),
             ]
 
