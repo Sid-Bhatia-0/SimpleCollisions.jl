@@ -6,6 +6,10 @@ This package provides **lightweight** and **efficient** primitives for 2D physic
 1. [Geometry](#geometry)
     1. [Axes](#axes)
     1. [Shapes](#shapes)
+        1. [StdPoint](#stdpoint)
+        1. [StdLine](#stdline)
+        1. [StdCircle](#stdcircle)
+        1. [StdRect](#stdrect)
 1. [Collisions](#collisions)
     1. [Collision Detection](#collision-detection)
     1. [Collision Manifold](#collision-manifold)
@@ -35,7 +39,54 @@ the `Std` prefix stands for the word standard. Here, a standard shape refers to 
 
 A standard shape can be augmented with a position and (optionally) an axes to represent that shape at an arbitrary location and orientation with respect to the world frame of reference. This decoupling of the shape, position, and orientation is useful for collision detection and collision manifold generation as it allows us to exploit the symmetry offered in a use case.
 
-## Collision
+#### StdPoint
+
+```
+struct StdPoint{T} <: AbstractStdShape{T} end
+```
+
+`StdPoint` is a point placed at the origin. It doesn't require any fields.
+
+<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdPoint.gif" width="360px">
+
+#### StdLine
+
+```
+struct StdLine{T} <: AbstractStdShape{T}
+    half_length::T
+end
+```
+
+`StdLine` is a line segment aligned with the world x-axes centered at the origin. It requires only one field - a `half_length`.
+
+<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdLine.gif" width="360px">
+
+#### StdCircle
+
+```
+struct StdCircle{T} <: AbstractStdShape{T}
+    radius::T
+end
+```
+
+`StdCirle` is a circle centered at the origin. It requires only one field - a `radius`.
+
+<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdCircle.gif" width="360px">
+
+#### StdRect
+
+```
+struct StdRect{T} <: AbstractStdShape{T}
+    half_width::T
+    half_height::T
+end
+```
+
+`StdRect` is a rectangle centered at the origin with its edges parallel to the world coordinate axes. It requires two fields - a `half_width` and a `half_height`.
+
+<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdRect.gif" width="360px">
+
+## Collisions
 
 ### Collision Detection
 
