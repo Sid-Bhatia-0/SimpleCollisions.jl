@@ -47,7 +47,7 @@ struct StdPoint{T} <: AbstractStdShape{T} end
 
 `StdPoint` is a point placed at the origin. It doesn't require any fields.
 
-<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdPoint.gif" width="360px">
+<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdPoint.svg" width="360px">
 
 #### StdLine
 
@@ -59,7 +59,7 @@ end
 
 `StdLine` is a line segment aligned with the world x-axes centered at the origin. It requires only one field - a `half_length`.
 
-<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdLine.gif" width="360px">
+<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdLine.svg" width="360px">
 
 #### StdCircle
 
@@ -71,7 +71,7 @@ end
 
 `StdCirle` is a circle centered at the origin. It requires only one field - a `radius`.
 
-<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdCircle.gif" width="360px">
+<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdCircle.svg" width="360px">
 
 #### StdRect
 
@@ -84,7 +84,7 @@ end
 
 `StdRect` is a rectangle centered at the origin with its edges parallel to the world coordinate axes. It requires two fields - a `half_width` and a `half_height`.
 
-<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdRect.gif" width="360px">
+<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdRect.svg" width="360px">
 
 ## Collisions
 
