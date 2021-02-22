@@ -9,11 +9,11 @@ import LinearAlgebra
 const LA = LinearAlgebra
 
 include("utils.jl")
-include("axes.jl")
+include("position_and_orientation.jl")
 include("shapes.jl")
 include("collision_detection.jl")
-include("manifold.jl")
-include("body.jl")
+include("collision_manifold.jl")
+include("abstract_body.jl")
 include("physics.jl")
 
 end
