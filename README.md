@@ -1,8 +1,11 @@
 # PhysicsPrimitives2D
 
-This package provides **lightweight** and **efficient** primitives for 2D physics. This package is inspired by [ImpulseEngine](https://github.com/RandyGaul/ImpulseEngine) and [box2d](https://github.com/erincatto/box2d).
+This package provides **fast** and **lightweight** "primitives" for 2D physics. Roughly speaking, it offers a collection of methods and structs needed to detect and resolve collisions between simple 2D shapes like circles and rectangles, along with some basic methods to calculate impulses when two rigid bodies collide with each other. The priority is high performance for the simple cases instead of adding sophisticated feature.
+
+In order to cite this package, please refer to the file `CITATION.bib`. Starring the repository on GitHub is also appreciated.
 
 # Design
+1. [What This Package Is NOT About](#what-this-package-is-not-about)
 1. [Position and Orientation](#position-and-orientation)
 1. [Shapes](#shapes)
     1. [StdPoint](#stdpoint)
@@ -13,6 +16,14 @@ This package provides **lightweight** and **efficient** primitives for 2D physic
     1. [Collision Detection](#collision-detection)
     1. [Collision Manifold](#collision-manifold)
 1. [Physics](#physics)
+    1. [AbstractBody](#abstractbody)
+    1. [Impulse](#impulse)
+
+## What This Package Is NOT About
+
+This package is not a physics *engine* in itself, even though it is inspired by physics engines [ImpulseEngine](https://github.com/RandyGaul/ImpulseEngine) and [box2d](https://github.com/erincatto/box2d). The reason for only providing primitives instead of a full-blown physics engine is to keep this package lightweight, make minimal or no assumptions about a game, and allow for context-specific optimizations in a game (that are often hard to generalize in advance).
+
+This package does not provide a generalized game loop. In order to understand why this is so, consider the example of 2D collision detection. In *your* game loop, it may or may not be terribly inefficient to check for exact pair-wise collisions (narrow phase) for all possible pairs of rigid bodies at every iteration. And there are several possible heuristics to optimize this further (like broad phase algorithms). *But*, once you know the specific game you are trying to build, you get full control of the collision detection process and can choose to check only those pairs that are make sense in the context of your game. This not only allows for a fine degree of optimization, but could also be a much simpler solution overall as compared to the generalized broad-phase heuristics that may still not be good enough for your case.
 
 ## Position and Orientation
 
@@ -29,10 +40,7 @@ Computations involving orientation often require `cos(theta)` and `sin(theta)`. 
 
 ## Shapes
 
-This package provides the following shapes: `StdPoint`, `StdLine`, `StdCircle`, and `StdRect`.
-the `Std` prefix stands for the word standard. Here, a standard shape refers to a shape whose geometric center is at the world origin and whose axes of orientation (determined by symmetry) are aligned with the world coordinate axes.
-
-A standard shape can be augmented with a position and (optionally) an axes to represent that shape at an arbitrary location and orientation with respect to the world frame of reference. This decoupling of shape, position, and orientation of a body allows us to exploit symmetry and speed up the computations for collision detection and collision manifold generation for certain common use cases (for example, collision of two axes-aligned bounding boxes).
+This package provides the following shapes: `StdPoint`, `StdLine`, `StdCircle`, and `StdRect`. The prefix `Std` stands for standard. Here, a standard shape refers to a shape whose geometric center is placed at the world origin and whose orientation is aligned with the world coordinate axes (determined by some form of symmetry). We use `Std` shapes to decouple the shape of a body from its position and orientation with respect to the world frame of reference. A `Std` shape can be passed along with a position and (optionally) an axes to represent a body of that shape at an arbitrary location and orientation with respect to the world frame of reference.
 
 ### StdPoint
 
@@ -52,7 +60,7 @@ struct StdLine{T} <: AbstractStdShape{T}
 end
 ```
 
-`StdLine` is a line segment aligned with the world x-axes centered at the origin. It requires only one field - a `half_length`.
+`StdLine` is a line segment centered at the origin and aligned with the world x-axes. It requires only one field - a `half_length`.
 
 <img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdLine.svg" width="360px">
 
@@ -85,9 +93,9 @@ end
 
 ### Collision Detection
 
-This package offers the `is_colliding` function to detect collisions between pairs of standard shapes with arbitrary relative positions and orientations. If the shapes are axes aligned (for example, collision detection between two axes-aligned bounding boxes), that is, they are just shifted versions of `Std` shapes, then do not pass the relative axes argument to the `is_colliding` function and you will dispatch to faster method. Exploitation of symmetry is the reason why decouples shape, position, and orientation.
+This package offers the `is_colliding` function to detect collisions between pairs of bodies with `Std` shapes at arbitrary relative positions and orientations. If both the bodies are axes aligned (for example, collision detection between two axes-aligned bounding boxes), that is, the bodies are just shifted versions of `Std` shapes, or even if their axes only mutually align, then do not pass the relative axes argument to the `is_colliding` function and you will dispatch to faster method.
 
-The position and axes arguments (whenever present) in the `is_colliding` function are the relative position and orientation of the second shape (second argument) with respect to the frame of reference of the first shape (first argument).
+The position and axes arguments (whenever present) in the `is_colliding` method definitinos refer to the relative position and orientation of the second body (second argument) in the frame of reference of the first body (first argument). The decoupling of the shapes of the bodies shapes from their positions and orientations allows us to exploit symmetry and speed up the computation for collision detection and manifold generation for certain common use cases (for example, in the case of collision of two axes-aligned bounding boxes, where you would not pass the relative axes argument to `is_colliding` function). We use relative positions and orientations instead of absolute ones in order to make the geometry calculations easier to understand. I don't think frame of reference conversions required for this have any significant computational overhead. Calculating relative positions is just subtracting two vectors, and calculating relative orientation is pretty cheap too because we already cache `sin(theta)` and `cos(theta)` in the axes objects.
 
 ### Collision Manifold
 
@@ -101,9 +109,17 @@ struct Manifold{T}
 end
 ```
 
-Here the `axes` field contains the collision tangent and normal. The `x_cap` field of this `axes` corresponds to the collision tangent and the `y_cap` field corresponds to the collision normal. A `Manifold` object is calculated with respect to the frame of reference of the first object (first argument). **It is important to note that collision manifold generation assumes (wherever required) that the two objects are indeed colliding.**
+Here the `axes` field contains the collision tangent and normal. The `x_cap` field of this `axes` corresponds to the collision tangent and the `y_cap` field corresponds to the collision normal. A `Manifold` object is calculated with respect to the frame of reference of the first body (first argument). **It is important to note that manifold generation for a collision assumes (wherever needed) that the two objects are indeed colliding.**
 
 ## Physics
+
+### AbstractBody
+
+This package does not provide a concrete type representing a generalized rigid body. Some rigid bodies may be static (may not require any mass or velocity related fields), some may be kinetic (may not require mass related fields), some may be dynamic (may require a lot of fields), some may not rotate at all (may not require any orientation related fields), some may be frictionless (may not require static or kinematic friction coefficients) etc... Basically, there is a lot of variety out there, and trying to make an optimized decision upfront is very difficult, if not impossible. Storing all such potential fields into one rigid body struct would often lead to wasteful memory and computations.
+
+So, this package only provides an abstract type `AbstractBody{T}` with some simple methods (mostly getters and setters). There is no concrete type as of now, because of the vast variety possible as mentioned before. For now, this abstract type is primarily meant for illustrative purposes. You can still use it if you find it useful, or and you can choose to ignore it completely and define structs and methods in a way that makes more sense for your use case.
+
+### Impulse
 
 This package provides the following functions to calculate the linear impulse of two colliding rigid bodies:
 1. `get_normal_impulse`: calcuates the normal impulse for a collisions
