@@ -50,17 +50,17 @@ end
 function Manifold(a::StdRect{T}, b::StdCircle{T}, pos_ba::SA.SVector{2, T}) where {T}
     r_b = get_radius(b)
     projection = get_projection(a, pos_ba)
-    vec = pos_ba .- projection
+    vec = pos_ba - projection
     normal = LA.normalize(vec)
     if all(isfinite.(normal))
         penetration = r_b - LA.norm(vec)
-        contact = pos_ba .- (r_b - penetration / 2) * normal
+        contact = pos_ba - (r_b - penetration / 2) * normal
         return Manifold(penetration, normal, contact)
     else
         d, edge_id = get_closest_edge_from_inside(a, pos_ba)
         penetration = r_b + d
         normal = get_normals(a)[edge_id]
-        contact = pos_ba .- (r_b - penetration / 2) * normal
+        contact = pos_ba - (r_b - penetration / 2) * normal
         return Manifold(penetration, normal, contact)
     end
 end
@@ -71,7 +71,7 @@ function Manifold(a::StdCircle{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}) wher
 
     penetration = get_penetration(manifold_ab)
     normal = manifold_ab |> get_normal |> rotate_180
-    contact = pos_ba .+ get_contact(manifold_ab)
+    contact = pos_ba + get_contact(manifold_ab)
     return Manifold(penetration, normal, contact)
 end
 
@@ -99,11 +99,11 @@ function Manifold(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}) where 
     bottom_left = max.(get_bottom_left(a), get_bottom_left(b, pos_ba))
     top_right = min.(get_top_right(a), get_top_right(b, pos_ba))
 
-    contact = (top_right .+ bottom_left) ./ 2
+    contact = (top_right + bottom_left) / 2
     x_contact = get_x(contact)
     y_contact = get_y(contact)
 
-    half_widths_intersection = (top_right .- bottom_left) ./ 2
+    half_widths_intersection = (top_right - bottom_left) / 2
     half_width_intersection = half_widths_intersection[1]
     half_height_intersection = half_widths_intersection[2]
 
@@ -148,7 +148,7 @@ function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2
             if isfinite(x_intersection)
                 push!(final_vertices, VecType(x_intersection, -half_height_a))
             else
-                push!(final_vertices, (v1 .+ v2) ./ 2)
+                push!(final_vertices, (v1 + v2) / 2)
             end
         # out-in
         elseif (y1 < -half_height_a) && (y2 >= -half_height_a)
@@ -157,7 +157,7 @@ function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2
                 push!(final_vertices, VecType(x_intersection, -half_height_a))
                 push!(final_vertices, v2)
             else
-                push!(final_vertices, (v1 .+ v2) ./ 2)
+                push!(final_vertices, (v1 + v2) / 2)
                 push!(final_vertices, v2)
             end
         end
@@ -186,7 +186,7 @@ function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2
             if isfinite(y_intersection)
                 push!(final_vertices, VecType(half_width_a, y_intersection))
             else
-                push!(final_vertices, (v1 .+ v2) ./ 2)
+                push!(final_vertices, (v1 + v2) / 2)
             end
         # out-in
         elseif (x1 > half_width_a) && (x2 <= half_width_a)
@@ -195,7 +195,7 @@ function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2
                 push!(final_vertices, VecType(half_width_a, y_intersection))
                 push!(final_vertices, v2)
             else
-                push!(final_vertices, (v1 .+ v2) ./ 2)
+                push!(final_vertices, (v1 + v2) / 2)
                 push!(final_vertices, v2)
             end
         end
@@ -224,7 +224,7 @@ function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2
             if isfinite(x_intersection)
                 push!(final_vertices, VecType(x_intersection, half_height_a))
             else
-                push!(final_vertices, (v1 .+ v2) ./ 2)
+                push!(final_vertices, (v1 + v2) / 2)
             end
         # out-in
         elseif (y1 > half_height_a) && (y2 <= half_height_a)
@@ -233,7 +233,7 @@ function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2
                 push!(final_vertices, VecType(x_intersection, half_height_a))
                 push!(final_vertices, v2)
             else
-                push!(final_vertices, (v1 .+ v2) ./ 2)
+                push!(final_vertices, (v1 + v2) / 2)
                 push!(final_vertices, v2)
             end
         end
@@ -262,7 +262,7 @@ function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2
             if isfinite(y_intersection)
                 push!(final_vertices, VecType(-half_width_a, y_intersection))
             else
-                push!(final_vertices, (v1 .+ v2) ./ 2)
+                push!(final_vertices, (v1 + v2) / 2)
             end
         # out-in
         elseif (x1 < -half_width_a) && (x2 >= -half_width_a)
@@ -271,7 +271,7 @@ function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2
                 push!(final_vertices, VecType(-half_width_a, y_intersection))
                 push!(final_vertices, v2)
             else
-                push!(final_vertices, (v1 .+ v2) ./ 2)
+                push!(final_vertices, (v1 + v2) / 2)
                 push!(final_vertices, v2)
             end
         end
@@ -312,7 +312,7 @@ function get_centroid(vertices::Vararg{SA.SVector{2, T}}) where {T}
     else
         centroid = zero(VecType)
         for vertex in vertices
-            centroid = centroid .+ vertex
+            centroid = centroid + vertex
         end
         return centroid / length(vertices)
     end
