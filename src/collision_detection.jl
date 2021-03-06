@@ -68,7 +68,7 @@ end
 
 function is_colliding(line::StdLine{T}, circle::StdCircle{T}, pos::SA.SVector{2, T}) where {T}
     projection = get_projection(line, pos)
-    vec = pos .- projection
+    vec = pos - projection
     radius = get_radius(circle)
     return LA.dot(vec, vec) < radius * radius
 end
@@ -163,7 +163,7 @@ get_projection(rect::StdRect{T}, pos::SA.SVector{2, T}) where {T} = clamp.(pos, 
 
 function is_colliding(rect::StdRect{T}, circle::StdCircle{T}, pos::SA.SVector{2, T}) where {T}
     projection = get_projection(rect, pos)
-    vec = pos .- projection
+    vec = pos - projection
     radius = get_radius(circle)
     return LA.dot(vec, vec) < radius * radius
 end
