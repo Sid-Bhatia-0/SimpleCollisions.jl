@@ -14,10 +14,10 @@ function is_colliding(a::StdLine{T}, b::StdLine{T}, pos_ba::SA.SVector{2, T}) wh
     end
 end
 
-function is_colliding(l1::StdLine{T}, l2::StdLine{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T}
+function is_colliding(l1::StdLine{T}, l2::StdLine{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T}
     half_length = get_half_length(l1)
 
-    tail_l2, head_l2 = get_vertices(l2, pos, axes)
+    tail_l2, head_l2 = get_vertices(l2, pos, dir)
 
     x1 = tail_l2[1]
     y1 = tail_l2[2]
@@ -47,8 +47,8 @@ end
 is_colliding(circle::StdCircle{T}, point::StdPoint{T}, pos::SA.SVector{2, T}) where {T} = is_inside(circle, pos)
 is_colliding(point::StdPoint{T}, circle::StdCircle{T}, pos::SA.SVector{2, T}) where {T} = is_inside(circle, pos) # no need to reverse pos because of symmetry
 
-is_colliding(circle::StdCircle{T}, point::StdPoint{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = is_inside(circle, pos)
-is_colliding(point::StdPoint{T}, circle::StdCircle{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = is_inside(circle, pos) # no need to reverse pos because of symmetry
+is_colliding(circle::StdCircle{T}, point::StdPoint{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T} = is_inside(circle, pos)
+is_colliding(point::StdPoint{T}, circle::StdCircle{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T} = is_inside(circle, pos) # no need to reverse pos because of symmetry
 
 #####
 # StdCircle vs. StdLine
@@ -75,8 +75,8 @@ end
 
 is_colliding(circle::StdCircle{T}, line::StdLine{T}, pos::SA.SVector{2, T}) where {T} = is_colliding(line, circle, pos) # no need to reverse pos because of symmetry
 
-is_colliding(line::StdLine{T}, circle::StdCircle{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = is_colliding(line, circle, pos)
-is_colliding(circle::StdCircle{T}, line::StdLine{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = is_colliding(line, circle, invert(pos, axes)...)
+is_colliding(line::StdLine{T}, circle::StdCircle{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T} = is_colliding(line, circle, pos)
+is_colliding(circle::StdCircle{T}, line::StdLine{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T} = is_colliding(line, circle, invert(pos, dir)...)
 
 #####
 # StdCircle vs. StdCircle
@@ -89,7 +89,7 @@ function is_colliding(c1::StdCircle{T}, c2::StdCircle{T}, pos::SA.SVector{2, T})
     return LA.dot(pos, pos) < r * r
 end
 
-is_colliding(c1::StdCircle{T}, c2::StdCircle{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = is_colliding(c1, c2, pos)
+is_colliding(c1::StdCircle{T}, c2::StdCircle{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T} = is_colliding(c1, c2, pos)
 
 #####
 # StdRect vs. StdPoint
@@ -108,8 +108,8 @@ end
 is_colliding(rect::StdRect{T}, point::StdPoint{T}, pos::SA.SVector{2, T}) where {T} = is_inside(rect, pos)
 is_colliding(point::StdPoint{T}, rect::StdRect{T}, pos::SA.SVector{2, T}) where {T} = is_inside(rect, pos) # no need to reverse pos because of symmetry
 
-is_colliding(rect::StdRect{T}, point::StdPoint{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = is_inside(rect, pos)
-is_colliding(point::StdPoint{T}, rect::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = is_colliding(rect, point, invert(pos, axes)...)
+is_colliding(rect::StdRect{T}, point::StdPoint{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T} = is_inside(rect, pos)
+is_colliding(point::StdPoint{T}, rect::StdRect{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T} = is_colliding(rect, point, invert(pos, dir)...)
 
 #####
 # StdRect vs. StdLine
@@ -129,11 +129,11 @@ end
 is_colliding(rect::StdRect{T}, line::StdLine{T}, pos::SA.SVector{2, T}) where {T} = !separating_axis_exists(rect, line, pos)
 is_colliding(line::StdLine{T}, rect::StdRect{T}, pos::SA.SVector{2, T}) where {T} = is_colliding(rect, line, pos) # no need to reverse pos because of symmetry
 
-function separating_axis_exists(rect::StdRect{T}, line::StdLine{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T}
+function separating_axis_exists(rect::StdRect{T}, line::StdLine{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T}
     half_width = get_half_width(rect)
     half_height = get_half_height(rect)
 
-    tail, head = get_vertices(line, pos, axes)
+    tail, head = get_vertices(line, pos, dir)
 
     min_x, max_x = minmax(tail[1], head[1])
     min_y, max_y = minmax(tail[2], head[2])
@@ -141,10 +141,10 @@ function separating_axis_exists(rect::StdRect{T}, line::StdLine{T}, pos::SA.SVec
     return (max_x <= -half_width) || (min_x >= half_width) || (max_y <= -half_height) || (min_y >= half_height)
 end
 
-function separating_axis_exists(line::StdLine{T}, rect::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T}
+function separating_axis_exists(line::StdLine{T}, rect::StdRect{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T}
     half_length = get_half_length(line)
 
-    bottom_left, bottom_right, top_right, top_left = get_vertices(rect, pos, axes)
+    bottom_left, bottom_right, top_right, top_left = get_vertices(rect, pos, dir)
 
     min_x, max_x = extrema((bottom_left[1], bottom_right[1], top_right[1], top_left[1]))
     min_y, max_y = extrema((bottom_left[2], bottom_right[2], top_right[2], top_left[2]))
@@ -152,8 +152,8 @@ function separating_axis_exists(line::StdLine{T}, rect::StdRect{T}, pos::SA.SVec
     return (max_x <= -half_length) || (min_x >= half_length) || (max_y <= zero(T)) || (min_y >= zero(T))
 end
 
-is_colliding(rect::StdRect{T}, line::StdLine{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = !(separating_axis_exists(rect, line, pos, axes) || separating_axis_exists(line, rect, invert(pos, axes)...))
-is_colliding(line::StdLine{T}, rect::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = !(separating_axis_exists(line, rect, pos, axes) || separating_axis_exists(rect, line, invert(pos, axes)...))
+is_colliding(rect::StdRect{T}, line::StdLine{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T} = !(separating_axis_exists(rect, line, pos, dir) || separating_axis_exists(line, rect, invert(pos, dir)...))
+is_colliding(line::StdLine{T}, rect::StdRect{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T} = !(separating_axis_exists(line, rect, pos, dir) || separating_axis_exists(rect, line, invert(pos, dir)...))
 
 #####
 # StdRect vs. StdCircle
@@ -170,8 +170,8 @@ end
 
 is_colliding(circle::StdCircle{T}, rect::StdRect{T}, pos::SA.SVector{2, T}) where {T} = is_colliding(rect, circle, pos) # no need to invert pos because of symmetry
 
-is_colliding(rect::StdRect{T}, circle::StdCircle{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = is_colliding(rect, circle, pos)
-is_colliding(circle::StdCircle{T}, rect::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = is_colliding(rect, circle, invert(pos, axes)...)
+is_colliding(rect::StdRect{T}, circle::StdCircle{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T} = is_colliding(rect, circle, pos)
+is_colliding(circle::StdCircle{T}, rect::StdRect{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T} = is_colliding(rect, circle, invert(pos, dir)...)
 
 #####
 # StdRect vs. StdRect
@@ -192,11 +192,11 @@ end
 
 is_colliding(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}) where {T} = !separating_axis_exists(a, b, pos_ba)
 
-function separating_axis_exists(r1::StdRect{T}, r2::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T}
+function separating_axis_exists(r1::StdRect{T}, r2::StdRect{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T}
     half_width_r1 = get_half_width(r1)
     half_height_r1 = get_half_height(r1)
 
-    bottom_left_r2, bottom_right_r2, top_right_r2, top_left_r2 = get_vertices(r2, pos, axes)
+    bottom_left_r2, bottom_right_r2, top_right_r2, top_left_r2 = get_vertices(r2, pos, dir)
 
     min_x_r2, max_x_r2 = extrema((bottom_left_r2[1], bottom_right_r2[1], top_right_r2[1], top_left_r2[1]))
     min_y_r2, max_y_r2 = extrema((bottom_left_r2[2], bottom_right_r2[2], top_right_r2[2], top_left_r2[2]))
@@ -204,4 +204,4 @@ function separating_axis_exists(r1::StdRect{T}, r2::StdRect{T}, pos::SA.SVector{
     return ((half_width_r1 <= min_x_r2) || (max_x_r2 <= -half_width_r1) || (half_height_r1 <= min_y_r2) || (max_y_r2 <= -half_height_r1))
 end
 
-is_colliding(r1::StdRect{T}, r2::StdRect{T}, pos::SA.SVector{2, T}, axes::Axes{T}) where {T} = !(separating_axis_exists(r1, r2, pos, axes) || separating_axis_exists(r2, r1, invert(pos, axes)...))
+is_colliding(r1::StdRect{T}, r2::StdRect{T}, pos::SA.SVector{2, T}, dir::SA.SVector{2, T}) where {T} = !(separating_axis_exists(r1, r2, pos, dir) || separating_axis_exists(r2, r1, invert(pos, dir)...))

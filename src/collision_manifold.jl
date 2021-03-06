@@ -1,13 +1,12 @@
 struct Manifold{T}
     penetration::T
-    axes::Axes{T}
+    normal::SA.SVector{2, T}
     contact::SA.SVector{2, T}
 end
 
 get_penetration(manifold::Manifold) = manifold.penetration
-get_axes(manifold::Manifold) = manifold.axes
-get_normal(manifold::Manifold) = manifold |> get_axes |> get_y_cap
-get_tangent(manifold::Manifold) = manifold |> get_axes |> get_x_cap
+get_normal(manifold::Manifold) = manifold.normal
+get_tangent(manifold::Manifold) = rotate_minus_90(get_normal(manifold))
 get_contact(manifold::Manifold) = manifold.contact
 
 #####
@@ -20,20 +19,17 @@ function Manifold(a::StdCircle{T}, b::StdCircle{T}, pos_ba::SA.SVector{2, T}) wh
     normal = LA.normalize(pos_ba)
     if all(isfinite.(normal))
         penetration = r_a + r_b - LA.norm(pos_ba)
-        tangent = rotate_minus_90(normal)
-        axes = Axes(tangent, normal)
         contact = (r_a - penetration / 2) * normal
-        return Manifold(penetration, axes, contact)
+        return Manifold(penetration, normal, contact)
     else
         penetration = r_a + r_b
-        axes = rotate_minus_90(Axes{T}())
-        normal = get_x_cap(axes)
+        normal = SA.SVector(one(T), zero(T))
         contact = (r_a - penetration / 2) * normal
-        return Manifold(penetration, axes, contact)
+        return Manifold(penetration, normal, contact)
     end
 end
 
-Manifold(a::StdCircle{T}, b::StdCircle{T}, pos_ba::SA.SVector{2, T}, axes_ba::Axes{T}) where {T} = Manifold(a, b, pos_ba)
+Manifold(a::StdCircle{T}, b::StdCircle{T}, pos_ba::SA.SVector{2, T}, dir_ba::SA.SVector{2, T}) where {T} = Manifold(a, b, pos_ba)
 
 #####
 # HyperRectangle vs. HyperSphere
@@ -58,18 +54,14 @@ function Manifold(a::StdRect{T}, b::StdCircle{T}, pos_ba::SA.SVector{2, T}) wher
     normal = LA.normalize(vec)
     if all(isfinite.(normal))
         penetration = r_b - LA.norm(vec)
-        tangent = rotate_minus_90(normal)
-        axes = Axes(tangent, normal)
         contact = pos_ba .- (r_b - penetration / 2) * normal
-        return Manifold(penetration, axes, contact)
+        return Manifold(penetration, normal, contact)
     else
         d, edge_id = get_closest_edge_from_inside(a, pos_ba)
         penetration = r_b + d
         normal = get_normals(a)[edge_id]
-        tangent = rotate_minus_90(normal)
-        axes = Axes(tangent, normal)
         contact = pos_ba .- (r_b - penetration / 2) * normal
-        return Manifold(penetration, axes, contact)
+        return Manifold(penetration, normal, contact)
     end
 end
 
@@ -78,22 +70,22 @@ function Manifold(a::StdCircle{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}) wher
     manifold_ab = Manifold(b, a, pos_ab)
 
     penetration = get_penetration(manifold_ab)
-    axes = manifold_ab |> get_axes |> rotate_180
+    normal = manifold_ab |> get_normal |> rotate_180
     contact = pos_ba .+ get_contact(manifold_ab)
-    return Manifold(penetration, axes, contact)
+    return Manifold(penetration, normal, contact)
 end
 
-Manifold(a::StdRect{T}, b::StdCircle{T}, pos_ba::SA.SVector{2, T}, axes_ba::Axes{T}) where {T} = Manifold(a, b, pos_ba)
+Manifold(a::StdRect{T}, b::StdCircle{T}, pos_ba::SA.SVector{2, T}, dir_ba::SA.SVector{2, T}) where {T} = Manifold(a, b, pos_ba)
 
-function Manifold(a::StdCircle{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, axes_ba::Axes{T}) where {T}
-    axes_ab = invert_relative_axes(axes_ba)
-    pos_ab = -rotate(pos_ba, axes_ab)
-    manifold_ab = Manifold(b, a, pos_ab, axes_ab)
+function Manifold(a::StdCircle{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, dir_ba::SA.SVector{2, T}) where {T}
+    dir_ab = invert_relative_direction(dir_ba)
+    pos_ab = -rotate(pos_ba, dir_ab)
+    manifold_ab = Manifold(b, a, pos_ab, dir_ab)
 
     penetration = get_penetration(manifold_ab)
-    axes = get_relative_axes(axes_ab, rotate_180(get_axes(manifold_ab)))
-    contact = rotate(get_contact(manifold_ab) .- pos_ab, axes_ba)
-    return Manifold(penetration, axes, contact)
+    normal = get_relative_direction(dir_ab, rotate_180(get_normal(manifold_ab)))
+    contact = rotate(get_contact(manifold_ab) - pos_ab, dir_ba)
+    return Manifold(penetration, normal, contact)
 end
 
 #####
@@ -122,17 +114,15 @@ function Manifold(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}) where 
                                    ))
 
     normal = get_normals(a)[edge_id]
-    tangent = rotate_minus_90(normal)
-    axes = Axes(tangent, normal)
 
-    return Manifold(penetration, axes, contact)
+    return Manifold(penetration, normal, contact)
 end
 
-function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, axes_ba::Axes{T}) where {T}
+function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, dir_ba::SA.SVector{2, T}) where {T}
     half_width_a = get_half_width(a)
     half_height_a = get_half_height(a)
 
-    vertices_ba = get_vertices(b, pos_ba, axes_ba)
+    vertices_ba = get_vertices(b, pos_ba, dir_ba)
     VecType = typeof(pos_ba)
 
     initial_vertices = (vertices_ba..., vertices_ba[1])
@@ -328,16 +318,16 @@ function get_centroid(vertices::Vararg{SA.SVector{2, T}}) where {T}
     end
 end
 
-function get_contact(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, axes_ba::Axes{T}) where {T}
-    clipped_vertices = get_clipped_vertices(a, b, pos_ba, axes_ba)
+function get_contact(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, dir_ba::SA.SVector{2, T}) where {T}
+    clipped_vertices = get_clipped_vertices(a, b, pos_ba, dir_ba)
     return get_centroid(clipped_vertices...)
 end
 
-function get_candidate_support(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, axes_ba::Axes{T}) where {T}
+function get_candidate_support(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, dir_ba::SA.SVector{2, T}) where {T}
     half_width_a = get_half_width(a)
     half_height_a = get_half_height(a)
 
-    vertices_ba = get_vertices(b, pos_ba, axes_ba)
+    vertices_ba = get_vertices(b, pos_ba, dir_ba)
 
     value_1, _, vertex_id_1 = findmax(vertex -> vertex[2], vertices_ba)
     max_penetration_1 = half_height_a + value_1
@@ -359,25 +349,21 @@ function get_candidate_support(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{
     return penetration, vertex_id, edge_id
 end
 
-function Manifold(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, axes_ba::Axes{T}) where {T}
-    penetration_ba, vertex_id_b, edge_id_a = get_candidate_support(a, b, pos_ba, axes_ba)
+function Manifold(a::StdRect{T}, b::StdRect{T}, pos_ba::SA.SVector{2, T}, dir_ba::SA.SVector{2, T}) where {T}
+    penetration_ba, vertex_id_b, edge_id_a = get_candidate_support(a, b, pos_ba, dir_ba)
 
-    pos_ab, axes_ab = invert(pos_ba, axes_ba)
-    penetration_ab, vertex_id_a, edge_id_b = get_candidate_support(b, a, pos_ab, axes_ab)
+    pos_ab, dir_ab = invert(pos_ba, dir_ba)
+    penetration_ab, vertex_id_a, edge_id_b = get_candidate_support(b, a, pos_ab, dir_ab)
 
-    contact = get_contact(a, b, pos_ba, axes_ba)
+    contact = get_contact(a, b, pos_ba, dir_ba)
 
     if penetration_ba <= penetration_ab
         penetration = penetration_ba
         normal = get_normals(a)[edge_id_a]
-        tangent = rotate_minus_90(normal)
-        axes = Axes(tangent, normal)
-        return Manifold(penetration, axes, contact)
+        return Manifold(penetration, normal, contact)
     else
         penetration = penetration_ab
-        normal = get_normals(b, axes_ba)[edge_id_b]
-        tangent = rotate_minus_90(normal)
-        axes = Axes(tangent, normal)
-        return Manifold(penetration, axes, contact)
+        normal = get_normals(b, dir_ba)[edge_id_b]
+        return Manifold(penetration, normal, contact)
     end
 end
