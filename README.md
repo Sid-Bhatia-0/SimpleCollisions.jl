@@ -27,20 +27,13 @@ This package does not provide a generalized game loop. In order to understand wh
 
 ## Position and Orientation
 
-A position on the 2D coordinate plane (with respect to the world origin) is represented using an instance of `StaticArrays.SVector{2, T}`. An orientation on the 2D coordinate plane (with respect to the world coordinate axes) can be represented compactly by a single scalar denoting the counterclockwise angle `theta` (in radians) with respect to the world x-axes. Equivalently, a 2D unit vector `StaticArrays.SVector(cos(theta), sin(theta))` could also be used to represent a direction. Finally, one could also store the 2D [rotation matrix](https://en.wikipedia.org/wiki/Rotation_matrix) corresponding to the angle `theta`. This package uses the rotation matrix to represent orientation. We store the two orthogonal unit vectors of the rotation matrix inside the `Axes` struct:
+A position on the 2D coordinate plane (with respect to the world origin) is represented using an instance of `StaticArrays.SVector{2, T}`. An orientation on the 2D coordinate plane (with respect to the world coordinate axes) can be represented compactly by a single scalar denoting the counterclockwise angle `theta` (in radians) with respect to the world x-axes. Equivalently, a 2D unit vector `StaticArrays.SVector(cos(theta), sin(theta))` could also be used to represent a direction. This package uses the latter representation of orientation.
 
-```
-struct Axes{T}
-    x_cap::SA.SVector{2, T}
-    y_cap::SA.SVector{2, T}
-end
-```
-
-Computations involving orientation often require `cos(theta)` and `sin(theta)`. Overall, it is cheaper to cache `cos(theta)`s and `sin(theta)`s in the `Axes` struct than to repeatedly compute the trigonmetric functions from the angle `theta` each time.
+Computations involving orientation often require `cos(theta)` and `sin(theta)`. Overall, it is cheaper to cache `cos(theta)`s and `sin(theta)`s than to repeatedly compute the trigonmetric functions from the angle `theta` each time.
 
 ## Shapes
 
-This package provides the following shapes: `StdPoint`, `StdLine`, `StdCircle`, and `StdRect`. The prefix `Std` stands for standard. Here, a standard shape refers to a shape whose geometric center is placed at the world origin and whose orientation is aligned with the world coordinate axes (determined by some form of symmetry). We use `Std` shapes to decouple the shape of a body from its position and orientation with respect to the world frame of reference. A `Std` shape can be passed along with a position and (optionally) an axes to represent a body of that shape at an arbitrary location and orientation with respect to the world frame of reference.
+This package provides the following shapes: `StdPoint`, `StdLine`, `StdCircle`, and `StdRect`. The prefix `Std` stands for standard. Here, a standard shape refers to a shape whose geometric center is placed at the world origin and whose orientation (as determined by some form of symmetry) is aligned with the positive world x-axis. We use `Std` shapes to decouple the shape of a body from its position and orientation with respect to the world frame of reference. A `Std` shape can be passed along with a position and (optionally) an orientation to represent a body of that shape at an arbitrary location and orientation with respect to the world frame of reference.
 
 ### StdPoint
 
@@ -85,7 +78,7 @@ struct StdRect{T} <: AbstractStdShape{T}
 end
 ```
 
-`StdRect` is a rectangle centered at the origin with its edges parallel to the world coordinate axes. It requires two fields - a `half_width` and a `half_height`.
+`StdRect` is a rectangle centered at the origin with its edges parallel to the world coordinate axes (width edges parallel to world x-axis and height edges parallel to world y-axis). It requires two fields - a `half_width` and a `half_height`.
 
 <img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdRect.svg" width="360px">
 
@@ -93,9 +86,9 @@ end
 
 ### Collision Detection
 
-This package offers the `is_colliding` function to detect collisions between pairs of bodies with `Std` shapes at arbitrary relative positions and orientations. If both the bodies are axes aligned (for example, collision detection between two axes-aligned bounding boxes), that is, the bodies are just shifted versions of `Std` shapes, or even if their axes only mutually align, then do not pass the relative axes argument to the `is_colliding` function and you will dispatch to faster method.
+This package offers the `is_colliding` function to detect collisions between pairs of bodies with `Std` shapes at arbitrary relative positions and orientations. If the orientation of both the bodies are aligned with world x-axis (for example, collision detection between two axes-aligned bounding boxes), that is, the bodies are just shifted versions of `Std` shapes, or even if their orientations only mutually align, then do not pass the relative orientation argument to the `is_colliding` function and you will dispatch to faster method.
 
-The position and axes arguments (whenever present) in the `is_colliding` method definitinos refer to the relative position and orientation of the second body (second argument) in the frame of reference of the first body (first argument). The decoupling of the shapes of the bodies shapes from their positions and orientations allows us to exploit symmetry and speed up the computation for collision detection and manifold generation for certain common use cases (for example, in the case of collision of two axes-aligned bounding boxes, where you would not pass the relative axes argument to `is_colliding` function). We use relative positions and orientations instead of absolute ones in order to make the geometry calculations easier to understand. I don't think frame of reference conversions required for this have any significant computational overhead. Calculating relative positions is just subtracting two vectors, and calculating relative orientation is pretty cheap too because we already cache `sin(theta)` and `cos(theta)` in the axes objects.
+The position and orientation arguments (whenever present) in the `is_colliding` method definitinos refer to the relative position and orientation of the second body (second argument) in the frame of reference of the first body (first argument). The decoupling of the shapes of the bodies shapes from their positions and orientations allows us to exploit symmetry and speed up the computation for collision detection and manifold generation for certain common use cases (for example, in the case of collision of two axes-aligned bounding boxes, where you would not pass the relative orientation argument to `is_colliding` function). We use relative positions and orientations instead of absolute ones in order to make the geometry calculations easier to understand. I don't think frame of reference conversions required for this have any significant computational overhead. Calculating relative positions is just subtracting two vectors, and calculating relative orientation is pretty cheap too because we already cache `sin(theta)` and `cos(theta)` in the unit vectors.
 
 ### Collision Manifold
 
@@ -104,12 +97,12 @@ A collision manifold contains information about how to resolve a collision once 
 ```
 struct Manifold{T}
     penetration::T
-    axes::Axes{T}
+    normal::SA.SVector{2, T}
     contact::SA.SVector{2, T}
 end
 ```
 
-Here the `axes` field contains the collision tangent and normal. The `x_cap` field of this `axes` corresponds to the collision tangent and the `y_cap` field corresponds to the collision normal. A `Manifold` object is calculated with respect to the frame of reference of the first body (first argument). **It is important to note that manifold generation for a collision assumes (wherever needed) that the two objects are indeed colliding.**
+Here the `normal` field corresponds to the collision normal. A `Manifold` object is calculated with respect to the frame of reference of the first body (first argument). **It is important to note that manifold generation for a collision assumes (wherever needed) that the two objects are indeed colliding.**
 
 ## Physics
 
