@@ -104,8 +104,8 @@ function Manifold(a::StdRect{T}, b::StdRect{T}, pos_ba::Vector2D{T}) where {T}
     y_contact = get_y(contact)
 
     half_widths_intersection = (top_right - bottom_left) / 2
-    half_width_intersection = half_widths_intersection[1]
-    half_height_intersection = half_widths_intersection[2]
+    half_width_intersection = half_widths_intersection.x
+    half_height_intersection = half_widths_intersection.y
 
     penetration, edge_id = findmin((half_height_a + y_contact + half_height_intersection,
                                     half_width_a - x_contact + half_width_intersection,
@@ -133,11 +133,11 @@ function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::Vector2D{T},
         v1 = initial_vertices[i]
         v2 = initial_vertices[i + 1]
 
-        x1 = v1[1]
-        y1 = v1[2]
+        x1 = v1.x
+        y1 = v1.y
 
-        x2 = v2[1]
-        y2 = v2[2]
+        x2 = v2.x
+        y2 = v2.y
 
         # in-in
         if (y1 >= -half_height_a) && (y2 >= -half_height_a)
@@ -171,11 +171,11 @@ function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::Vector2D{T},
         v1 = initial_vertices[i]
         v2 = initial_vertices[i + 1]
 
-        x1 = v1[1]
-        y1 = v1[2]
+        x1 = v1.x
+        y1 = v1.y
 
-        x2 = v2[1]
-        y2 = v2[2]
+        x2 = v2.x
+        y2 = v2.y
 
         # in-in
         if (x1 <= half_width_a) && (x2 <= half_width_a)
@@ -209,11 +209,11 @@ function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::Vector2D{T},
         v1 = initial_vertices[i]
         v2 = initial_vertices[i + 1]
 
-        x1 = v1[1]
-        y1 = v1[2]
+        x1 = v1.x
+        y1 = v1.y
 
-        x2 = v2[1]
-        y2 = v2[2]
+        x2 = v2.x
+        y2 = v2.y
 
         # in-in
         if (y1 <= half_height_a) && (y2 <= half_height_a)
@@ -247,11 +247,11 @@ function get_clipped_vertices(a::StdRect{T}, b::StdRect{T}, pos_ba::Vector2D{T},
         v1 = initial_vertices[i]
         v2 = initial_vertices[i + 1]
 
-        x1 = v1[1]
-        y1 = v1[2]
+        x1 = v1.x
+        y1 = v1.y
 
-        x2 = v2[1]
-        y2 = v2[2]
+        x2 = v2.x
+        y2 = v2.y
 
         # in-in
         if (x1 >= -half_width_a) && (x2 >= -half_width_a)
@@ -293,11 +293,11 @@ function get_centroid(vertices::Vararg{Vector2D{T}}) where {T}
         v_i = augmented_vertices[i]
         v_i_plus_1 = augmented_vertices[i + 1]
 
-        x_i = v_i[1]
-        y_i = v_i[2]
+        x_i = v_i.x
+        y_i = v_i.y
 
-        x_i_plus_1 = v_i_plus_1[1]
-        y_i_plus_1 = v_i_plus_1[2]
+        x_i_plus_1 = v_i_plus_1.x
+        y_i_plus_1 = v_i_plus_1.y
 
         cross = x_i * y_i_plus_1 - x_i_plus_1 * y_i
         c_x_num += (x_i + x_i_plus_1) * cross
@@ -329,16 +329,16 @@ function get_candidate_support(a::StdRect{T}, b::StdRect{T}, pos_ba::Vector2D{T}
 
     vertices_ba = get_vertices(b, pos_ba, dir_ba)
 
-    value_1, _, vertex_id_1 = findmax(vertex -> vertex[2], vertices_ba)
+    value_1, _, vertex_id_1 = findmax(vertex -> vertex.y, vertices_ba)
     max_penetration_1 = half_height_a + value_1
 
-    value_2, _, vertex_id_2 = findmin(vertex -> vertex[1], vertices_ba)
+    value_2, _, vertex_id_2 = findmin(vertex -> vertex.x, vertices_ba)
     max_penetration_2 = half_width_a - value_2
 
-    value_3, _, vertex_id_3 = findmin(vertex -> vertex[2], vertices_ba)
+    value_3, _, vertex_id_3 = findmin(vertex -> vertex.y, vertices_ba)
     max_penetration_3 = half_height_a - value_3
 
-    value_4, _, vertex_id_4 = findmax(vertex -> vertex[1], vertices_ba)
+    value_4, _, vertex_id_4 = findmax(vertex -> vertex.x, vertices_ba)
     max_penetration_4 = half_width_a + value_4
 
     penetration, (_, vertex_id), edge_id = findmin(x -> x[1], ((max_penetration_1, vertex_id_1),

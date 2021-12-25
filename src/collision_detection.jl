@@ -19,11 +19,11 @@ function is_colliding(l1::StdLine{T}, l2::StdLine{T}, pos::Vector2D{T}, dir::Vec
 
     tail_l2, head_l2 = get_vertices(l2, pos, dir)
 
-    x1 = tail_l2[1]
-    y1 = tail_l2[2]
+    x1 = tail_l2.x
+    y1 = tail_l2.y
 
-    x2 = head_l2[1]
-    y2 = head_l2[2]
+    x2 = head_l2.x
+    y2 = head_l2.y
 
     t = y1 / (y1 - y2)
 
@@ -135,8 +135,8 @@ function separating_axis_exists(rect::StdRect{T}, line::StdLine{T}, pos::Vector2
 
     tail, head = get_vertices(line, pos, dir)
 
-    min_x, max_x = minmax(tail[1], head[1])
-    min_y, max_y = minmax(tail[2], head[2])
+    min_x, max_x = minmax(tail.x, head.x)
+    min_y, max_y = minmax(tail.y, head.y)
 
     return (max_x <= -half_width) || (min_x >= half_width) || (max_y <= -half_height) || (min_y >= half_height)
 end
@@ -146,8 +146,8 @@ function separating_axis_exists(line::StdLine{T}, rect::StdRect{T}, pos::Vector2
 
     bottom_left, bottom_right, top_right, top_left = get_vertices(rect, pos, dir)
 
-    min_x, max_x = extrema((bottom_left[1], bottom_right[1], top_right[1], top_left[1]))
-    min_y, max_y = extrema((bottom_left[2], bottom_right[2], top_right[2], top_left[2]))
+    min_x, max_x = extrema((bottom_left.x, bottom_right.x, top_right.x, top_left.x))
+    min_y, max_y = extrema((bottom_left.y, bottom_right.y, top_right.y, top_left.y))
 
     return (max_x <= -half_length) || (min_x >= half_length) || (max_y <= zero(T)) || (min_y >= zero(T))
 end
@@ -198,8 +198,8 @@ function separating_axis_exists(r1::StdRect{T}, r2::StdRect{T}, pos::Vector2D{T}
 
     bottom_left_r2, bottom_right_r2, top_right_r2, top_left_r2 = get_vertices(r2, pos, dir)
 
-    min_x_r2, max_x_r2 = extrema((bottom_left_r2[1], bottom_right_r2[1], top_right_r2[1], top_left_r2[1]))
-    min_y_r2, max_y_r2 = extrema((bottom_left_r2[2], bottom_right_r2[2], top_right_r2[2], top_left_r2[2]))
+    min_x_r2, max_x_r2 = extrema((bottom_left_r2.x, bottom_right_r2.x, top_right_r2.x, top_left_r2.x))
+    min_y_r2, max_y_r2 = extrema((bottom_left_r2.y, bottom_right_r2.y, top_right_r2.y, top_left_r2.y))
 
     return ((half_width_r1 <= min_x_r2) || (max_x_r2 <= -half_width_r1) || (half_height_r1 <= min_y_r2) || (max_y_r2 <= -half_height_r1))
 end
