@@ -16,7 +16,6 @@ In order to cite this package, please refer to the file `CITATION.bib`. Starring
     1. [Collision Detection](#collision-detection)
     1. [Collision Manifold](#collision-manifold)
 1. [Physics](#physics)
-    1. [AbstractBody](#abstractbody)
     1. [Impulse](#impulse)
 
 ## What This Package Is NOT About
@@ -106,13 +105,7 @@ Here the `normal` field corresponds to the collision normal. A `Manifold` object
 
 ## Physics
 
-### AbstractBody
-
 This package does not provide a concrete type representing a generalized rigid body. Some rigid bodies may be static (may not require any mass or velocity related fields), some may be kinetic (may not require mass related fields), some may be dynamic (may require a lot of fields), some may not rotate at all (may not require any orientation related fields), some may be frictionless (may not require static or kinematic friction coefficients) etc... Basically, there is a lot of variety out there, and trying to make an optimized decision upfront is very difficult, if not impossible. Storing all such potential fields into one rigid body struct would often lead to wasteful memory and computations.
-
-So, this package only provides an abstract type `AbstractBody{T}` with some simple methods (mostly getters and setters). There is no concrete type as of now, because of the vast variety possible as mentioned before. For now, this abstract type is primarily meant for illustrative purposes. You can still use it if you find it useful, or and you can choose to ignore it completely and define structs and methods in a way that makes more sense for your use case.
-
-### Impulse
 
 This package provides the following functions to calculate the linear impulse of two colliding rigid bodies:
 1. `get_normal_impulse`: calcuates the normal impulse for a collisions
