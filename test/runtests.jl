@@ -1,9 +1,6 @@
-import PhysicsPrimitives2D
+import LinearAlgebra as LA
 import PhysicsPrimitives2D as PP2D
-import StaticArrays
-const SA = StaticArrays
-import LinearAlgebra
-const LA = LinearAlgebra
+import StaticArrays as SA
 import Test
 
 function test_collision_list_no_dir(collision_list_no_dir)
