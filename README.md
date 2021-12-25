@@ -26,7 +26,7 @@ This package does not provide a generalized game loop. In order to understand wh
 
 ## Position and Orientation
 
-A position on the 2D coordinate plane (with respect to the world origin) is represented using an instance of `StaticArrays.SVector{2, T}`. An orientation on the 2D coordinate plane (with respect to the world coordinate axes) can be represented compactly by a single scalar denoting the counterclockwise angle `theta` (in radians) with respect to the world x-axes. Equivalently, a 2D unit vector `StaticArrays.SVector(cos(theta), sin(theta))` could also be used to represent a direction. This package uses the latter representation of orientation.
+A position on the 2D coordinate plane (with respect to the world origin) is represented using an instance of `SC.Vector2D{T}`. An orientation on the 2D coordinate plane (with respect to the world coordinate axes) can be represented compactly by a single scalar denoting the counterclockwise angle `theta` (in radians) with respect to the world x-axes. Equivalently, a 2D unit vector `SC.Vector2D(cos(theta), sin(theta))` could also be used to represent a direction. This package uses the latter representation of orientation.
 
 Computations involving orientation often require `cos(theta)` and `sin(theta)`. Overall, it is cheaper to cache `cos(theta)`s and `sin(theta)`s than to repeatedly compute the trigonmetric functions from the angle `theta` each time.
 
@@ -96,8 +96,8 @@ A collision manifold contains information about how to resolve a collision once 
 ```
 struct Manifold{T}
     penetration::T
-    normal::SA.SVector{2, T}
-    contact::SA.SVector{2, T}
+    normal::Vector2D{T}
+    contact::Vector2D{T}
 end
 ```
 
