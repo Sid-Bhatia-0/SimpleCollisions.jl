@@ -34,6 +34,8 @@ end
 ##### linear algebra
 #####
 
+LA.dot(vector1::Vector2D, vector2::Vector2D) = LA.dot(SA.SVector(vector1.x, vector1.y), SA.SVector(vector2.x, vector2.y))
+
 LA.norm(vector::Vector2D) = LA.norm(SA.SVector(vector.x, vector.y))
 
 function LA.normalize(vector::Vector2D)
