@@ -1,5 +1,5 @@
 import PhysicsPrimitives2D
-import PhysicsPrimitives2D: PP2D
+import PhysicsPrimitives2D as PP2D
 import StaticArrays
 const SA = StaticArrays
 import LinearAlgebra

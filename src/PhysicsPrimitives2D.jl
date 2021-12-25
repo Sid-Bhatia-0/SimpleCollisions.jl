@@ -1,8 +1,5 @@
 module PhysicsPrimitives2D
 
-export PP2D
-const PP2D = PhysicsPrimitives2D
-
 import StaticArrays
 const SA = StaticArrays
 import LinearAlgebra
