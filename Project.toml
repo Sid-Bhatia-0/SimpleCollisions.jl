@@ -1,4 +1,4 @@
-name = "PhysicsPrimitives2D"
+name = "SimpleCollisions"
 uuid = "d729ae0c-1800-48d6-acb4-45c0ca3cb041"
 authors = ["Sid-Bhatia-0 <sidb60200@gmail.com> and contributors"]
 version = "0.0.1"

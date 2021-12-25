@@ -1,4 +1,4 @@
-module PhysicsPrimitives2D
+module SimpleCollisions
 
 import LinearAlgebra as LA
 import StaticArrays as SA
