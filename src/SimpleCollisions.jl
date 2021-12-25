@@ -1,12 +1,7 @@
-module PhysicsPrimitives2D
+module SimpleCollisions
 
-export PP2D
-const PP2D = PhysicsPrimitives2D
-
-import StaticArrays
-const SA = StaticArrays
-import LinearAlgebra
-const LA = LinearAlgebra
+import LinearAlgebra as LA
+import StaticArrays as SA
 
 include("utils.jl")
 include("position_and_orientation.jl")

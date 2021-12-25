@@ -1,4 +1,4 @@
-# PhysicsPrimitives2D
+# SimpleCollisions
 
 This package provides **fast** and **lightweight** "primitives" for 2D physics. Roughly speaking, it offers a collection of methods and structs needed to detect and resolve collisions between simple 2D shapes like circles and rectangles, along with some basic methods to calculate impulses when two rigid bodies collide with each other. The priority is high performance for the simple cases instead of adding sophisticated feature.
 
@@ -42,7 +42,7 @@ struct StdPoint{T} <: AbstractStdShape{T} end
 
 `StdPoint` is a point placed at the origin. It doesn't require any fields.
 
-<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdPoint.svg" width="360px">
+<img src="https://github.com/Sid-Bhatia-0/SimpleCollisions.jl/raw/master/docs/assets/img/StdPoint.svg" width="360px">
 
 ### StdLine
 
@@ -54,7 +54,7 @@ end
 
 `StdLine` is a line segment centered at the origin and aligned with the world x-axes. It requires only one field - a `half_length`.
 
-<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdLine.svg" width="360px">
+<img src="https://github.com/Sid-Bhatia-0/SimpleCollisions.jl/raw/master/docs/assets/img/StdLine.svg" width="360px">
 
 ### StdCircle
 
@@ -66,7 +66,7 @@ end
 
 `StdCirle` is a circle centered at the origin. It requires only one field - a `radius`.
 
-<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdCircle.svg" width="360px">
+<img src="https://github.com/Sid-Bhatia-0/SimpleCollisions.jl/raw/master/docs/assets/img/StdCircle.svg" width="360px">
 
 ### StdRect
 
@@ -79,7 +79,7 @@ end
 
 `StdRect` is a rectangle centered at the origin with its edges parallel to the world coordinate axes (width edges parallel to world x-axis and height edges parallel to world y-axis). It requires two fields - a `half_width` and a `half_height`.
 
-<img src="https://github.com/Sid-Bhatia-0/PhysicsPrimitives2D.jl/raw/master/docs/assets/img/StdRect.svg" width="360px">
+<img src="https://github.com/Sid-Bhatia-0/SimpleCollisions.jl/raw/master/docs/assets/img/StdRect.svg" width="360px">
 
 ## Collisions
 
