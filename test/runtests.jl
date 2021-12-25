@@ -354,8 +354,8 @@ Test.@testset "SimpleCollisions.jl" begin
             (r1, point, (half_height_r1 - d) * j_cap, std_dir, true),
             (r1, point, (half_height_r1 + d) * j_cap, std_dir, false),
 
-            (r1, point, top_right_r1 .+ d, std_dir, false),
-            (r1, point, top_right_r1 .- d, std_dir, true),
+            (r1, point, top_right_r1 + d, std_dir, false),
+            (r1, point, top_right_r1 - d, std_dir, true),
 
             # reverse check with std_dir
             (point, r1, origin, std_dir, true),
@@ -370,8 +370,8 @@ Test.@testset "SimpleCollisions.jl" begin
             (point, r1, (half_height_r1 - d) * j_cap, std_dir, true),
             (point, r1, (half_height_r1 + d) * j_cap, std_dir, false),
 
-            (point, r1, top_right_r1 .+ d, std_dir, false),
-            (point, r1, top_right_r1 .- d, std_dir, true),
+            (point, r1, top_right_r1 + d, std_dir, false),
+            (point, r1, top_right_r1 - d, std_dir, true),
 
             # reverse check with rotated_dir
             (point, r1, origin, rotated_dir, true),
@@ -403,8 +403,8 @@ Test.@testset "SimpleCollisions.jl" begin
             (r1, point, (half_height_r1 - d) * j_cap, true),
             (r1, point, (half_height_r1 + d) * j_cap, false),
 
-            (r1, point, top_right_r1 .+ d, false),
-            (r1, point, top_right_r1 .- d, true),
+            (r1, point, top_right_r1 + d, false),
+            (r1, point, top_right_r1 - d, true),
 
             # reverse check with std_dir
             (point, r1, origin, true),
@@ -419,8 +419,8 @@ Test.@testset "SimpleCollisions.jl" begin
             (point, r1, (half_height_r1 - d) * j_cap, true),
             (point, r1, (half_height_r1 + d) * j_cap, false),
 
-            (point, r1, top_right_r1 .+ d, false),
-            (point, r1, top_right_r1 .- d, true),
+            (point, r1, top_right_r1 + d, false),
+            (point, r1, top_right_r1 - d, true),
             ]
 
             test_collision_list_no_dir(collision_list_no_dir)
@@ -622,8 +622,8 @@ Test.@testset "SimpleCollisions.jl" begin
             (r2, r1, (half_height_r1 + half_height_r2 - d) * j_cap, std_dir, true),
             (r2, r1, (half_height_r1 + half_height_r2 + d) * j_cap, std_dir, false),
 
-            (r2, r1, top_right_r1 + top_right_r2 .+ d, std_dir, false),
-            (r2, r1, top_right_r1 + top_right_r2 .- d, std_dir, true),
+            (r2, r1, top_right_r1 + top_right_r2 + d, std_dir, false),
+            (r2, r1, top_right_r1 + top_right_r2 - d, std_dir, true),
 
             # rotated_dir
             (r2, r1, origin, rotated_dir, true),
@@ -655,8 +655,8 @@ Test.@testset "SimpleCollisions.jl" begin
             (r2, r1, (half_height_r1 + half_height_r2 - d) * j_cap, true),
             (r2, r1, (half_height_r1 + half_height_r2 + d) * j_cap, false),
 
-            (r2, r1, top_right_r1 + top_right_r2 .+ d, false),
-            (r2, r1, top_right_r1 + top_right_r2 .- d, true),
+            (r2, r1, top_right_r1 + top_right_r2 + d, false),
+            (r2, r1, top_right_r1 + top_right_r2 - d, true),
             ]
 
             test_collision_list_no_dir(collision_list_no_dir)
@@ -784,9 +784,9 @@ Test.@testset "SimpleCollisions.jl" begin
             (r2, r1, (half_width_r2 + d) * i_cap, SC.Manifold(half_width_r1 - d, i_cap, (half_width_r2 - (half_width_r1 - d)/2) * i_cap)),
             (r2, r1, (half_width_r2 + half_width_r1 - d) * i_cap, SC.Manifold(d, i_cap, (half_width_r2 - d/2) * i_cap)),
 
-            (r2, r1, top_right_r2 .- d, SC.Manifold(half_height_r1 + d, j_cap, top_right_r2 + (half_width_r1 + d)/2 * -i_cap + (half_height_r1 + d)/2 * -j_cap)),
+            (r2, r1, top_right_r2 - d, SC.Manifold(half_height_r1 + d, j_cap, top_right_r2 + (half_width_r1 + d)/2 * -i_cap + (half_height_r1 + d)/2 * -j_cap)),
             (r2, r1, top_right_r2, SC.Manifold(half_height_r1, j_cap, top_right_r2 + (half_width_r1/2) * -i_cap + (half_height_r1/2) * -j_cap)),
-            (r2, r1, top_right_r2 .+ d, SC.Manifold(half_height_r1 - d, j_cap, top_right_r2 + (half_width_r1 - d)/2 * -i_cap + (half_height_r1 - d)/2 * -j_cap)),
+            (r2, r1, top_right_r2 + d, SC.Manifold(half_height_r1 - d, j_cap, top_right_r2 + (half_width_r1 - d)/2 * -i_cap + (half_height_r1 - d)/2 * -j_cap)),
             ]
 
             test_manifold_list_no_dir(manifold_list_no_dir)
@@ -809,9 +809,9 @@ Test.@testset "SimpleCollisions.jl" begin
             (r2, r1, (half_width_r2 + d) * i_cap, std_dir, SC.Manifold(half_width_r1 - d, i_cap, (half_width_r2 - (half_width_r1 - d)/2) * i_cap)),
             (r2, r1, (half_width_r2 + half_width_r1 - d) * i_cap, std_dir, SC.Manifold(d, i_cap, (half_width_r2 - d/2) * i_cap)),
 
-            (r2, r1, top_right_r2 .- d, std_dir, SC.Manifold(half_height_r1 + d, j_cap, top_right_r2 + (half_width_r1 + d)/2 * -i_cap + (half_height_r1 + d)/2 * -j_cap)),
+            (r2, r1, top_right_r2 - d, std_dir, SC.Manifold(half_height_r1 + d, j_cap, top_right_r2 + (half_width_r1 + d)/2 * -i_cap + (half_height_r1 + d)/2 * -j_cap)),
             (r2, r1, top_right_r2, std_dir, SC.Manifold(half_height_r1, j_cap, top_right_r2 + (half_width_r1/2) * -i_cap + (half_height_r1/2) * -j_cap)),
-            (r2, r1, top_right_r2 .+ d, std_dir, SC.Manifold(half_height_r1 - d, j_cap, top_right_r2 + (half_width_r1 - d)/2 * -i_cap + (half_height_r1 - d)/2 * -j_cap)),
+            (r2, r1, top_right_r2 + d, std_dir, SC.Manifold(half_height_r1 - d, j_cap, top_right_r2 + (half_width_r1 - d)/2 * -i_cap + (half_height_r1 - d)/2 * -j_cap)),
 
             # rotated_dir
             (r2, r1, (half_height_r2 - d) * -j_cap - SC.rotate(top_right_r1, rotated_dir), rotated_dir, SC.Manifold(d, -j_cap, ((zero(T) - d / tan(theta) + d * tan(theta)) / 3) * i_cap + ((-half_height_r2 + d - half_height_r2 - half_height_r2) / 3) * j_cap)),
