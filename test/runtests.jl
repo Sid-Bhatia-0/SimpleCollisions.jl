@@ -35,17 +35,17 @@ end
 
 Test.@testset "SimpleCollisions.jl" begin
     T = Float32
-    VecType = SA.SVector{2, T}
+    VecType = SC.Vector2D{T}
 
     origin = zero(VecType)
     d = convert(T, 0.01)
 
-    std_dir = SA.SVector(one(T), zero(T))
-    i_cap = SA.SVector(one(T), zero(T))
-    j_cap = SA.SVector(zero(T), one(T))
+    std_dir = SC.Vector2D(one(T), zero(T))
+    i_cap = SC.Vector2D(one(T), zero(T))
+    j_cap = SC.Vector2D(zero(T), one(T))
 
     theta = convert(T, π / 6)
-    rotated_dir = SA.SVector(cos(theta), sin(theta))
+    rotated_dir = SC.Vector2D(cos(theta), sin(theta))
     theta_45 = convert(T, π / 4)
     unit_45 = (i_cap + j_cap) / convert(T, sqrt(2))
 
