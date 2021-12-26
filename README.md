@@ -96,8 +96,8 @@ A collision manifold contains information about how to resolve a collision once 
 ```
 struct Manifold{T}
     penetration::T
-    normal::SA.SVector{2, T}
-    contact::SA.SVector{2, T}
+    normal::Vector2D{T}
+    contact::Vector2D{T}
 end
 ```
 
