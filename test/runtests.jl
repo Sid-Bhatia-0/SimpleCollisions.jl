@@ -3,18 +3,6 @@ import SimpleCollisions as SC
 import StaticArrays as SA
 import Test
 
-function test_collision_list_no_dir(collision_list_no_dir)
-    for (a, b, pos_ba, value) in collision_list_no_dir
-        Test.@test SC.is_colliding(a, b, pos_ba) == value
-    end
-end
-
-function test_collision_list(collision_list)
-    for (a, b, pos_ba, dir_ba, value) in collision_list
-        Test.@test SC.is_colliding(a, b, pos_ba, dir_ba) == value
-    end
-end
-
 function test_manifold_list_no_dir(manifold_list_no_dir)
     for (i, (a, b, pos_ba, value)) in enumerate(manifold_list_no_dir)
         manifold_ba = SC.Manifold(a, b, pos_ba)
@@ -91,574 +79,513 @@ Test.@testset "SimpleCollisions.jl" begin
 
     Test.@testset "Collision detection" begin
         Test.@testset "StdLine vs. StdLine" begin
-            collision_list_no_dir = [
-            # std_dir
-            (l1, l2, origin, true),
+            Test.@testset "no dir" begin
+                Test.@test SC.is_colliding(l1, l2, origin) == true
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 + half_length_l2 + d) * -i_cap) == false
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 + half_length_l2 - d) * -i_cap) == true
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 + half_length_l2 - d) * i_cap) == true
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 + half_length_l2 + d) * i_cap) == false
+                Test.@test SC.is_colliding(l1, l2, d * -j_cap) == false
+                Test.@test SC.is_colliding(l1, l2, d * j_cap) == false
+            end
 
-            (l1, l2, (half_length_l1 + half_length_l2 + d) * -i_cap, false),
-            (l1, l2, (half_length_l1 + half_length_l2 - d) * -i_cap, true),
-            (l1, l2, (half_length_l1 + half_length_l2 - d) * i_cap, true),
-            (l1, l2, (half_length_l1 + half_length_l2 + d) * i_cap, false),
+            Test.@testset "std_dir" begin
+                Test.@test SC.is_colliding(l1, l2, origin, std_dir) == true
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 + half_length_l2 + d) * -i_cap, std_dir) == false
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 + half_length_l2 - d) * -i_cap, std_dir) == true
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 + half_length_l2 - d) * i_cap, std_dir) == true
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 + half_length_l2 + d) * i_cap, std_dir) == false
+                Test.@test SC.is_colliding(l1, l2, d * -j_cap, std_dir) == false
+                Test.@test SC.is_colliding(l1, l2, d * j_cap, std_dir) == false
+            end
 
-            (l1, l2, d * -j_cap, false),
-            (l1, l2, d * j_cap, false),
-            ]
-
-            test_collision_list_no_dir(collision_list_no_dir)
-
-            collision_list = [
-            # std_dir
-            (l1, l2, origin, std_dir, true),
-
-            (l1, l2, (half_length_l1 + half_length_l2 + d) * -i_cap, std_dir, false),
-            (l1, l2, (half_length_l1 + half_length_l2 - d) * -i_cap, std_dir, true),
-            (l1, l2, (half_length_l1 + half_length_l2 - d) * i_cap, std_dir, true),
-            (l1, l2, (half_length_l1 + half_length_l2 + d) * i_cap, std_dir, false),
-
-            (l1, l2, d * -j_cap, std_dir, false),
-            (l1, l2, d * j_cap, std_dir, false),
-
-            # rotated_dir
-            (l1, l2, origin, rotated_dir, true),
-
-            (l1, l2, (half_length_l1 + half_length_l2 + d) * -i_cap, rotated_dir, false),
-            (l1, l2, (half_length_l1 + half_length_l2 - d) * -i_cap, rotated_dir, false),
-            (l1, l2, (half_length_l1 + d) * -i_cap, rotated_dir, false),
-            (l1, l2, (half_length_l1 - d) * -i_cap, rotated_dir, true),
-            (l1, l2, (half_length_l1 - d) * i_cap, rotated_dir, true),
-            (l1, l2, (half_length_l1 + d) * i_cap, rotated_dir, false),
-            (l1, l2, (half_length_l1 + half_length_l2 - d) * i_cap, rotated_dir, false),
-            (l1, l2, (half_length_l1 + half_length_l2 + d) * i_cap, rotated_dir, false),
-
-            (l2, l1, (half_length_l1 * sin(theta) + d) * -j_cap, rotated_dir, false),
-            (l2, l1, (half_length_l1 * sin(theta) - d) * -j_cap, rotated_dir, true),
-            (l2, l1, d * -j_cap, rotated_dir, true),
-            (l2, l1, d * j_cap, rotated_dir, true),
-            (l2, l1, (half_length_l1 * sin(theta) - d) * j_cap, rotated_dir, true),
-            (l2, l1, (half_length_l1 * sin(theta) + d) * j_cap, rotated_dir, false),
-            ]
-
-            test_collision_list(collision_list)
-
+            Test.@testset "rotated_dir" begin
+                Test.@test SC.is_colliding(l1, l2, origin, rotated_dir) == true
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 + half_length_l2 + d) * -i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 + half_length_l2 - d) * -i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 + d) * -i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 - d) * -i_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 - d) * i_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 + d) * i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 + half_length_l2 - d) * i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(l1, l2, (half_length_l1 + half_length_l2 + d) * i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(l2, l1, (half_length_l1 * sin(theta) + d) * -j_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(l2, l1, (half_length_l1 * sin(theta) - d) * -j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(l2, l1, d * -j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(l2, l1, d * j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(l2, l1, (half_length_l1 * sin(theta) - d) * j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(l2, l1, (half_length_l1 * sin(theta) + d) * j_cap, rotated_dir) == false
+            end
         end
 
         Test.@testset "StdCircle vs. StdPoint" begin
-            collision_list = [
-            # std_dir
-            (c1, point, origin, std_dir, true),
+            Test.@testset "std_dir" begin
+                Test.@test SC.is_colliding(c1, point, origin, std_dir) == true
+                Test.@test SC.is_colliding(c1, point, (r_c1 + d) * -i_cap, std_dir) == false
+                Test.@test SC.is_colliding(c1, point, (r_c1 - d) * -i_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, point, (r_c1 - d) * i_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, point, (r_c1 + d) * i_cap, std_dir) == false
+                Test.@test SC.is_colliding(c1, point, (r_c1 + d) * -j_cap, std_dir) == false
+                Test.@test SC.is_colliding(c1, point, (r_c1 - d) * -j_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, point, (r_c1 - d) * j_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, point, (r_c1 + d) * j_cap, std_dir) == false
+                Test.@test SC.is_colliding(c1, point, (r_c1 + d) * unit_45, std_dir) == false
+                Test.@test SC.is_colliding(c1, point, (r_c1 - d) * unit_45, std_dir) == true
+            end
 
-            (c1, point, (r_c1 + d) * -i_cap, std_dir, false),
-            (c1, point, (r_c1 - d) * -i_cap, std_dir, true),
-            (c1, point, (r_c1 - d) * i_cap, std_dir, true),
-            (c1, point, (r_c1 + d) * i_cap, std_dir, false),
+            Test.@testset "reverse check with std_dir" begin
+                Test.@test SC.is_colliding(point, c1, origin, std_dir) == true
+                Test.@test SC.is_colliding(point, c1, (r_c1 + d) * -i_cap, std_dir) == false
+                Test.@test SC.is_colliding(point, c1, (r_c1 - d) * -i_cap, std_dir) == true
+                Test.@test SC.is_colliding(point, c1, (r_c1 - d) * i_cap, std_dir) == true
+                Test.@test SC.is_colliding(point, c1, (r_c1 + d) * i_cap, std_dir) == false
+                Test.@test SC.is_colliding(point, c1, (r_c1 + d) * -j_cap, std_dir) == false
+                Test.@test SC.is_colliding(point, c1, (r_c1 - d) * -j_cap, std_dir) == true
+                Test.@test SC.is_colliding(point, c1, (r_c1 - d) * j_cap, std_dir) == true
+                Test.@test SC.is_colliding(point, c1, (r_c1 + d) * j_cap, std_dir) == false
+                Test.@test SC.is_colliding(point, c1, (r_c1 + d) * unit_45, std_dir) == false
+                Test.@test SC.is_colliding(point, c1, (r_c1 - d) * unit_45, std_dir) == true
+            end
 
-            (c1, point, (r_c1 + d) * -j_cap, std_dir, false),
-            (c1, point, (r_c1 - d) * -j_cap, std_dir, true),
-            (c1, point, (r_c1 - d) * j_cap, std_dir, true),
-            (c1, point, (r_c1 + d) * j_cap, std_dir, false),
+            Test.@testset "no dir" begin
+                Test.@test SC.is_colliding(c1, point, origin) == true
+                Test.@test SC.is_colliding(c1, point, (r_c1 + d) * -i_cap) == false
+                Test.@test SC.is_colliding(c1, point, (r_c1 - d) * -i_cap) == true
+                Test.@test SC.is_colliding(c1, point, (r_c1 - d) * i_cap) == true
+                Test.@test SC.is_colliding(c1, point, (r_c1 + d) * i_cap) == false
+                Test.@test SC.is_colliding(c1, point, (r_c1 + d) * -j_cap) == false
+                Test.@test SC.is_colliding(c1, point, (r_c1 - d) * -j_cap) == true
+                Test.@test SC.is_colliding(c1, point, (r_c1 - d) * j_cap) == true
+                Test.@test SC.is_colliding(c1, point, (r_c1 + d) * j_cap) == false
+                Test.@test SC.is_colliding(c1, point, (r_c1 + d) * unit_45) == false
+                Test.@test SC.is_colliding(c1, point, (r_c1 - d) * unit_45) == true
+            end
 
-            (c1, point, (r_c1 + d) * unit_45, std_dir, false),
-            (c1, point, (r_c1 - d) * unit_45, std_dir, true),
-
-            # reverse check with std_dir
-            (point, c1, origin, std_dir, true),
-
-            (point, c1, (r_c1 + d) * -i_cap, std_dir, false),
-            (point, c1, (r_c1 - d) * -i_cap, std_dir, true),
-            (point, c1, (r_c1 - d) * i_cap, std_dir, true),
-            (point, c1, (r_c1 + d) * i_cap, std_dir, false),
-
-            (point, c1, (r_c1 + d) * -j_cap, std_dir, false),
-            (point, c1, (r_c1 - d) * -j_cap, std_dir, true),
-            (point, c1, (r_c1 - d) * j_cap, std_dir, true),
-            (point, c1, (r_c1 + d) * j_cap, std_dir, false),
-
-            (point, c1, (r_c1 + d) * unit_45, std_dir, false),
-            (point, c1, (r_c1 - d) * unit_45, std_dir, true),
-            ]
-
-            test_collision_list(collision_list)
-
-            collision_list_no_dir = [
-            # std_dir
-            (c1, point, origin, true),
-
-            (c1, point, (r_c1 + d) * -i_cap, false),
-            (c1, point, (r_c1 - d) * -i_cap, true),
-            (c1, point, (r_c1 - d) * i_cap, true),
-            (c1, point, (r_c1 + d) * i_cap, false),
-
-            (c1, point, (r_c1 + d) * -j_cap, false),
-            (c1, point, (r_c1 - d) * -j_cap, true),
-            (c1, point, (r_c1 - d) * j_cap, true),
-            (c1, point, (r_c1 + d) * j_cap, false),
-
-            (c1, point, (r_c1 + d) * unit_45, false),
-            (c1, point, (r_c1 - d) * unit_45, true),
-
-            # reverse check with std_dir
-            (point, c1, origin, true),
-
-            (point, c1, (r_c1 + d) * -i_cap, false),
-            (point, c1, (r_c1 - d) * -i_cap, true),
-            (point, c1, (r_c1 - d) * i_cap, true),
-            (point, c1, (r_c1 + d) * i_cap, false),
-
-            (point, c1, (r_c1 + d) * -j_cap, false),
-            (point, c1, (r_c1 - d) * -j_cap, true),
-            (point, c1, (r_c1 - d) * j_cap, true),
-            (point, c1, (r_c1 + d) * j_cap, false),
-
-            (point, c1, (r_c1 + d) * unit_45, false),
-            (point, c1, (r_c1 - d) * unit_45, true),
-            ]
-
-            test_collision_list_no_dir(collision_list_no_dir)
+            Test.@testset "reverse check with no dir" begin
+                Test.@test SC.is_colliding(point, c1, origin) == true
+                Test.@test SC.is_colliding(point, c1, (r_c1 + d) * -i_cap) == false
+                Test.@test SC.is_colliding(point, c1, (r_c1 - d) * -i_cap) == true
+                Test.@test SC.is_colliding(point, c1, (r_c1 - d) * i_cap) == true
+                Test.@test SC.is_colliding(point, c1, (r_c1 + d) * i_cap) == false
+                Test.@test SC.is_colliding(point, c1, (r_c1 + d) * -j_cap) == false
+                Test.@test SC.is_colliding(point, c1, (r_c1 - d) * -j_cap) == true
+                Test.@test SC.is_colliding(point, c1, (r_c1 - d) * j_cap) == true
+                Test.@test SC.is_colliding(point, c1, (r_c1 + d) * j_cap) == false
+                Test.@test SC.is_colliding(point, c1, (r_c1 + d) * unit_45) == false
+                Test.@test SC.is_colliding(point, c1, (r_c1 - d) * unit_45) == true
+            end
         end
 
         Test.@testset "StdCircle vs. StdLine" begin
-            collision_list = [
-            # std_dir
-            (l1, c2, origin, std_dir, true),
-            (l2, c1, origin, std_dir, true),
+            Test.@testset "std_dir" begin
+                Test.@test SC.is_colliding(l1, c2, origin, std_dir) == true
+                Test.@test SC.is_colliding(l2, c1, origin, std_dir) == true
+                Test.@test SC.is_colliding(l2, c1, (half_length_l2 + r_c1 + d) * -i_cap, std_dir) == false
+                Test.@test SC.is_colliding(l2, c1, (half_length_l2 + r_c1 - d) * -i_cap, std_dir) == true
+                Test.@test SC.is_colliding(l2, c1, (half_length_l2 + r_c1 - d) * i_cap, std_dir) == true
+                Test.@test SC.is_colliding(l2, c1, (half_length_l2 + r_c1 + d) * i_cap, std_dir) == false
+                Test.@test SC.is_colliding(l2, c1, (r_c1 + d) * -j_cap, std_dir) == false
+                Test.@test SC.is_colliding(l2, c1, (r_c1 - d) * -j_cap, std_dir) == true
+                Test.@test SC.is_colliding(l2, c1, (r_c1 - d) * j_cap, std_dir) == true
+                Test.@test SC.is_colliding(l2, c1, (r_c1 + d) * j_cap, std_dir) == false
+            end
 
-            (l2, c1, (half_length_l2 + r_c1 + d) * -i_cap, std_dir, false),
-            (l2, c1, (half_length_l2 + r_c1 - d) * -i_cap, std_dir, true),
-            (l2, c1, (half_length_l2 + r_c1 - d) * i_cap, std_dir, true),
-            (l2, c1, (half_length_l2 + r_c1 + d) * i_cap, std_dir, false),
+            Test.@testset "reverse check with std_dir" begin
+                Test.@test SC.is_colliding(c2, l1, origin, std_dir) == true
+                Test.@test SC.is_colliding(c1, l2, origin, std_dir) == true
+                Test.@test SC.is_colliding(c1, l2, (half_length_l2 + r_c1 + d) * -i_cap, std_dir) == false
+                Test.@test SC.is_colliding(c1, l2, (half_length_l2 + r_c1 - d) * -i_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, l2, (half_length_l2 + r_c1 - d) * i_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, l2, (half_length_l2 + r_c1 + d) * i_cap, std_dir) == false
+                Test.@test SC.is_colliding(c1, l2, (r_c1 + d) * -j_cap, std_dir) == false
+                Test.@test SC.is_colliding(c1, l2, (r_c1 - d) * -j_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, l2, (r_c1 - d) * j_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, l2, (r_c1 + d) * j_cap, std_dir) == false
+            end
 
-            (l2, c1, (r_c1 + d) * -j_cap, std_dir, false),
-            (l2, c1, (r_c1 - d) * -j_cap, std_dir, true),
-            (l2, c1, (r_c1 - d) * j_cap, std_dir, true),
-            (l2, c1, (r_c1 + d) * j_cap, std_dir, false),
+            Test.@testset "reverse check with rotated_dir" begin
+                Test.@test SC.is_colliding(c2, l1, origin, rotated_dir) == true
+                Test.@test SC.is_colliding(c1, l2, origin, rotated_dir) == true
+                Test.@test SC.is_colliding(c1, l1, (sqrt(r_c1 ^ 2 - (half_length_l1 * sin(theta)) ^ 2) + half_length_l1 * cos(theta) + d) * -i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(c1, l1, (sqrt(r_c1 ^ 2 - (half_length_l1 * sin(theta)) ^ 2) + half_length_l1 * cos(theta) - d) * -i_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(c1, l1, (sqrt(r_c1 ^ 2 - (half_length_l1 * sin(theta)) ^ 2) + half_length_l1 * cos(theta) - d) * i_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(c1, l1, (sqrt(r_c1 ^ 2 - (half_length_l1 * sin(theta)) ^ 2) + half_length_l1 * cos(theta) + d) * i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(c1, l2, (r_c1 / cos(theta) + d) * -j_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(c1, l2, (r_c1 / cos(theta) - d) * -j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(c1, l2, (r_c1 / cos(theta) - d) * j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(c1, l2, (r_c1 / cos(theta) + d) * j_cap, rotated_dir) == false
+            end
 
-            # reverse check with std_dir
-            (c2, l1, origin, std_dir, true),
-            (c1, l2, origin, std_dir, true),
+            Test.@testset "no dir" begin
+                Test.@test SC.is_colliding(l1, c2, origin) == true
+                Test.@test SC.is_colliding(l2, c1, origin) == true
+                Test.@test SC.is_colliding(l2, c1, (half_length_l2 + r_c1 + d) * -i_cap) == false
+                Test.@test SC.is_colliding(l2, c1, (half_length_l2 + r_c1 - d) * -i_cap) == true
+                Test.@test SC.is_colliding(l2, c1, (half_length_l2 + r_c1 - d) * i_cap) == true
+                Test.@test SC.is_colliding(l2, c1, (half_length_l2 + r_c1 + d) * i_cap) == false
+                Test.@test SC.is_colliding(l2, c1, (r_c1 + d) * -j_cap) == false
+                Test.@test SC.is_colliding(l2, c1, (r_c1 - d) * -j_cap) == true
+                Test.@test SC.is_colliding(l2, c1, (r_c1 - d) * j_cap) == true
+                Test.@test SC.is_colliding(l2, c1, (r_c1 + d) * j_cap) == false
+            end
 
-            (c1, l2, (half_length_l2 + r_c1 + d) * -i_cap, std_dir, false),
-            (c1, l2, (half_length_l2 + r_c1 - d) * -i_cap, std_dir, true),
-            (c1, l2, (half_length_l2 + r_c1 - d) * i_cap, std_dir, true),
-            (c1, l2, (half_length_l2 + r_c1 + d) * i_cap, std_dir, false),
-
-            (c1, l2, (r_c1 + d) * -j_cap, std_dir, false),
-            (c1, l2, (r_c1 - d) * -j_cap, std_dir, true),
-            (c1, l2, (r_c1 - d) * j_cap, std_dir, true),
-            (c1, l2, (r_c1 + d) * j_cap, std_dir, false),
-
-            # reverse check with rotated_dir
-            (c2, l1, origin, rotated_dir, true),
-            (c1, l2, origin, rotated_dir, true),
-
-            (c1, l1, (sqrt(r_c1 ^ 2 - (half_length_l1 * sin(theta)) ^ 2) + half_length_l1 * cos(theta) + d) * -i_cap, rotated_dir, false),
-            (c1, l1, (sqrt(r_c1 ^ 2 - (half_length_l1 * sin(theta)) ^ 2) + half_length_l1 * cos(theta) - d) * -i_cap, rotated_dir, true),
-            (c1, l1, (sqrt(r_c1 ^ 2 - (half_length_l1 * sin(theta)) ^ 2) + half_length_l1 * cos(theta) - d) * i_cap, rotated_dir, true),
-            (c1, l1, (sqrt(r_c1 ^ 2 - (half_length_l1 * sin(theta)) ^ 2) + half_length_l1 * cos(theta) + d) * i_cap, rotated_dir, false),
-
-            (c1, l2, (r_c1 / cos(theta) + d) * -j_cap, rotated_dir, false),
-            (c1, l2, (r_c1 / cos(theta) - d) * -j_cap, rotated_dir, true),
-            (c1, l2, (r_c1 / cos(theta) - d) * j_cap, rotated_dir, true),
-            (c1, l2, (r_c1 / cos(theta) + d) * j_cap, rotated_dir, false),
-            ]
-
-            test_collision_list(collision_list)
-
-            collision_list_no_dir = [
-            # std_dir
-            (l1, c2, origin, true),
-            (l2, c1, origin, true),
-
-            (l2, c1, (half_length_l2 + r_c1 + d) * -i_cap, false),
-            (l2, c1, (half_length_l2 + r_c1 - d) * -i_cap, true),
-            (l2, c1, (half_length_l2 + r_c1 - d) * i_cap, true),
-            (l2, c1, (half_length_l2 + r_c1 + d) * i_cap, false),
-
-            (l2, c1, (r_c1 + d) * -j_cap, false),
-            (l2, c1, (r_c1 - d) * -j_cap, true),
-            (l2, c1, (r_c1 - d) * j_cap, true),
-            (l2, c1, (r_c1 + d) * j_cap, false),
-
-            # reverse check with std_dir
-            (c2, l1, origin, true),
-            (c1, l2, origin, true),
-
-            (c1, l2, (half_length_l2 + r_c1 + d) * -i_cap, false),
-            (c1, l2, (half_length_l2 + r_c1 - d) * -i_cap, true),
-            (c1, l2, (half_length_l2 + r_c1 - d) * i_cap, true),
-            (c1, l2, (half_length_l2 + r_c1 + d) * i_cap, false),
-
-            (c1, l2, (r_c1 + d) * -j_cap, false),
-            (c1, l2, (r_c1 - d) * -j_cap, true),
-            (c1, l2, (r_c1 - d) * j_cap, true),
-            (c1, l2, (r_c1 + d) * j_cap, false),
-            ]
-
-            test_collision_list_no_dir(collision_list_no_dir)
+            Test.@testset "reverse check with no dir" begin
+                Test.@test SC.is_colliding(c2, l1, origin) == true
+                Test.@test SC.is_colliding(c1, l2, origin) == true
+                Test.@test SC.is_colliding(c1, l2, (half_length_l2 + r_c1 + d) * -i_cap) == false
+                Test.@test SC.is_colliding(c1, l2, (half_length_l2 + r_c1 - d) * -i_cap) == true
+                Test.@test SC.is_colliding(c1, l2, (half_length_l2 + r_c1 - d) * i_cap) == true
+                Test.@test SC.is_colliding(c1, l2, (half_length_l2 + r_c1 + d) * i_cap) == false
+                Test.@test SC.is_colliding(c1, l2, (r_c1 + d) * -j_cap) == false
+                Test.@test SC.is_colliding(c1, l2, (r_c1 - d) * -j_cap) == true
+                Test.@test SC.is_colliding(c1, l2, (r_c1 - d) * j_cap) == true
+                Test.@test SC.is_colliding(c1, l2, (r_c1 + d) * j_cap) == false
+            end
         end
 
         Test.@testset "StdCircle vs. StdCircle" begin
-            collision_list = [
-            # std_dir
-            (c1, c2, origin, std_dir, true),
+            Test.@testset "std_dir" begin
+                Test.@test SC.is_colliding(c1, c2, origin, std_dir) == true
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 + d) * -i_cap, std_dir) == false
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 - d) * -i_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 - d) * i_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 + d) * i_cap, std_dir) == false
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 + d) * -j_cap, std_dir) == false
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 - d) * -j_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 - d) * j_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 + d) * j_cap, std_dir) == false
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 + d) * unit_45, std_dir) == false
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 - d) * unit_45, std_dir) == true
+            end
 
-            (c1, c2, (r_c1 + r_c2 + d) * -i_cap, std_dir, false),
-            (c1, c2, (r_c1 + r_c2 - d) * -i_cap, std_dir, true),
-            (c1, c2, (r_c1 + r_c2 - d) * i_cap, std_dir, true),
-            (c1, c2, (r_c1 + r_c2 + d) * i_cap, std_dir, false),
-
-            (c1, c2, (r_c1 + r_c2 + d) * -j_cap, std_dir, false),
-            (c1, c2, (r_c1 + r_c2 - d) * -j_cap, std_dir, true),
-            (c1, c2, (r_c1 + r_c2 - d) * j_cap, std_dir, true),
-            (c1, c2, (r_c1 + r_c2 + d) * j_cap, std_dir, false),
-
-            (c1, c2, (r_c1 + r_c2 + d) * unit_45, std_dir, false),
-            (c1, c2, (r_c1 + r_c2 - d) * unit_45, std_dir, true),
-            ]
-
-            test_collision_list(collision_list)
-
-            collision_list_no_dir = [
-            # std_dir
-            (c1, c2, origin, true),
-
-            (c1, c2, (r_c1 + r_c2 + d) * -i_cap, false),
-            (c1, c2, (r_c1 + r_c2 - d) * -i_cap, true),
-            (c1, c2, (r_c1 + r_c2 - d) * i_cap, true),
-            (c1, c2, (r_c1 + r_c2 + d) * i_cap, false),
-
-            (c1, c2, (r_c1 + r_c2 + d) * -j_cap, false),
-            (c1, c2, (r_c1 + r_c2 - d) * -j_cap, true),
-            (c1, c2, (r_c1 + r_c2 - d) * j_cap, true),
-            (c1, c2, (r_c1 + r_c2 + d) * j_cap, false),
-
-            (c1, c2, (r_c1 + r_c2 + d) * unit_45, false),
-            (c1, c2, (r_c1 + r_c2 - d) * unit_45, true),
-            ]
-
-            test_collision_list_no_dir(collision_list_no_dir)
+            Test.@testset "no dir" begin
+                Test.@test SC.is_colliding(c1, c2, origin) == true
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 + d) * -i_cap) == false
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 - d) * -i_cap) == true
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 - d) * i_cap) == true
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 + d) * i_cap) == false
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 + d) * -j_cap) == false
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 - d) * -j_cap) == true
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 - d) * j_cap) == true
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 + d) * j_cap) == false
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 + d) * unit_45) == false
+                Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 - d) * unit_45) == true
+            end
         end
 
         Test.@testset "StdRect vs. StdPoint" begin
-            collision_list = [
-            # std_dir
-            (r1, point, origin, std_dir, true),
+            Test.@testset "std_dir" begin
+                Test.@test SC.is_colliding(r1, point, origin, std_dir) == true
+                Test.@test SC.is_colliding(r1, point, (half_width_r1 + d) * -i_cap, std_dir) == false
+                Test.@test SC.is_colliding(r1, point, (half_width_r1 - d) * -i_cap, std_dir) == true
+                Test.@test SC.is_colliding(r1, point, (half_width_r1 - d) * i_cap, std_dir) == true
+                Test.@test SC.is_colliding(r1, point, (half_width_r1 + d) * i_cap, std_dir) == false
+                Test.@test SC.is_colliding(r1, point, (half_height_r1 + d) * -j_cap, std_dir) == false
+                Test.@test SC.is_colliding(r1, point, (half_height_r1 - d) * -j_cap, std_dir) == true
+                Test.@test SC.is_colliding(r1, point, (half_height_r1 - d) * j_cap, std_dir) == true
+                Test.@test SC.is_colliding(r1, point, (half_height_r1 + d) * j_cap, std_dir) == false
+                Test.@test SC.is_colliding(r1, point, top_right_r1 .+ d, std_dir) == false
+                Test.@test SC.is_colliding(r1, point, top_right_r1 .- d, std_dir) == true
+            end
 
-            (r1, point, (half_width_r1 + d) * -i_cap, std_dir, false),
-            (r1, point, (half_width_r1 - d) * -i_cap, std_dir, true),
-            (r1, point, (half_width_r1 - d) * i_cap, std_dir, true),
-            (r1, point, (half_width_r1 + d) * i_cap, std_dir, false),
+            Test.@testset "reverse check with std_dir" begin
+                Test.@test SC.is_colliding(point, r1, origin, std_dir) == true
+                Test.@test SC.is_colliding(point, r1, (half_width_r1 + d) * -i_cap, std_dir) == false
+                Test.@test SC.is_colliding(point, r1, (half_width_r1 - d) * -i_cap, std_dir) == true
+                Test.@test SC.is_colliding(point, r1, (half_width_r1 - d) * i_cap, std_dir) == true
+                Test.@test SC.is_colliding(point, r1, (half_width_r1 + d) * i_cap, std_dir) == false
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 + d) * -j_cap, std_dir) == false
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 - d) * -j_cap, std_dir) == true
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 - d) * j_cap, std_dir) == true
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 + d) * j_cap, std_dir) == false
+                Test.@test SC.is_colliding(point, r1, top_right_r1 .+ d, std_dir) == false
+                Test.@test SC.is_colliding(point, r1, top_right_r1 .- d, std_dir) == true
+            end
 
-            (r1, point, (half_height_r1 + d) * -j_cap, std_dir, false),
-            (r1, point, (half_height_r1 - d) * -j_cap, std_dir, true),
-            (r1, point, (half_height_r1 - d) * j_cap, std_dir, true),
-            (r1, point, (half_height_r1 + d) * j_cap, std_dir, false),
+            Test.@testset "reverse check with rotated_dir" begin
+                Test.@test SC.is_colliding(point, r1, origin, rotated_dir) == true
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 / sin(theta) + d) * -i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 / sin(theta) - d) * -i_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 / sin(theta) - d) * i_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 / sin(theta) + d) * i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 / cos(theta) + d) * -j_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 / cos(theta) - d) * -j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 / cos(theta) - d) * j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 / cos(theta) + d) * j_cap, rotated_dir) == false
+            end
 
-            (r1, point, top_right_r1 .+ d, std_dir, false),
-            (r1, point, top_right_r1 .- d, std_dir, true),
+            Test.@testset "no dir" begin
+                Test.@test SC.is_colliding(r1, point, origin) == true
+                Test.@test SC.is_colliding(r1, point, (half_width_r1 + d) * -i_cap) == false
+                Test.@test SC.is_colliding(r1, point, (half_width_r1 - d) * -i_cap) == true
+                Test.@test SC.is_colliding(r1, point, (half_width_r1 - d) * i_cap) == true
+                Test.@test SC.is_colliding(r1, point, (half_width_r1 + d) * i_cap) == false
+                Test.@test SC.is_colliding(r1, point, (half_height_r1 + d) * -j_cap) == false
+                Test.@test SC.is_colliding(r1, point, (half_height_r1 - d) * -j_cap) == true
+                Test.@test SC.is_colliding(r1, point, (half_height_r1 - d) * j_cap) == true
+                Test.@test SC.is_colliding(r1, point, (half_height_r1 + d) * j_cap) == false
+                Test.@test SC.is_colliding(r1, point, top_right_r1 .+ d) == false
+                Test.@test SC.is_colliding(r1, point, top_right_r1 .- d) == true
+            end
 
-            # reverse check with std_dir
-            (point, r1, origin, std_dir, true),
-
-            (point, r1, (half_width_r1 + d) * -i_cap, std_dir, false),
-            (point, r1, (half_width_r1 - d) * -i_cap, std_dir, true),
-            (point, r1, (half_width_r1 - d) * i_cap, std_dir, true),
-            (point, r1, (half_width_r1 + d) * i_cap, std_dir, false),
-
-            (point, r1, (half_height_r1 + d) * -j_cap, std_dir, false),
-            (point, r1, (half_height_r1 - d) * -j_cap, std_dir, true),
-            (point, r1, (half_height_r1 - d) * j_cap, std_dir, true),
-            (point, r1, (half_height_r1 + d) * j_cap, std_dir, false),
-
-            (point, r1, top_right_r1 .+ d, std_dir, false),
-            (point, r1, top_right_r1 .- d, std_dir, true),
-
-            # reverse check with rotated_dir
-            (point, r1, origin, rotated_dir, true),
-
-            (point, r1, (half_height_r1 / sin(theta) + d) * -i_cap, rotated_dir, false),
-            (point, r1, (half_height_r1 / sin(theta) - d) * -i_cap, rotated_dir, true),
-            (point, r1, (half_height_r1 / sin(theta) - d) * i_cap, rotated_dir, true),
-            (point, r1, (half_height_r1 / sin(theta) + d) * i_cap, rotated_dir, false),
-
-            (point, r1, (half_height_r1 / cos(theta) + d) * -j_cap, rotated_dir, false),
-            (point, r1, (half_height_r1 / cos(theta) - d) * -j_cap, rotated_dir, true),
-            (point, r1, (half_height_r1 / cos(theta) - d) * j_cap, rotated_dir, true),
-            (point, r1, (half_height_r1 / cos(theta) + d) * j_cap, rotated_dir, false),
-            ]
-
-            test_collision_list(collision_list)
-
-            collision_list_no_dir = [
-            # std_dir
-            (r1, point, origin, true),
-
-            (r1, point, (half_width_r1 + d) * -i_cap, false),
-            (r1, point, (half_width_r1 - d) * -i_cap, true),
-            (r1, point, (half_width_r1 - d) * i_cap, true),
-            (r1, point, (half_width_r1 + d) * i_cap, false),
-
-            (r1, point, (half_height_r1 + d) * -j_cap, false),
-            (r1, point, (half_height_r1 - d) * -j_cap, true),
-            (r1, point, (half_height_r1 - d) * j_cap, true),
-            (r1, point, (half_height_r1 + d) * j_cap, false),
-
-            (r1, point, top_right_r1 .+ d, false),
-            (r1, point, top_right_r1 .- d, true),
-
-            # reverse check with std_dir
-            (point, r1, origin, true),
-
-            (point, r1, (half_width_r1 + d) * -i_cap, false),
-            (point, r1, (half_width_r1 - d) * -i_cap, true),
-            (point, r1, (half_width_r1 - d) * i_cap, true),
-            (point, r1, (half_width_r1 + d) * i_cap, false),
-
-            (point, r1, (half_height_r1 + d) * -j_cap, false),
-            (point, r1, (half_height_r1 - d) * -j_cap, true),
-            (point, r1, (half_height_r1 - d) * j_cap, true),
-            (point, r1, (half_height_r1 + d) * j_cap, false),
-
-            (point, r1, top_right_r1 .+ d, false),
-            (point, r1, top_right_r1 .- d, true),
-            ]
-
-            test_collision_list_no_dir(collision_list_no_dir)
+            Test.@testset "reverse check with no dir" begin
+                Test.@test SC.is_colliding(point, r1, origin) == true
+                Test.@test SC.is_colliding(point, r1, (half_width_r1 + d) * -i_cap) == false
+                Test.@test SC.is_colliding(point, r1, (half_width_r1 - d) * -i_cap) == true
+                Test.@test SC.is_colliding(point, r1, (half_width_r1 - d) * i_cap) == true
+                Test.@test SC.is_colliding(point, r1, (half_width_r1 + d) * i_cap) == false
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 + d) * -j_cap) == false
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 - d) * -j_cap) == true
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 - d) * j_cap) == true
+                Test.@test SC.is_colliding(point, r1, (half_height_r1 + d) * j_cap) == false
+                Test.@test SC.is_colliding(point, r1, top_right_r1 .+ d) == false
+                Test.@test SC.is_colliding(point, r1, top_right_r1 .- d) == true
+            end
         end
 
         Test.@testset "StdRect vs. StdLine" begin
-            collision_list = [
-            # std_dir
-            (r1, l1, origin, std_dir, true),
-            (r1, l2, origin, std_dir, true),
+            Test.@testset "std_dir" begin
+                Test.@test SC.is_colliding(r1, l1, origin, std_dir) == true
+                Test.@test SC.is_colliding(r1, l2, origin, std_dir) == true
+                Test.@test SC.is_colliding(r1, l1, (half_width_r1 + half_length_l1 + d) * -i_cap, std_dir) == false
+                Test.@test SC.is_colliding(r1, l1, (half_width_r1 + half_length_l1 - d) * -i_cap, std_dir) == true
+                Test.@test SC.is_colliding(r1, l1, (half_width_r1 + half_length_l1 - d) * i_cap, std_dir) == true
+                Test.@test SC.is_colliding(r1, l1, (half_width_r1 + half_length_l1 + d) * i_cap, std_dir) == false
+                Test.@test SC.is_colliding(r1, l1, (half_height_r1 + d) * -j_cap, std_dir) == false
+                Test.@test SC.is_colliding(r1, l1, (half_height_r1 - d) * -j_cap, std_dir) == true
+                Test.@test SC.is_colliding(r1, l1, (half_height_r1 - d) * j_cap, std_dir) == true
+                Test.@test SC.is_colliding(r1, l1, (half_height_r1 + d) * j_cap, std_dir) == false
+            end
 
-            (r1, l1, (half_width_r1 + half_length_l1 + d) * -i_cap, std_dir, false),
-            (r1, l1, (half_width_r1 + half_length_l1 - d) * -i_cap, std_dir, true),
-            (r1, l1, (half_width_r1 + half_length_l1 - d) * i_cap, std_dir, true),
-            (r1, l1, (half_width_r1 + half_length_l1 + d) * i_cap, std_dir, false),
+            Test.@testset "rotated_dir" begin
+                Test.@test SC.is_colliding(r1, l1, origin, rotated_dir) == true
+                Test.@test SC.is_colliding(r1, l2, origin, rotated_dir) == true
+                Test.@test SC.is_colliding(r2, l1, (half_width_r2 + half_length_l1 * cos(theta) + d) * -i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(r2, l1, (half_width_r2 + half_length_l1 * cos(theta) - d) * -i_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(r2, l1, (half_width_r2 + half_length_l1 * cos(theta) - d) * i_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(r2, l1, (half_width_r2 + half_length_l1 * cos(theta) + d) * i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(r2, l1, (half_height_r2 + half_length_l1 * sin(theta) + d) * -j_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(r2, l1, (half_height_r2 + half_length_l1 * sin(theta) - d) * -j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(r2, l1, (half_height_r2 + half_length_l1 * sin(theta) - d) * j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(r2, l1, (half_height_r2 + half_length_l1 * sin(theta) + d) * j_cap, rotated_dir) == false
+            end
 
-            (r1, l1, (half_height_r1 + d) * -j_cap, std_dir, false),
-            (r1, l1, (half_height_r1 - d) * -j_cap, std_dir, true),
-            (r1, l1, (half_height_r1 - d) * j_cap, std_dir, true),
-            (r1, l1, (half_height_r1 + d) * j_cap, std_dir, false),
+            Test.@testset "reverse check with std_dir" begin
+                Test.@test SC.is_colliding(l1, r1, origin, std_dir) == true
+                Test.@test SC.is_colliding(l2, r1, origin, std_dir) == true
+                Test.@test SC.is_colliding(l1, r1, (half_width_r1 + half_length_l1 + d) * -i_cap, std_dir) == false
+                Test.@test SC.is_colliding(l1, r1, (half_width_r1 + half_length_l1 - d) * -i_cap, std_dir) == true
+                Test.@test SC.is_colliding(l1, r1, (half_width_r1 + half_length_l1 - d) * i_cap, std_dir) == true
+                Test.@test SC.is_colliding(l1, r1, (half_width_r1 + half_length_l1 + d) * i_cap, std_dir) == false
+                Test.@test SC.is_colliding(l1, r1, (half_height_r1 + d) * -j_cap, std_dir) == false
+                Test.@test SC.is_colliding(l1, r1, (half_height_r1 - d) * -j_cap, std_dir) == true
+                Test.@test SC.is_colliding(l1, r1, (half_height_r1 - d) * j_cap, std_dir) == true
+                Test.@test SC.is_colliding(l1, r1, (half_height_r1 + d) * j_cap, std_dir) == false
+            end
 
-            # rotated_dir
-            (r1, l1, origin, rotated_dir, true),
-            (r1, l2, origin, rotated_dir, true),
+            Test.@testset "reverse check with rotated_dir" begin
+                Test.@test SC.is_colliding(l1, r1, origin, rotated_dir) == true
+                Test.@test SC.is_colliding(l2, r1, origin, rotated_dir) == true
+                Test.@test SC.is_colliding(l2, r2, (half_height_r2 / sin(theta) + half_length_l2 + d) * -i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(l2, r2, (half_height_r2 / sin(theta) + half_length_l2 - d) * -i_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(l2, r2, (half_height_r2 / sin(theta) + half_length_l2 - d) * i_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(l2, r2, (half_height_r2 / sin(theta) + half_length_l2 + d) * i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(l2, r2, (half_width_r2 * sin(theta) + half_height_r2 * cos(theta) + d) * -j_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(l2, r2, (half_width_r2 * sin(theta) + half_height_r2 * cos(theta) - d) * -j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(l2, r2, (half_width_r2 * sin(theta) + half_height_r2 * cos(theta) - d) * j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(l2, r2, (half_width_r2 * sin(theta) + half_height_r2 * cos(theta) + d) * j_cap, rotated_dir) == false
+            end
 
-            (r2, l1, (half_width_r2 + half_length_l1 * cos(theta) + d) * -i_cap, rotated_dir, false),
-            (r2, l1, (half_width_r2 + half_length_l1 * cos(theta) - d) * -i_cap, rotated_dir, true),
-            (r2, l1, (half_width_r2 + half_length_l1 * cos(theta) - d) * i_cap, rotated_dir, true),
-            (r2, l1, (half_width_r2 + half_length_l1 * cos(theta) + d) * i_cap, rotated_dir, false),
+            Test.@testset "no dir" begin
+                Test.@test SC.is_colliding(r1, l1, origin) == true
+                Test.@test SC.is_colliding(r1, l2, origin) == true
+                Test.@test SC.is_colliding(r1, l1, (half_width_r1 + half_length_l1 + d) * -i_cap) == false
+                Test.@test SC.is_colliding(r1, l1, (half_width_r1 + half_length_l1 - d) * -i_cap) == true
+                Test.@test SC.is_colliding(r1, l1, (half_width_r1 + half_length_l1 - d) * i_cap) == true
+                Test.@test SC.is_colliding(r1, l1, (half_width_r1 + half_length_l1 + d) * i_cap) == false
+                Test.@test SC.is_colliding(r1, l1, (half_height_r1 + d) * -j_cap) == false
+                Test.@test SC.is_colliding(r1, l1, (half_height_r1 - d) * -j_cap) == true
+                Test.@test SC.is_colliding(r1, l1, (half_height_r1 - d) * j_cap) == true
+                Test.@test SC.is_colliding(r1, l1, (half_height_r1 + d) * j_cap) == false
+            end
 
-            (r2, l1, (half_height_r2 + half_length_l1 * sin(theta) + d) * -j_cap, rotated_dir, false),
-            (r2, l1, (half_height_r2 + half_length_l1 * sin(theta) - d) * -j_cap, rotated_dir, true),
-            (r2, l1, (half_height_r2 + half_length_l1 * sin(theta) - d) * j_cap, rotated_dir, true),
-            (r2, l1, (half_height_r2 + half_length_l1 * sin(theta) + d) * j_cap, rotated_dir, false),
-
-            # reverse check with std_dir
-            (l1, r1, origin, std_dir, true),
-            (l2, r1, origin, std_dir, true),
-
-            (l1, r1, (half_width_r1 + half_length_l1 + d) * -i_cap, std_dir, false),
-            (l1, r1, (half_width_r1 + half_length_l1 - d) * -i_cap, std_dir, true),
-            (l1, r1, (half_width_r1 + half_length_l1 - d) * i_cap, std_dir, true),
-            (l1, r1, (half_width_r1 + half_length_l1 + d) * i_cap, std_dir, false),
-
-            (l1, r1, (half_height_r1 + d) * -j_cap, std_dir, false),
-            (l1, r1, (half_height_r1 - d) * -j_cap, std_dir, true),
-            (l1, r1, (half_height_r1 - d) * j_cap, std_dir, true),
-            (l1, r1, (half_height_r1 + d) * j_cap, std_dir, false),
-
-            # reverse check with rotated_dir
-            (l1, r1, origin, rotated_dir, true),
-            (l2, r1, origin, rotated_dir, true),
-
-            (l2, r2, (half_height_r2 / sin(theta) + half_length_l2 + d) * -i_cap, rotated_dir, false),
-            (l2, r2, (half_height_r2 / sin(theta) + half_length_l2 - d) * -i_cap, rotated_dir, true),
-            (l2, r2, (half_height_r2 / sin(theta) + half_length_l2 - d) * i_cap, rotated_dir, true),
-            (l2, r2, (half_height_r2 / sin(theta) + half_length_l2 + d) * i_cap, rotated_dir, false),
-
-            (l2, r2, (half_width_r2 * sin(theta) + half_height_r2 * cos(theta) + d) * -j_cap, rotated_dir, false),
-            (l2, r2, (half_width_r2 * sin(theta) + half_height_r2 * cos(theta) - d) * -j_cap, rotated_dir, true),
-            (l2, r2, (half_width_r2 * sin(theta) + half_height_r2 * cos(theta) - d) * j_cap, rotated_dir, true),
-            (l2, r2, (half_width_r2 * sin(theta) + half_height_r2 * cos(theta) + d) * j_cap, rotated_dir, false),
-            ]
-
-            test_collision_list(collision_list)
-
-            collision_list_no_dir = [
-            # std_dir
-            (r1, l1, origin, true),
-            (r1, l2, origin, true),
-
-            (r1, l1, (half_width_r1 + half_length_l1 + d) * -i_cap, false),
-            (r1, l1, (half_width_r1 + half_length_l1 - d) * -i_cap, true),
-            (r1, l1, (half_width_r1 + half_length_l1 - d) * i_cap, true),
-            (r1, l1, (half_width_r1 + half_length_l1 + d) * i_cap, false),
-
-            (r1, l1, (half_height_r1 + d) * -j_cap, false),
-            (r1, l1, (half_height_r1 - d) * -j_cap, true),
-            (r1, l1, (half_height_r1 - d) * j_cap, true),
-            (r1, l1, (half_height_r1 + d) * j_cap, false),
-
-            # reverse check with std_dir
-            (l1, r1, origin, true),
-            (l2, r1, origin, true),
-
-            (l1, r1, (half_width_r1 + half_length_l1 + d) * -i_cap, false),
-            (l1, r1, (half_width_r1 + half_length_l1 - d) * -i_cap, true),
-            (l1, r1, (half_width_r1 + half_length_l1 - d) * i_cap, true),
-            (l1, r1, (half_width_r1 + half_length_l1 + d) * i_cap, false),
-
-            (l1, r1, (half_height_r1 + d) * -j_cap, false),
-            (l1, r1, (half_height_r1 - d) * -j_cap, true),
-            (l1, r1, (half_height_r1 - d) * j_cap, true),
-            (l1, r1, (half_height_r1 + d) * j_cap, false),
-            ]
-
-            test_collision_list_no_dir(collision_list_no_dir)
+            Test.@testset "reverse check with no dir" begin
+                Test.@test SC.is_colliding(l1, r1, origin) == true
+                Test.@test SC.is_colliding(l2, r1, origin) == true
+                Test.@test SC.is_colliding(l1, r1, (half_width_r1 + half_length_l1 + d) * -i_cap) == false
+                Test.@test SC.is_colliding(l1, r1, (half_width_r1 + half_length_l1 - d) * -i_cap) == true
+                Test.@test SC.is_colliding(l1, r1, (half_width_r1 + half_length_l1 - d) * i_cap) == true
+                Test.@test SC.is_colliding(l1, r1, (half_width_r1 + half_length_l1 + d) * i_cap) == false
+                Test.@test SC.is_colliding(l1, r1, (half_height_r1 + d) * -j_cap) == false
+                Test.@test SC.is_colliding(l1, r1, (half_height_r1 - d) * -j_cap) == true
+                Test.@test SC.is_colliding(l1, r1, (half_height_r1 - d) * j_cap) == true
+                Test.@test SC.is_colliding(l1, r1, (half_height_r1 + d) * j_cap) == false
+            end
         end
 
         Test.@testset "StdRect vs. StdCircle" begin
-            collision_list = [
-            # std_dir
-            (r1, c1, origin, std_dir, true),
+            Test.@testset "std_dir" begin
+                Test.@test SC.is_colliding(r1, c1, origin, std_dir) == true
+                Test.@test SC.is_colliding(r1, c1, (half_width_r1 + r_c1 + d) * -i_cap, std_dir) == false
+                Test.@test SC.is_colliding(r1, c1, (half_width_r1 + r_c1 - d) * -i_cap, std_dir) == true
+                Test.@test SC.is_colliding(r1, c1, (half_width_r1 + r_c1 - d) * i_cap, std_dir) == true
+                Test.@test SC.is_colliding(r1, c1, (half_width_r1 + r_c1 + d) * i_cap, std_dir) == false
+                Test.@test SC.is_colliding(r1, c1, (half_height_r1 + r_c1 + d) * -j_cap, std_dir) == false
+                Test.@test SC.is_colliding(r1, c1, (half_height_r1 + r_c1 - d) * -j_cap, std_dir) == true
+                Test.@test SC.is_colliding(r1, c1, (half_height_r1 + r_c1 - d) * j_cap, std_dir) == true
+                Test.@test SC.is_colliding(r1, c1, (half_height_r1 + r_c1 + d) * -j_cap, std_dir) == false
+                Test.@test SC.is_colliding(r1, c1, top_right_r1 + (r_c1 + d) * unit_45, std_dir) == false
+                Test.@test SC.is_colliding(r1, c1, top_right_r1 + (r_c1 - d) * unit_45, std_dir) == true
+            end
 
-            (r1, c1, (half_width_r1 + r_c1 + d) * -i_cap, std_dir, false),
-            (r1, c1, (half_width_r1 + r_c1 - d) * -i_cap, std_dir, true),
-            (r1, c1, (half_width_r1 + r_c1 - d) * i_cap, std_dir, true),
-            (r1, c1, (half_width_r1 + r_c1 + d) * i_cap, std_dir, false),
+            Test.@testset "reverse check with std_dir" begin
+                Test.@test SC.is_colliding(c1, r1, origin, std_dir) == true
+                Test.@test SC.is_colliding(c1, r1, (half_width_r1 + r_c1 + d) * -i_cap, std_dir) == false
+                Test.@test SC.is_colliding(c1, r1, (half_width_r1 + r_c1 - d) * -i_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, r1, (half_width_r1 + r_c1 - d) * i_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, r1, (half_width_r1 + r_c1 + d) * i_cap, std_dir) == false
+                Test.@test SC.is_colliding(c1, r1, (half_height_r1 + r_c1 + d) * -j_cap, std_dir) == false
+                Test.@test SC.is_colliding(c1, r1, (half_height_r1 + r_c1 - d) * -j_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, r1, (half_height_r1 + r_c1 - d) * j_cap, std_dir) == true
+                Test.@test SC.is_colliding(c1, r1, (half_height_r1 + r_c1 + d) * -j_cap, std_dir) == false
+                Test.@test SC.is_colliding(c1, r1, top_right_r1 + (r_c1 + d) * unit_45, std_dir) == false
+                Test.@test SC.is_colliding(c1, r1, top_right_r1 + (r_c1 - d) * unit_45, std_dir) == true
+            end
 
-            (r1, c1, (half_height_r1 + r_c1 + d) * -j_cap, std_dir, false),
-            (r1, c1, (half_height_r1 + r_c1 - d) * -j_cap, std_dir, true),
-            (r1, c1, (half_height_r1 + r_c1 - d) * j_cap, std_dir, true),
-            (r1, c1, (half_height_r1 + r_c1 + d) * -j_cap, std_dir, false),
+            Test.@testset "reverse check with rotated_dir" begin
+                Test.@test SC.is_colliding(c2, r2, origin, rotated_dir) == true
+                Test.@test SC.is_colliding(c2, r2, (sqrt(r_c2 ^ 2 - (half_width_r2 * sin(theta) - half_height_r2 * cos(theta)) ^ 2) + half_width_r2 * cos(theta) + half_height_r2 * sin(theta) + d) * -i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(c2, r2, (sqrt(r_c2 ^ 2 - (half_width_r2 * sin(theta) - half_height_r2 * cos(theta)) ^ 2) + half_width_r2 * cos(theta) + half_height_r2 * sin(theta) - d) * -i_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(c2, r2, (sqrt(r_c2 ^ 2 - (half_width_r2 * sin(theta) - half_height_r2 * cos(theta)) ^ 2) + half_width_r2 * cos(theta) + half_height_r2 * sin(theta) - d) * i_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(c2, r2, (sqrt(r_c2 ^ 2 - (half_width_r2 * sin(theta) - half_height_r2 * cos(theta)) ^ 2) + half_width_r2 * cos(theta) + half_height_r2 * sin(theta) + d) * i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(c2, r2, ((r_c2 + half_height_r2) / cos(theta) + d) * -j_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(c2, r2, ((r_c2 + half_height_r2) / cos(theta) - d) * -j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(c2, r2, ((r_c2 + half_height_r2) / cos(theta) - d) * j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(c2, r2, ((r_c2 + half_height_r2) / cos(theta) + d) * j_cap, rotated_dir) == false
+            end
 
-            (r1, c1, top_right_r1 + (r_c1 + d) * unit_45, std_dir, false),
-            (r1, c1, top_right_r1 + (r_c1 - d) * unit_45, std_dir, true),
+            Test.@testset "no dir" begin
+                Test.@test SC.is_colliding(r1, c1, origin) == true
+                Test.@test SC.is_colliding(r1, c1, (half_width_r1 + r_c1 + d) * -i_cap) == false
+                Test.@test SC.is_colliding(r1, c1, (half_width_r1 + r_c1 - d) * -i_cap) == true
+                Test.@test SC.is_colliding(r1, c1, (half_width_r1 + r_c1 - d) * i_cap) == true
+                Test.@test SC.is_colliding(r1, c1, (half_width_r1 + r_c1 + d) * i_cap) == false
+                Test.@test SC.is_colliding(r1, c1, (half_height_r1 + r_c1 + d) * -j_cap) == false
+                Test.@test SC.is_colliding(r1, c1, (half_height_r1 + r_c1 - d) * -j_cap) == true
+                Test.@test SC.is_colliding(r1, c1, (half_height_r1 + r_c1 - d) * j_cap) == true
+                Test.@test SC.is_colliding(r1, c1, (half_height_r1 + r_c1 + d) * -j_cap) == false
+                Test.@test SC.is_colliding(r1, c1, top_right_r1 + (r_c1 + d) * unit_45) == false
+                Test.@test SC.is_colliding(r1, c1, top_right_r1 + (r_c1 - d) * unit_45) == true
+            end
 
-            # reverse check with std_dir
-            (c1, r1, origin, std_dir, true),
-
-            (c1, r1, (half_width_r1 + r_c1 + d) * -i_cap, std_dir, false),
-            (c1, r1, (half_width_r1 + r_c1 - d) * -i_cap, std_dir, true),
-            (c1, r1, (half_width_r1 + r_c1 - d) * i_cap, std_dir, true),
-            (c1, r1, (half_width_r1 + r_c1 + d) * i_cap, std_dir, false),
-
-            (c1, r1, (half_height_r1 + r_c1 + d) * -j_cap, std_dir, false),
-            (c1, r1, (half_height_r1 + r_c1 - d) * -j_cap, std_dir, true),
-            (c1, r1, (half_height_r1 + r_c1 - d) * j_cap, std_dir, true),
-            (c1, r1, (half_height_r1 + r_c1 + d) * -j_cap, std_dir, false),
-
-            (c1, r1, top_right_r1 + (r_c1 + d) * unit_45, std_dir, false),
-            (c1, r1, top_right_r1 + (r_c1 - d) * unit_45, std_dir, true),
-
-            # reverse check with rotated_dir
-            (c2, r2, origin, rotated_dir, true),
-
-            (c2, r2, (sqrt(r_c2 ^ 2 - (half_width_r2 * sin(theta) - half_height_r2 * cos(theta)) ^ 2) + half_width_r2 * cos(theta) + half_height_r2 * sin(theta) + d) * -i_cap, rotated_dir, false),
-            (c2, r2, (sqrt(r_c2 ^ 2 - (half_width_r2 * sin(theta) - half_height_r2 * cos(theta)) ^ 2) + half_width_r2 * cos(theta) + half_height_r2 * sin(theta) - d) * -i_cap, rotated_dir, true),
-            (c2, r2, (sqrt(r_c2 ^ 2 - (half_width_r2 * sin(theta) - half_height_r2 * cos(theta)) ^ 2) + half_width_r2 * cos(theta) + half_height_r2 * sin(theta) - d) * i_cap, rotated_dir, true),
-            (c2, r2, (sqrt(r_c2 ^ 2 - (half_width_r2 * sin(theta) - half_height_r2 * cos(theta)) ^ 2) + half_width_r2 * cos(theta) + half_height_r2 * sin(theta) + d) * i_cap, rotated_dir, false),
-
-            (c2, r2, ((r_c2 + half_height_r2) / cos(theta) + d) * -j_cap, rotated_dir, false),
-            (c2, r2, ((r_c2 + half_height_r2) / cos(theta) - d) * -j_cap, rotated_dir, true),
-            (c2, r2, ((r_c2 + half_height_r2) / cos(theta) - d) * j_cap, rotated_dir, true),
-            (c2, r2, ((r_c2 + half_height_r2) / cos(theta) + d) * j_cap, rotated_dir, false),
-            ]
-
-            test_collision_list(collision_list)
-
-            collision_list_no_dir = [
-            # std_dir
-            (r1, c1, origin, true),
-
-            (r1, c1, (half_width_r1 + r_c1 + d) * -i_cap, false),
-            (r1, c1, (half_width_r1 + r_c1 - d) * -i_cap, true),
-            (r1, c1, (half_width_r1 + r_c1 - d) * i_cap, true),
-            (r1, c1, (half_width_r1 + r_c1 + d) * i_cap, false),
-
-            (r1, c1, (half_height_r1 + r_c1 + d) * -j_cap, false),
-            (r1, c1, (half_height_r1 + r_c1 - d) * -j_cap, true),
-            (r1, c1, (half_height_r1 + r_c1 - d) * j_cap, true),
-            (r1, c1, (half_height_r1 + r_c1 + d) * -j_cap, false),
-
-            (r1, c1, top_right_r1 + (r_c1 + d) * unit_45, false),
-            (r1, c1, top_right_r1 + (r_c1 - d) * unit_45, true),
-
-            # reverse check with std_dir
-            (c1, r1, origin, true),
-
-            (c1, r1, (half_width_r1 + r_c1 + d) * -i_cap, false),
-            (c1, r1, (half_width_r1 + r_c1 - d) * -i_cap, true),
-            (c1, r1, (half_width_r1 + r_c1 - d) * i_cap, true),
-            (c1, r1, (half_width_r1 + r_c1 + d) * i_cap, false),
-
-            (c1, r1, (half_height_r1 + r_c1 + d) * -j_cap, false),
-            (c1, r1, (half_height_r1 + r_c1 - d) * -j_cap, true),
-            (c1, r1, (half_height_r1 + r_c1 - d) * j_cap, true),
-            (c1, r1, (half_height_r1 + r_c1 + d) * -j_cap, false),
-
-            (c1, r1, top_right_r1 + (r_c1 + d) * unit_45, false),
-            (c1, r1, top_right_r1 + (r_c1 - d) * unit_45, true),
-            ]
-
-            test_collision_list_no_dir(collision_list_no_dir)
+            Test.@testset "reverse check with no dir" begin
+                Test.@test SC.is_colliding(c1, r1, origin) == true
+                Test.@test SC.is_colliding(c1, r1, (half_width_r1 + r_c1 + d) * -i_cap) == false
+                Test.@test SC.is_colliding(c1, r1, (half_width_r1 + r_c1 - d) * -i_cap) == true
+                Test.@test SC.is_colliding(c1, r1, (half_width_r1 + r_c1 - d) * i_cap) == true
+                Test.@test SC.is_colliding(c1, r1, (half_width_r1 + r_c1 + d) * i_cap) == false
+                Test.@test SC.is_colliding(c1, r1, (half_height_r1 + r_c1 + d) * -j_cap) == false
+                Test.@test SC.is_colliding(c1, r1, (half_height_r1 + r_c1 - d) * -j_cap) == true
+                Test.@test SC.is_colliding(c1, r1, (half_height_r1 + r_c1 - d) * j_cap) == true
+                Test.@test SC.is_colliding(c1, r1, (half_height_r1 + r_c1 + d) * -j_cap) == false
+                Test.@test SC.is_colliding(c1, r1, top_right_r1 + (r_c1 + d) * unit_45) == false
+                Test.@test SC.is_colliding(c1, r1, top_right_r1 + (r_c1 - d) * unit_45) == true
+            end
         end
 
         Test.@testset "Rect2D vs. Rect2D" begin
-            collision_list = [
-            # std_dir
-            (r2, r1, origin, std_dir, true),
+            Test.@testset "std_dir" begin
+                Test.@test SC.is_colliding(r2, r1, origin, std_dir) == true
+                Test.@test SC.is_colliding(r2, r1, (half_width_r1 + half_width_r2 + d) * -i_cap, std_dir) == false
+                Test.@test SC.is_colliding(r2, r1, (half_width_r1 + half_width_r2 - d) * -i_cap, std_dir) == true
+                Test.@test SC.is_colliding(r2, r1, (half_width_r1 + half_width_r2 - d) * i_cap, std_dir) == true
+                Test.@test SC.is_colliding(r2, r1, (half_width_r1 + half_width_r2 + d) * i_cap, std_dir) == false
+                Test.@test SC.is_colliding(r2, r1, (half_height_r1 + half_height_r2 + d) * -j_cap, std_dir) == false
+                Test.@test SC.is_colliding(r2, r1, (half_height_r1 + half_height_r2 - d) * -j_cap, std_dir) == true
+                Test.@test SC.is_colliding(r2, r1, (half_height_r1 + half_height_r2 - d) * j_cap, std_dir) == true
+                Test.@test SC.is_colliding(r2, r1, (half_height_r1 + half_height_r2 + d) * j_cap, std_dir) == false
+                Test.@test SC.is_colliding(r2, r1, top_right_r1 + top_right_r2 .+ d, std_dir) == false
+                Test.@test SC.is_colliding(r2, r1, top_right_r1 + top_right_r2 .- d, std_dir) == true
+            end
 
-            (r2, r1, (half_width_r1 + half_width_r2 + d) * -i_cap, std_dir, false),
-            (r2, r1, (half_width_r1 + half_width_r2 - d) * -i_cap, std_dir, true),
-            (r2, r1, (half_width_r1 + half_width_r2 - d) * i_cap, std_dir, true),
-            (r2, r1, (half_width_r1 + half_width_r2 + d) * i_cap, std_dir, false),
+            Test.@testset "rotated_dir" begin
+                Test.@test SC.is_colliding(r2, r1, origin, rotated_dir) == true
+                Test.@test SC.is_colliding(r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) + d) * -i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) - d) * -i_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) - d) * i_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) + d) * i_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) + d) * -j_cap, rotated_dir) == false
+                Test.@test SC.is_colliding(r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) - d) * -j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) - d) * j_cap, rotated_dir) == true
+                Test.@test SC.is_colliding(r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) + d) * j_cap, rotated_dir) == false
+            end
 
-            (r2, r1, (half_height_r1 + half_height_r2 + d) * -j_cap, std_dir, false),
-            (r2, r1, (half_height_r1 + half_height_r2 - d) * -j_cap, std_dir, true),
-            (r2, r1, (half_height_r1 + half_height_r2 - d) * j_cap, std_dir, true),
-            (r2, r1, (half_height_r1 + half_height_r2 + d) * j_cap, std_dir, false),
+            # collision_list = [
+            # # std_dir
+            # (r2, r1, origin, std_dir, true),
 
-            (r2, r1, top_right_r1 + top_right_r2 .+ d, std_dir, false),
-            (r2, r1, top_right_r1 + top_right_r2 .- d, std_dir, true),
+            # (r2, r1, (half_width_r1 + half_width_r2 + d) * -i_cap, std_dir, false),
+            # (r2, r1, (half_width_r1 + half_width_r2 - d) * -i_cap, std_dir, true),
+            # (r2, r1, (half_width_r1 + half_width_r2 - d) * i_cap, std_dir, true),
+            # (r2, r1, (half_width_r1 + half_width_r2 + d) * i_cap, std_dir, false),
 
-            # rotated_dir
-            (r2, r1, origin, rotated_dir, true),
+            # (r2, r1, (half_height_r1 + half_height_r2 + d) * -j_cap, std_dir, false),
+            # (r2, r1, (half_height_r1 + half_height_r2 - d) * -j_cap, std_dir, true),
+            # (r2, r1, (half_height_r1 + half_height_r2 - d) * j_cap, std_dir, true),
+            # (r2, r1, (half_height_r1 + half_height_r2 + d) * j_cap, std_dir, false),
 
-            (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) + d) * -i_cap, rotated_dir, false),
-            (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) - d) * -i_cap, rotated_dir, true),
-            (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) - d) * i_cap, rotated_dir, true),
-            (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) + d) * i_cap, rotated_dir, false),
+            # (r2, r1, top_right_r1 + top_right_r2 .+ d, std_dir, false),
+            # (r2, r1, top_right_r1 + top_right_r2 .- d, std_dir, true),
 
-            (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) + d) * -j_cap, rotated_dir, false),
-            (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) - d) * -j_cap, rotated_dir, true),
-            (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) - d) * j_cap, rotated_dir, true),
-            (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) + d) * j_cap, rotated_dir, false),
-            ]
+            # # rotated_dir
+            # (r2, r1, origin, rotated_dir, true),
 
-            test_collision_list(collision_list)
+            # (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) + d) * -i_cap, rotated_dir, false),
+            # (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) - d) * -i_cap, rotated_dir, true),
+            # (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) - d) * i_cap, rotated_dir, true),
+            # (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) + d) * i_cap, rotated_dir, false),
 
-            collision_list_no_dir = [
-            # std_dir
-            (r2, r1, origin, true),
+            # (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) + d) * -j_cap, rotated_dir, false),
+            # (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) - d) * -j_cap, rotated_dir, true),
+            # (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) - d) * j_cap, rotated_dir, true),
+            # (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) + d) * j_cap, rotated_dir, false),
+            # ]
 
-            (r2, r1, (half_width_r1 + half_width_r2 + d) * -i_cap, false),
-            (r2, r1, (half_width_r1 + half_width_r2 - d) * -i_cap, true),
-            (r2, r1, (half_width_r1 + half_width_r2 - d) * i_cap, true),
-            (r2, r1, (half_width_r1 + half_width_r2 + d) * i_cap, false),
+            # test_collision_list(collision_list)
 
-            (r2, r1, (half_height_r1 + half_height_r2 + d) * -j_cap, false),
-            (r2, r1, (half_height_r1 + half_height_r2 - d) * -j_cap, true),
-            (r2, r1, (half_height_r1 + half_height_r2 - d) * j_cap, true),
-            (r2, r1, (half_height_r1 + half_height_r2 + d) * j_cap, false),
+            Test.@testset "no dir" begin
+                Test.@test SC.is_colliding(r2, r1, origin) == true
+                Test.@test SC.is_colliding(r2, r1, (half_width_r1 + half_width_r2 + d) * -i_cap) == false
+                Test.@test SC.is_colliding(r2, r1, (half_width_r1 + half_width_r2 - d) * -i_cap) == true
+                Test.@test SC.is_colliding(r2, r1, (half_width_r1 + half_width_r2 - d) * i_cap) == true
+                Test.@test SC.is_colliding(r2, r1, (half_width_r1 + half_width_r2 + d) * i_cap) == false
+                Test.@test SC.is_colliding(r2, r1, (half_height_r1 + half_height_r2 + d) * -j_cap) == false
+                Test.@test SC.is_colliding(r2, r1, (half_height_r1 + half_height_r2 - d) * -j_cap) == true
+                Test.@test SC.is_colliding(r2, r1, (half_height_r1 + half_height_r2 - d) * j_cap) == true
+                Test.@test SC.is_colliding(r2, r1, (half_height_r1 + half_height_r2 + d) * j_cap) == false
+                Test.@test SC.is_colliding(r2, r1, top_right_r1 + top_right_r2 .+ d) == false
+                Test.@test SC.is_colliding(r2, r1, top_right_r1 + top_right_r2 .- d) == true
+            end
 
-            (r2, r1, top_right_r1 + top_right_r2 .+ d, false),
-            (r2, r1, top_right_r1 + top_right_r2 .- d, true),
-            ]
+            # collision_list_no_dir = [
+            # # std_dir
+            # (r2, r1, origin, true),
 
-            test_collision_list_no_dir(collision_list_no_dir)
+            # (r2, r1, (half_width_r1 + half_width_r2 + d) * -i_cap, false),
+            # (r2, r1, (half_width_r1 + half_width_r2 - d) * -i_cap, true),
+            # (r2, r1, (half_width_r1 + half_width_r2 - d) * i_cap, true),
+            # (r2, r1, (half_width_r1 + half_width_r2 + d) * i_cap, false),
+
+            # (r2, r1, (half_height_r1 + half_height_r2 + d) * -j_cap, false),
+            # (r2, r1, (half_height_r1 + half_height_r2 - d) * -j_cap, true),
+            # (r2, r1, (half_height_r1 + half_height_r2 - d) * j_cap, true),
+            # (r2, r1, (half_height_r1 + half_height_r2 + d) * j_cap, false),
+
+            # (r2, r1, top_right_r1 + top_right_r2 .+ d, false),
+            # (r2, r1, top_right_r1 + top_right_r2 .- d, true),
+            # ]
+
+            # test_collision_list_no_dir(collision_list_no_dir)
         end
     end
 
