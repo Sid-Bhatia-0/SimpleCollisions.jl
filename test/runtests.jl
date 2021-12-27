@@ -3,24 +3,6 @@ import SimpleCollisions as SC
 import StaticArrays as SA
 import Test
 
-function test_manifold_list_no_dir(manifold_list_no_dir)
-    for (i, (a, b, pos_ba, value)) in enumerate(manifold_list_no_dir)
-        manifold_ba = SC.Manifold(a, b, pos_ba)
-        Test.@test SC.get_penetration(manifold_ba) ≈ SC.get_penetration(value)
-        Test.@test SC.get_normal(manifold_ba) ≈ SC.get_normal(value)
-        Test.@test SC.get_contact(manifold_ba) ≈ SC.get_contact(value)
-    end
-end
-
-function test_manifold_list(manifold_list)
-    for (i, (a, b, pos_ba, dir_ba, value)) in enumerate(manifold_list)
-        manifold_ba = SC.Manifold(a, b, pos_ba, dir_ba)
-        Test.@test SC.get_penetration(manifold_ba) ≈ SC.get_penetration(value)
-        Test.@test SC.get_normal(manifold_ba) ≈ SC.get_normal(value)
-        Test.@test SC.get_contact(manifold_ba) ≈ SC.get_contact(value)
-    end
-end
-
 Test.@testset "SimpleCollisions.jl" begin
     T = Float32
     VecType = SC.Vector2D{T}
