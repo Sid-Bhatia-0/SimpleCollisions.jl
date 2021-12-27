@@ -520,39 +520,6 @@ Test.@testset "SimpleCollisions.jl" begin
                 Test.@test SC.is_colliding(r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) + d) * j_cap, rotated_dir) == false
             end
 
-            # collision_list = [
-            # # std_dir
-            # (r2, r1, origin, std_dir, true),
-
-            # (r2, r1, (half_width_r1 + half_width_r2 + d) * -i_cap, std_dir, false),
-            # (r2, r1, (half_width_r1 + half_width_r2 - d) * -i_cap, std_dir, true),
-            # (r2, r1, (half_width_r1 + half_width_r2 - d) * i_cap, std_dir, true),
-            # (r2, r1, (half_width_r1 + half_width_r2 + d) * i_cap, std_dir, false),
-
-            # (r2, r1, (half_height_r1 + half_height_r2 + d) * -j_cap, std_dir, false),
-            # (r2, r1, (half_height_r1 + half_height_r2 - d) * -j_cap, std_dir, true),
-            # (r2, r1, (half_height_r1 + half_height_r2 - d) * j_cap, std_dir, true),
-            # (r2, r1, (half_height_r1 + half_height_r2 + d) * j_cap, std_dir, false),
-
-            # (r2, r1, top_right_r1 + top_right_r2 .+ d, std_dir, false),
-            # (r2, r1, top_right_r1 + top_right_r2 .- d, std_dir, true),
-
-            # # rotated_dir
-            # (r2, r1, origin, rotated_dir, true),
-
-            # (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) + d) * -i_cap, rotated_dir, false),
-            # (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) - d) * -i_cap, rotated_dir, true),
-            # (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) - d) * i_cap, rotated_dir, true),
-            # (r2, r1, (half_width_r2 + half_width_r1 * cos(theta) + half_height_r1 * sin(theta) + d) * i_cap, rotated_dir, false),
-
-            # (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) + d) * -j_cap, rotated_dir, false),
-            # (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) - d) * -j_cap, rotated_dir, true),
-            # (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) - d) * j_cap, rotated_dir, true),
-            # (r2, r1, (half_height_r2 + half_width_r1 * sin(theta) + half_height_r1 * cos(theta) + d) * j_cap, rotated_dir, false),
-            # ]
-
-            # test_collision_list(collision_list)
-
             Test.@testset "no dir" begin
                 Test.@test SC.is_colliding(r2, r1, origin) == true
                 Test.@test SC.is_colliding(r2, r1, (half_width_r1 + half_width_r2 + d) * -i_cap) == false
@@ -566,188 +533,638 @@ Test.@testset "SimpleCollisions.jl" begin
                 Test.@test SC.is_colliding(r2, r1, top_right_r1 + top_right_r2 .+ d) == false
                 Test.@test SC.is_colliding(r2, r1, top_right_r1 + top_right_r2 .- d) == true
             end
-
-            # collision_list_no_dir = [
-            # # std_dir
-            # (r2, r1, origin, true),
-
-            # (r2, r1, (half_width_r1 + half_width_r2 + d) * -i_cap, false),
-            # (r2, r1, (half_width_r1 + half_width_r2 - d) * -i_cap, true),
-            # (r2, r1, (half_width_r1 + half_width_r2 - d) * i_cap, true),
-            # (r2, r1, (half_width_r1 + half_width_r2 + d) * i_cap, false),
-
-            # (r2, r1, (half_height_r1 + half_height_r2 + d) * -j_cap, false),
-            # (r2, r1, (half_height_r1 + half_height_r2 - d) * -j_cap, true),
-            # (r2, r1, (half_height_r1 + half_height_r2 - d) * j_cap, true),
-            # (r2, r1, (half_height_r1 + half_height_r2 + d) * j_cap, false),
-
-            # (r2, r1, top_right_r1 + top_right_r2 .+ d, false),
-            # (r2, r1, top_right_r1 + top_right_r2 .- d, true),
-            # ]
-
-            # test_collision_list_no_dir(collision_list_no_dir)
         end
     end
 
     Test.@testset "Manifold generation" begin
         Test.@testset "StdCircle vs. StdCircle" begin
-            manifold_list = [
-            # std_dir
-            (c1, c2, (r_c1 + r_c2 - d) * -i_cap, std_dir, SC.Manifold(d, -i_cap, (r_c1 - d / 2) * -i_cap)),
-            (c1, c2, r_c2 * -i_cap, std_dir, SC.Manifold(r_c1, -i_cap, (r_c1 / 2) * -i_cap)),
-            (c1, c2, r_c2 * i_cap, std_dir, SC.Manifold(r_c1, i_cap, (r_c1 / 2) * i_cap)),
-            (c1, c2, (r_c1 + r_c2 - d) * i_cap, std_dir, SC.Manifold(d, i_cap, (r_c1 - d / 2) * i_cap)),
+            Test.@testset "std_dir" begin
+                manifold_calculated = SC.Manifold(c1, c2, (r_c1 + r_c2 - d) * -i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, -i_cap, (r_c1 - d / 2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            (c1, c2, (r_c1 + r_c2 - d) * -j_cap, std_dir, SC.Manifold(d, -j_cap, (r_c1 - d / 2) * -j_cap)),
-            (c1, c2, r_c2 * -j_cap, std_dir, SC.Manifold(r_c1, -j_cap, (r_c1 / 2) * -j_cap)),
-            (c1, c2, r_c2 * j_cap, std_dir, SC.Manifold(r_c1, j_cap, (r_c1 / 2) * j_cap)),
-            (c1, c2, (r_c1 + r_c2 - d) * j_cap, std_dir, SC.Manifold(d, j_cap, (r_c1 - d / 2) * j_cap)),
+                manifold_calculated = SC.Manifold(c1, c2, r_c2 * -i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1, -i_cap, (r_c1 / 2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            (c1, c2, (r_c1 + r_c2 - d) * unit_45, std_dir, SC.Manifold(d, unit_45, (r_c1 - d / 2) * unit_45)),
-            (c1, c2, r_c2 * unit_45, std_dir, SC.Manifold(r_c1, unit_45, (r_c1 / 2) * unit_45)),
-            ]
+                manifold_calculated = SC.Manifold(c1, c2, r_c2 * i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1, i_cap, (r_c1 / 2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            test_manifold_list(manifold_list)
+                manifold_calculated = SC.Manifold(c1, c2, (r_c1 + r_c2 - d) * i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, i_cap, (r_c1 - d / 2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, c2, (r_c1 + r_c2 - d) * -j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, -j_cap, (r_c1 - d / 2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, c2, r_c2 * -j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1, -j_cap, (r_c1 / 2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, c2, r_c2 * j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1, j_cap, (r_c1 / 2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, c2, (r_c1 + r_c2 - d) * j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, j_cap, (r_c1 - d / 2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, c2, (r_c1 + r_c2 - d) * unit_45, std_dir)
+                manifold_ground_truth = SC.Manifold(d, unit_45, (r_c1 - d / 2) * unit_45)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, c2, r_c2 * unit_45, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1, unit_45, (r_c1 / 2) * unit_45)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+            end
         end
 
         Test.@testset "StdRect vs. StdCircle" begin
-            manifold_list_no_dir = [
-            # std_dir
-            (r1, c1, (half_width_r1 + r_c1 - d) * -i_cap, SC.Manifold(d, -i_cap, (half_width_r1 - d / 2) * -i_cap)),
-            (r1, c1, (half_width_r1 + d) * -i_cap, SC.Manifold(r_c1 - d, -i_cap, (half_width_r1 - (r_c1 - d) / 2) * -i_cap)),
-            (r1, c1, (half_width_r1 - d) * -i_cap, SC.Manifold(r_c1 + d, -i_cap, (half_width_r1 - (r_c1 + d) / 2) * -i_cap)),
-            (r1, c1, (half_width_r1 - d) * i_cap, SC.Manifold(r_c1 + d, i_cap, (half_width_r1 - (r_c1 + d) / 2) * i_cap)),
-            (r1, c1, (half_width_r1 + d) * i_cap, SC.Manifold(r_c1 - d, i_cap, (half_width_r1 - (r_c1 - d) / 2) * i_cap)),
-            (r1, c1, (half_width_r1 + r_c1 - d) * i_cap, SC.Manifold(d, i_cap, (half_width_r1 - d / 2) * i_cap)),
+            Test.@testset "no dir" begin
+                manifold_calculated = SC.Manifold(r1, c1, (half_width_r1 + r_c1 - d) * -i_cap)
+                manifold_ground_truth = SC.Manifold(d, -i_cap, (half_width_r1 - d / 2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            (r1, c1, (half_height_r1 + r_c1 - d) * -j_cap, SC.Manifold(d, -j_cap, (half_height_r1 - d / 2) * -j_cap)),
-            (r1, c1, (half_height_r1 + d) * -j_cap, SC.Manifold(r_c1 - d, -j_cap, (half_height_r1 - (r_c1 - d) / 2) * -j_cap)),
-            (r1, c1, (half_height_r1 - d) * -j_cap, SC.Manifold(r_c1 + d, -j_cap, (half_height_r1 - (r_c1 + d) / 2) * -j_cap)),
-            (r1, c1, (half_height_r1 - d) * j_cap, SC.Manifold(r_c1 + d, j_cap, (half_height_r1 - (r_c1 + d) / 2) * j_cap)),
-            (r1, c1, (half_height_r1 + d) * j_cap, SC.Manifold(r_c1 - d, j_cap, (half_height_r1 - (r_c1 - d) / 2) * j_cap)),
-            (r1, c1, (half_height_r1 + r_c1 - d) * j_cap, SC.Manifold(d, j_cap, (half_height_r1 - d / 2) * j_cap)),
+                manifold_calculated = SC.Manifold(r1, c1, (half_width_r1 + d) * -i_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, -i_cap, (half_width_r1 - (r_c1 - d) / 2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            (r1, c1, top_right_r1 + (r_c1 - d) * unit_45, SC.Manifold(d, unit_45, top_right_r1 + (d / 2) * -unit_45)),
+                manifold_calculated = SC.Manifold(r1, c1, (half_width_r1 - d) * -i_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, -i_cap, (half_width_r1 - (r_c1 + d) / 2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            # reverse check with std_dir
-            (c1, r1, (half_width_r1 + r_c1 - d) * -i_cap, SC.Manifold(d, -i_cap, (r_c1 - d / 2) * -i_cap)),
-            (c1, r1, (half_width_r1 + d) * -i_cap, SC.Manifold(r_c1 - d, -i_cap, (r_c1 - (r_c1 - d) / 2) * -i_cap)),
-            (c1, r1, (half_width_r1 - d) * -i_cap, SC.Manifold(r_c1 + d, -i_cap, (r_c1 - (r_c1 + d) / 2) * -i_cap)),
-            (c1, r1, (half_width_r1 - d) * i_cap, SC.Manifold(r_c1 + d, i_cap, (r_c1 - (r_c1 + d) / 2) * i_cap)),
-            (c1, r1, (half_width_r1 + d) * i_cap, SC.Manifold(r_c1 - d, i_cap, (r_c1 - (r_c1 - d) / 2) * i_cap)),
-            (c1, r1, (half_width_r1 + r_c1 - d) * i_cap, SC.Manifold(d, i_cap, (r_c1 - d / 2) * i_cap)),
+                manifold_calculated = SC.Manifold(r1, c1, (half_width_r1 - d) * i_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, i_cap, (half_width_r1 - (r_c1 + d) / 2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            (c1, r1, (half_height_r1 + r_c1 - d) * -j_cap, SC.Manifold(d, -j_cap, (r_c1 - d / 2) * -j_cap)),
-            (c1, r1, (half_height_r1 + d) * -j_cap, SC.Manifold(r_c1 - d, -j_cap, (r_c1 - (r_c1 - d) / 2) * -j_cap)),
-            (c1, r1, (half_height_r1 - d) * -j_cap, SC.Manifold(r_c1 + d, -j_cap, (r_c1 - (r_c1 + d) / 2) * -j_cap)),
-            (c1, r1, (half_height_r1 - d) * j_cap, SC.Manifold(r_c1 + d, j_cap, (r_c1 - (r_c1 + d) / 2) * j_cap)),
-            (c1, r1, (half_height_r1 + d) * j_cap, SC.Manifold(r_c1 - d, j_cap, (r_c1 - (r_c1 - d) / 2) * j_cap)),
-            (c1, r1, (half_height_r1 + r_c1 - d) * j_cap, SC.Manifold(d, j_cap, (r_c1 - d / 2) * j_cap)),
+                manifold_calculated = SC.Manifold(r1, c1, (half_width_r1 + d) * i_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, i_cap, (half_width_r1 - (r_c1 - d) / 2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            (c1, r1, top_right_r1 + (r_c1 - d) * unit_45, SC.Manifold(d, unit_45, (r_c1 - d / 2) * unit_45)),
-            ]
+                manifold_calculated = SC.Manifold(r1, c1, (half_width_r1 + r_c1 - d) * i_cap)
+                manifold_ground_truth = SC.Manifold(d, i_cap, (half_width_r1 - d / 2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            test_manifold_list_no_dir(manifold_list_no_dir)
+                manifold_calculated = SC.Manifold(r1, c1, (half_height_r1 + r_c1 - d) * -j_cap)
+                manifold_ground_truth = SC.Manifold(d, -j_cap, (half_height_r1 - d / 2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            manifold_list = [
-            # std_dir
-            (r1, c1, (half_width_r1 + r_c1 - d) * -i_cap, std_dir, SC.Manifold(d, -i_cap, (half_width_r1 - d / 2) * -i_cap)),
-            (r1, c1, (half_width_r1 + d) * -i_cap, std_dir, SC.Manifold(r_c1 - d, -i_cap, (half_width_r1 - (r_c1 - d) / 2) * -i_cap)),
-            (r1, c1, (half_width_r1 - d) * -i_cap, std_dir, SC.Manifold(r_c1 + d, -i_cap, (half_width_r1 - (r_c1 + d) / 2) * -i_cap)),
-            (r1, c1, (half_width_r1 - d) * i_cap, std_dir, SC.Manifold(r_c1 + d, i_cap, (half_width_r1 - (r_c1 + d) / 2) * i_cap)),
-            (r1, c1, (half_width_r1 + d) * i_cap, std_dir, SC.Manifold(r_c1 - d, i_cap, (half_width_r1 - (r_c1 - d) / 2) * i_cap)),
-            (r1, c1, (half_width_r1 + r_c1 - d) * i_cap, std_dir, SC.Manifold(d, i_cap, (half_width_r1 - d / 2) * i_cap)),
+                manifold_calculated = SC.Manifold(r1, c1, (half_height_r1 + d) * -j_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, -j_cap, (half_height_r1 - (r_c1 - d) / 2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            (r1, c1, (half_height_r1 + r_c1 - d) * -j_cap, std_dir, SC.Manifold(d, -j_cap, (half_height_r1 - d / 2) * -j_cap)),
-            (r1, c1, (half_height_r1 + d) * -j_cap, std_dir, SC.Manifold(r_c1 - d, -j_cap, (half_height_r1 - (r_c1 - d) / 2) * -j_cap)),
-            (r1, c1, (half_height_r1 - d) * -j_cap, std_dir, SC.Manifold(r_c1 + d, -j_cap, (half_height_r1 - (r_c1 + d) / 2) * -j_cap)),
-            (r1, c1, (half_height_r1 - d) * j_cap, std_dir, SC.Manifold(r_c1 + d, j_cap, (half_height_r1 - (r_c1 + d) / 2) * j_cap)),
-            (r1, c1, (half_height_r1 + d) * j_cap, std_dir, SC.Manifold(r_c1 - d, j_cap, (half_height_r1 - (r_c1 - d) / 2) * j_cap)),
-            (r1, c1, (half_height_r1 + r_c1 - d) * j_cap, std_dir, SC.Manifold(d, j_cap, (half_height_r1 - d / 2) * j_cap)),
+                manifold_calculated = SC.Manifold(r1, c1, (half_height_r1 - d) * -j_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, -j_cap, (half_height_r1 - (r_c1 + d) / 2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            (r1, c1, top_right_r1 + (r_c1 - d) * unit_45, std_dir, SC.Manifold(d, unit_45, top_right_r1 + (d / 2) * -unit_45)),
+                manifold_calculated = SC.Manifold(r1, c1, (half_height_r1 - d) * j_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, j_cap, (half_height_r1 - (r_c1 + d) / 2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            # reverse check with std_dir
-            (c1, r1, (half_width_r1 + r_c1 - d) * -i_cap, std_dir, SC.Manifold(d, -i_cap, (r_c1 - d / 2) * -i_cap)),
-            (c1, r1, (half_width_r1 + d) * -i_cap, std_dir, SC.Manifold(r_c1 - d, -i_cap, (r_c1 - (r_c1 - d) / 2) * -i_cap)),
-            (c1, r1, (half_width_r1 - d) * -i_cap, std_dir, SC.Manifold(r_c1 + d, -i_cap, (r_c1 - (r_c1 + d) / 2) * -i_cap)),
-            (c1, r1, (half_width_r1 - d) * i_cap, std_dir, SC.Manifold(r_c1 + d, i_cap, (r_c1 - (r_c1 + d) / 2) * i_cap)),
-            (c1, r1, (half_width_r1 + d) * i_cap, std_dir, SC.Manifold(r_c1 - d, i_cap, (r_c1 - (r_c1 - d) / 2) * i_cap)),
-            (c1, r1, (half_width_r1 + r_c1 - d) * i_cap, std_dir, SC.Manifold(d, i_cap, (r_c1 - d / 2) * i_cap)),
+                manifold_calculated = SC.Manifold(r1, c1, (half_height_r1 + d) * j_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, j_cap, (half_height_r1 - (r_c1 - d) / 2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            (c1, r1, (half_height_r1 + r_c1 - d) * -j_cap, std_dir, SC.Manifold(d, -j_cap, (r_c1 - d / 2) * -j_cap)),
-            (c1, r1, (half_height_r1 + d) * -j_cap, std_dir, SC.Manifold(r_c1 - d, -j_cap, (r_c1 - (r_c1 - d) / 2) * -j_cap)),
-            (c1, r1, (half_height_r1 - d) * -j_cap, std_dir, SC.Manifold(r_c1 + d, -j_cap, (r_c1 - (r_c1 + d) / 2) * -j_cap)),
-            (c1, r1, (half_height_r1 - d) * j_cap, std_dir, SC.Manifold(r_c1 + d, j_cap, (r_c1 - (r_c1 + d) / 2) * j_cap)),
-            (c1, r1, (half_height_r1 + d) * j_cap, std_dir, SC.Manifold(r_c1 - d, j_cap, (r_c1 - (r_c1 - d) / 2) * j_cap)),
-            (c1, r1, (half_height_r1 + r_c1 - d) * j_cap, std_dir, SC.Manifold(d, j_cap, (r_c1 - d / 2) * j_cap)),
+                manifold_calculated = SC.Manifold(r1, c1, (half_height_r1 + r_c1 - d) * j_cap)
+                manifold_ground_truth = SC.Manifold(d, j_cap, (half_height_r1 - d / 2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            (c1, r1, top_right_r1 + (r_c1 - d) * unit_45, std_dir, SC.Manifold(d, unit_45, (r_c1 - d / 2) * unit_45)),
+                manifold_calculated = SC.Manifold(r1, c1, top_right_r1 + (r_c1 - d) * unit_45)
+                manifold_ground_truth = SC.Manifold(d, unit_45, top_right_r1 + (d / 2) * -unit_45)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+            end
 
-            # reverse check with rotated_dir
-            (c1, r1, (r_c1 - d) * unit_45 + SC.rotate(top_right_r1, rotated_dir), rotated_dir, SC.Manifold(d, unit_45, (r_c1 - d / 2) * unit_45)),
-            ]
+            Test.@testset "reverse check with no dir" begin
+                manifold_calculated = SC.Manifold(c1, r1, (half_width_r1 + r_c1 - d) * -i_cap)
+                manifold_ground_truth = SC.Manifold(d, -i_cap, (r_c1 - d / 2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            test_manifold_list(manifold_list)
+                manifold_calculated = SC.Manifold(c1, r1, (half_width_r1 + d) * -i_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, -i_cap, (r_c1 - (r_c1 - d) / 2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_width_r1 - d) * -i_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, -i_cap, (r_c1 - (r_c1 + d) / 2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_width_r1 - d) * i_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, i_cap, (r_c1 - (r_c1 + d) / 2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_width_r1 + d) * i_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, i_cap, (r_c1 - (r_c1 - d) / 2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_width_r1 + r_c1 - d) * i_cap)
+                manifold_ground_truth = SC.Manifold(d, i_cap, (r_c1 - d / 2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_height_r1 + r_c1 - d) * -j_cap)
+                manifold_ground_truth = SC.Manifold(d, -j_cap, (r_c1 - d / 2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_height_r1 + d) * -j_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, -j_cap, (r_c1 - (r_c1 - d) / 2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_height_r1 - d) * -j_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, -j_cap, (r_c1 - (r_c1 + d) / 2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_height_r1 - d) * j_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, j_cap, (r_c1 - (r_c1 + d) / 2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_height_r1 + d) * j_cap)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, j_cap, (r_c1 - (r_c1 - d) / 2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_height_r1 + r_c1 - d) * j_cap)
+                manifold_ground_truth = SC.Manifold(d, j_cap, (r_c1 - d / 2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, top_right_r1 + (r_c1 - d) * unit_45)
+                manifold_ground_truth = SC.Manifold(d, unit_45, (r_c1 - d / 2) * unit_45)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+            end
+
+            Test.@testset "std_dir" begin
+                manifold_calculated = SC.Manifold(r1, c1, (half_width_r1 + r_c1 - d) * -i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, -i_cap, (half_width_r1 - d / 2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r1, c1, (half_width_r1 + d) * -i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, -i_cap, (half_width_r1 - (r_c1 - d) / 2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r1, c1, (half_width_r1 - d) * -i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, -i_cap, (half_width_r1 - (r_c1 + d) / 2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r1, c1, (half_width_r1 - d) * i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, i_cap, (half_width_r1 - (r_c1 + d) / 2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r1, c1, (half_width_r1 + d) * i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, i_cap, (half_width_r1 - (r_c1 - d) / 2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r1, c1, (half_width_r1 + r_c1 - d) * i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, i_cap, (half_width_r1 - d / 2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r1, c1, (half_height_r1 + r_c1 - d) * -j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, -j_cap, (half_height_r1 - d / 2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r1, c1, (half_height_r1 + d) * -j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, -j_cap, (half_height_r1 - (r_c1 - d) / 2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r1, c1, (half_height_r1 - d) * -j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, -j_cap, (half_height_r1 - (r_c1 + d) / 2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r1, c1, (half_height_r1 - d) * j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, j_cap, (half_height_r1 - (r_c1 + d) / 2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r1, c1, (half_height_r1 + d) * j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, j_cap, (half_height_r1 - (r_c1 - d) / 2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r1, c1, (half_height_r1 + r_c1 - d) * j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, j_cap, (half_height_r1 - d / 2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r1, c1, top_right_r1 + (r_c1 - d) * unit_45, std_dir)
+                manifold_ground_truth = SC.Manifold(d, unit_45, top_right_r1 + (d / 2) * -unit_45)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+            end
+
+            Test.@testset "reverse check with std_dir" begin
+                manifold_calculated = SC.Manifold(c1, r1, (half_width_r1 + r_c1 - d) * -i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, -i_cap, (r_c1 - d / 2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_width_r1 + d) * -i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, -i_cap, (r_c1 - (r_c1 - d) / 2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_width_r1 - d) * -i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, -i_cap, (r_c1 - (r_c1 + d) / 2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_width_r1 - d) * i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, i_cap, (r_c1 - (r_c1 + d) / 2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_width_r1 + d) * i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, i_cap, (r_c1 - (r_c1 - d) / 2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_width_r1 + r_c1 - d) * i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, i_cap, (r_c1 - d / 2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_height_r1 + r_c1 - d) * -j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, -j_cap, (r_c1 - d / 2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_height_r1 + d) * -j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, -j_cap, (r_c1 - (r_c1 - d) / 2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_height_r1 - d) * -j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, -j_cap, (r_c1 - (r_c1 + d) / 2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_height_r1 - d) * j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 + d, j_cap, (r_c1 - (r_c1 + d) / 2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_height_r1 + d) * j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(r_c1 - d, j_cap, (r_c1 - (r_c1 - d) / 2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, (half_height_r1 + r_c1 - d) * j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, j_cap, (r_c1 - d / 2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(c1, r1, top_right_r1 + (r_c1 - d) * unit_45, std_dir)
+                manifold_ground_truth = SC.Manifold(d, unit_45, (r_c1 - d / 2) * unit_45)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+            end
+
+            Test.@testset "reverse check with rotated_dir" begin
+                manifold_calculated = SC.Manifold(c1, r1, (r_c1 - d) * unit_45 + SC.rotate(top_right_r1, rotated_dir), rotated_dir)
+                manifold_ground_truth = SC.Manifold(d, unit_45, (r_c1 - d / 2) * unit_45)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+            end
         end
 
         Test.@testset "Rect2D vs. Rect2D" begin
-            manifold_list_no_dir = [
-            # std_dir
-            (r2, r1, (half_height_r2 + half_height_r1 - d) * -j_cap, SC.Manifold(d, -j_cap, (half_height_r2 - d/2) * -j_cap)),
-            (r2, r1, (half_height_r2 + d) * -j_cap, SC.Manifold(half_height_r1 - d, -j_cap, (half_height_r2 - (half_height_r1 - d)/2) * -j_cap)),
-            (r2, r1, (half_height_r2 - d) * -j_cap, SC.Manifold(half_height_r1 + d, -j_cap, (half_height_r2 - (half_height_r1 + d)/2) * -j_cap)),
-            (r2, r1, d * -j_cap, SC.Manifold(half_height_r2 + half_height_r1 - d, -j_cap, d * -j_cap)),
-            (r2, r1, d * j_cap, SC.Manifold(half_height_r2 + half_height_r1 - d, j_cap, d * j_cap)),
-            (r2, r1, (half_height_r2 - d) * j_cap, SC.Manifold(half_height_r1 + d, j_cap, (half_height_r2 - (half_height_r1 + d)/2) * j_cap)),
-            (r2, r1, (half_height_r2 + d) * j_cap, SC.Manifold(half_height_r1 - d, j_cap, (half_height_r2 - (half_height_r1 - d)/2) * j_cap)),
-            (r2, r1, (half_height_r2 + half_height_r1 - d) * j_cap, SC.Manifold(d, j_cap, (half_height_r2 - d/2) * j_cap)),
+            Test.@testset "no dir" begin
+                manifold_calculated = SC.Manifold(r2, r1, (half_height_r2 + half_height_r1 - d) * -j_cap)
+                manifold_ground_truth = SC.Manifold(d, -j_cap, (half_height_r2 - d/2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            (r2, r1, (half_width_r2 + half_width_r1 - d) * -i_cap, SC.Manifold(d, -i_cap, (half_width_r2 - d/2) * -i_cap)),
-            (r2, r1, (half_width_r2 + d) * -i_cap, SC.Manifold(half_width_r1 - d, -i_cap, (half_width_r2 - (half_width_r1 - d)/2) * -i_cap)),
-            (r2, r1, (half_width_r2 - d) * -i_cap, SC.Manifold(half_width_r1 + d, -i_cap, (half_width_r2 - (half_width_r1 + d)/2) * -i_cap)),
-            (r2, r1, (half_width_r2 - d) * i_cap, SC.Manifold(half_width_r1 + d, i_cap, (half_width_r2 - (half_width_r1 + d)/2) * i_cap)),
-            (r2, r1, (half_width_r2 + d) * i_cap, SC.Manifold(half_width_r1 - d, i_cap, (half_width_r2 - (half_width_r1 - d)/2) * i_cap)),
-            (r2, r1, (half_width_r2 + half_width_r1 - d) * i_cap, SC.Manifold(d, i_cap, (half_width_r2 - d/2) * i_cap)),
+                manifold_calculated = SC.Manifold(r2, r1, (half_height_r2 + d) * -j_cap)
+                manifold_ground_truth = SC.Manifold(half_height_r1 - d, -j_cap, (half_height_r2 - (half_height_r1 - d)/2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            (r2, r1, top_right_r2 .- d, SC.Manifold(half_height_r1 + d, j_cap, top_right_r2 + (half_width_r1 + d)/2 * -i_cap + (half_height_r1 + d)/2 * -j_cap)),
-            (r2, r1, top_right_r2, SC.Manifold(half_height_r1, j_cap, top_right_r2 + (half_width_r1/2) * -i_cap + (half_height_r1/2) * -j_cap)),
-            (r2, r1, top_right_r2 .+ d, SC.Manifold(half_height_r1 - d, j_cap, top_right_r2 + (half_width_r1 - d)/2 * -i_cap + (half_height_r1 - d)/2 * -j_cap)),
-            ]
+                manifold_calculated = SC.Manifold(r2, r1, (half_height_r2 - d) * -j_cap)
+                manifold_ground_truth = SC.Manifold(half_height_r1 + d, -j_cap, (half_height_r2 - (half_height_r1 + d)/2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            test_manifold_list_no_dir(manifold_list_no_dir)
+                manifold_calculated = SC.Manifold(r2, r1, d * -j_cap)
+                manifold_ground_truth = SC.Manifold(half_height_r2 + half_height_r1 - d, -j_cap, d * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            manifold_list = [
-            # std_dir
-            (r2, r1, (half_height_r2 + half_height_r1 - d) * -j_cap, std_dir, SC.Manifold(d, -j_cap, (half_height_r2 - d/2) * -j_cap)),
-            (r2, r1, (half_height_r2 + d) * -j_cap, std_dir, SC.Manifold(half_height_r1 - d, -j_cap, (half_height_r2 - (half_height_r1 - d)/2) * -j_cap)),
-            (r2, r1, (half_height_r2 - d) * -j_cap, std_dir, SC.Manifold(half_height_r1 + d, -j_cap, (half_height_r2 - (half_height_r1 + d)/2) * -j_cap)),
-            (r2, r1, d * -j_cap, std_dir, SC.Manifold(half_height_r2 + half_height_r1 - d, -j_cap, d * -j_cap)),
-            (r2, r1, d * j_cap, std_dir, SC.Manifold(half_height_r2 + half_height_r1 - d, j_cap, d * j_cap)),
-            (r2, r1, (half_height_r2 - d) * j_cap, std_dir, SC.Manifold(half_height_r1 + d, j_cap, (half_height_r2 - (half_height_r1 + d)/2) * j_cap)),
-            (r2, r1, (half_height_r2 + d) * j_cap, std_dir, SC.Manifold(half_height_r1 - d, j_cap, (half_height_r2 - (half_height_r1 - d)/2) * j_cap)),
-            (r2, r1, (half_height_r2 + half_height_r1 - d) * j_cap, std_dir, SC.Manifold(d, j_cap, (half_height_r2 - d/2) * j_cap)),
+                manifold_calculated = SC.Manifold(r2, r1, d * j_cap)
+                manifold_ground_truth = SC.Manifold(half_height_r2 + half_height_r1 - d, j_cap, d * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            (r2, r1, (half_width_r2 + half_width_r1 - d) * -i_cap, std_dir, SC.Manifold(d, -i_cap, (half_width_r2 - d/2) * -i_cap)),
-            (r2, r1, (half_width_r2 + d) * -i_cap, std_dir, SC.Manifold(half_width_r1 - d, -i_cap, (half_width_r2 - (half_width_r1 - d)/2) * -i_cap)),
-            (r2, r1, (half_width_r2 - d) * -i_cap, std_dir, SC.Manifold(half_width_r1 + d, -i_cap, (half_width_r2 - (half_width_r1 + d)/2) * -i_cap)),
-            (r2, r1, (half_width_r2 - d) * i_cap, std_dir, SC.Manifold(half_width_r1 + d, i_cap, (half_width_r2 - (half_width_r1 + d)/2) * i_cap)),
-            (r2, r1, (half_width_r2 + d) * i_cap, std_dir, SC.Manifold(half_width_r1 - d, i_cap, (half_width_r2 - (half_width_r1 - d)/2) * i_cap)),
-            (r2, r1, (half_width_r2 + half_width_r1 - d) * i_cap, std_dir, SC.Manifold(d, i_cap, (half_width_r2 - d/2) * i_cap)),
+                manifold_calculated = SC.Manifold(r2, r1, (half_height_r2 - d) * j_cap)
+                manifold_ground_truth = SC.Manifold(half_height_r1 + d, j_cap, (half_height_r2 - (half_height_r1 + d)/2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            (r2, r1, top_right_r2 .- d, std_dir, SC.Manifold(half_height_r1 + d, j_cap, top_right_r2 + (half_width_r1 + d)/2 * -i_cap + (half_height_r1 + d)/2 * -j_cap)),
-            (r2, r1, top_right_r2, std_dir, SC.Manifold(half_height_r1, j_cap, top_right_r2 + (half_width_r1/2) * -i_cap + (half_height_r1/2) * -j_cap)),
-            (r2, r1, top_right_r2 .+ d, std_dir, SC.Manifold(half_height_r1 - d, j_cap, top_right_r2 + (half_width_r1 - d)/2 * -i_cap + (half_height_r1 - d)/2 * -j_cap)),
+                manifold_calculated = SC.Manifold(r2, r1, (half_height_r2 + d) * j_cap)
+                manifold_ground_truth = SC.Manifold(half_height_r1 - d, j_cap, (half_height_r2 - (half_height_r1 - d)/2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            # rotated_dir
-            (r2, r1, (half_height_r2 - d) * -j_cap - SC.rotate(top_right_r1, rotated_dir), rotated_dir, SC.Manifold(d, -j_cap, ((zero(T) - d / tan(theta) + d * tan(theta)) / 3) * i_cap + ((-half_height_r2 + d - half_height_r2 - half_height_r2) / 3) * j_cap)),
-            (r2, r1, (half_height_r2 - d) * j_cap + SC.rotate(top_right_r1, rotated_dir), rotated_dir, SC.Manifold(d, j_cap, ((zero(T) + d / tan(theta) - d * tan(theta)) / 3) * i_cap + ((half_height_r2 - d + half_height_r2 + half_height_r2) / 3) * j_cap)),
+                manifold_calculated = SC.Manifold(r2, r1, (half_height_r2 + half_height_r1 - d) * j_cap)
+                manifold_ground_truth = SC.Manifold(d, j_cap, (half_height_r2 - d/2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            (r2, r1, (half_width_r2 + LA.norm(top_right_r1) * cos(-theta_r1 + theta) - d) * -i_cap, rotated_dir, SC.Manifold(d, -i_cap, ((-half_width_r2 + d - half_width_r2 - half_width_r2) / 3) * i_cap + (LA.norm(top_right_r1) * sin(-theta_r1 + theta) + (d / tan(theta) - d * tan(theta)) / 3) * j_cap)),
-            (r2, r1, (half_width_r2 + LA.norm(top_right_r1) * cos(-theta_r1 + theta) - d) * i_cap, rotated_dir, SC.Manifold(d, i_cap, ((half_width_r2 - d + half_width_r2 + half_width_r2) / 3) * i_cap + (LA.norm(top_right_r1) * sin(convert(T, pi - theta_r1) + theta) + (d * tan(theta) - d / tan(theta)) / 3) * j_cap)),
-            ]
+                manifold_calculated = SC.Manifold(r2, r1, (half_width_r2 + half_width_r1 - d) * -i_cap)
+                manifold_ground_truth = SC.Manifold(d, -i_cap, (half_width_r2 - d/2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
 
-            test_manifold_list(manifold_list)
+                manifold_calculated = SC.Manifold(r2, r1, (half_width_r2 + d) * -i_cap)
+                manifold_ground_truth = SC.Manifold(half_width_r1 - d, -i_cap, (half_width_r2 - (half_width_r1 - d)/2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_width_r2 - d) * -i_cap)
+                manifold_ground_truth = SC.Manifold(half_width_r1 + d, -i_cap, (half_width_r2 - (half_width_r1 + d)/2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_width_r2 - d) * i_cap)
+                manifold_ground_truth = SC.Manifold(half_width_r1 + d, i_cap, (half_width_r2 - (half_width_r1 + d)/2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_width_r2 + d) * i_cap)
+                manifold_ground_truth = SC.Manifold(half_width_r1 - d, i_cap, (half_width_r2 - (half_width_r1 - d)/2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_width_r2 + half_width_r1 - d) * i_cap)
+                manifold_ground_truth = SC.Manifold(d, i_cap, (half_width_r2 - d/2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, top_right_r2 .- d)
+                manifold_ground_truth = SC.Manifold(half_height_r1 + d, j_cap, top_right_r2 + (half_width_r1 + d)/2 * -i_cap + (half_height_r1 + d)/2 * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, top_right_r2)
+                manifold_ground_truth = SC.Manifold(half_height_r1, j_cap, top_right_r2 + (half_width_r1/2) * -i_cap + (half_height_r1/2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, top_right_r2 .+ d)
+                manifold_ground_truth = SC.Manifold(half_height_r1 - d, j_cap, top_right_r2 + (half_width_r1 - d)/2 * -i_cap + (half_height_r1 - d)/2 * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+            end
+
+            Test.@testset "std_dir" begin
+                manifold_calculated = SC.Manifold(r2, r1, (half_height_r2 + half_height_r1 - d) * -j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, -j_cap, (half_height_r2 - d/2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_height_r2 + d) * -j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(half_height_r1 - d, -j_cap, (half_height_r2 - (half_height_r1 - d)/2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_height_r2 - d) * -j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(half_height_r1 + d, -j_cap, (half_height_r2 - (half_height_r1 + d)/2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, d * -j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(half_height_r2 + half_height_r1 - d, -j_cap, d * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, d * j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(half_height_r2 + half_height_r1 - d, j_cap, d * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_height_r2 - d) * j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(half_height_r1 + d, j_cap, (half_height_r2 - (half_height_r1 + d)/2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_height_r2 + d) * j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(half_height_r1 - d, j_cap, (half_height_r2 - (half_height_r1 - d)/2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_height_r2 + half_height_r1 - d) * j_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, j_cap, (half_height_r2 - d/2) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_width_r2 + half_width_r1 - d) * -i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, -i_cap, (half_width_r2 - d/2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_width_r2 + d) * -i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(half_width_r1 - d, -i_cap, (half_width_r2 - (half_width_r1 - d)/2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_width_r2 - d) * -i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(half_width_r1 + d, -i_cap, (half_width_r2 - (half_width_r1 + d)/2) * -i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_width_r2 - d) * i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(half_width_r1 + d, i_cap, (half_width_r2 - (half_width_r1 + d)/2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_width_r2 + d) * i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(half_width_r1 - d, i_cap, (half_width_r2 - (half_width_r1 - d)/2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_width_r2 + half_width_r1 - d) * i_cap, std_dir)
+                manifold_ground_truth = SC.Manifold(d, i_cap, (half_width_r2 - d/2) * i_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, top_right_r2 .- d, std_dir)
+                manifold_ground_truth = SC.Manifold(half_height_r1 + d, j_cap, top_right_r2 + (half_width_r1 + d)/2 * -i_cap + (half_height_r1 + d)/2 * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, top_right_r2, std_dir)
+                manifold_ground_truth = SC.Manifold(half_height_r1, j_cap, top_right_r2 + (half_width_r1/2) * -i_cap + (half_height_r1/2) * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, top_right_r2 .+ d, std_dir)
+                manifold_ground_truth = SC.Manifold(half_height_r1 - d, j_cap, top_right_r2 + (half_width_r1 - d)/2 * -i_cap + (half_height_r1 - d)/2 * -j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+            end
+
+            Test.@testset "rotated_dir" begin
+                manifold_calculated = SC.Manifold(r2, r1, (half_height_r2 - d) * -j_cap - SC.rotate(top_right_r1, rotated_dir), rotated_dir)
+                manifold_ground_truth = SC.Manifold(d, -j_cap, ((zero(T) - d / tan(theta) + d * tan(theta)) / 3) * i_cap + ((-half_height_r2 + d - half_height_r2 - half_height_r2) / 3) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_height_r2 - d) * j_cap + SC.rotate(top_right_r1, rotated_dir), rotated_dir)
+                manifold_ground_truth = SC.Manifold(d, j_cap, ((zero(T) + d / tan(theta) - d * tan(theta)) / 3) * i_cap + ((half_height_r2 - d + half_height_r2 + half_height_r2) / 3) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_width_r2 + LA.norm(top_right_r1) * cos(-theta_r1 + theta) - d) * -i_cap, rotated_dir)
+                manifold_ground_truth = SC.Manifold(d, -i_cap, ((-half_width_r2 + d - half_width_r2 - half_width_r2) / 3) * i_cap + (LA.norm(top_right_r1) * sin(-theta_r1 + theta) + (d / tan(theta) - d * tan(theta)) / 3) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+
+                manifold_calculated = SC.Manifold(r2, r1, (half_width_r2 + LA.norm(top_right_r1) * cos(-theta_r1 + theta) - d) * i_cap, rotated_dir)
+                manifold_ground_truth = SC.Manifold(d, i_cap, ((half_width_r2 - d + half_width_r2 + half_width_r2) / 3) * i_cap + (LA.norm(top_right_r1) * sin(convert(T, pi - theta_r1) + theta) + (d * tan(theta) - d / tan(theta)) / 3) * j_cap)
+                Test.@test isapprox(SC.get_penetration(manifold_calculated), SC.get_penetration(manifold_ground_truth))
+                Test.@test isapprox(SC.get_normal(manifold_calculated), SC.get_normal(manifold_ground_truth))
+                Test.@test isapprox(SC.get_contact(manifold_calculated), SC.get_contact(manifold_ground_truth))
+            end
         end
     end
 end
