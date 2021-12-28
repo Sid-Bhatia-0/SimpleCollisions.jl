@@ -1,4 +1,4 @@
-function Base.findmin(f::Function, itr)
+function find_minimum(f::Function, itr)
     min_f_value = Inf
     min_element = 0
     min_idx = 0
@@ -15,7 +15,7 @@ function Base.findmin(f::Function, itr)
     return min_f_value, min_element, min_idx
 end
 
-function Base.findmax(f::Function, itr)
+function find_maximum(f::Function, itr)
     max_f_value = -Inf
     max_element = 0
     max_idx = 0
