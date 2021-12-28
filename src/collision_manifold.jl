@@ -329,19 +329,19 @@ function get_candidate_support(a::StdRect{T}, b::StdRect{T}, pos_ba::Vector2D{T}
 
     vertices_ba = get_vertices(b, pos_ba, dir_ba)
 
-    value_1, _, vertex_id_1 = findmax(vertex -> vertex[2], vertices_ba)
+    value_1, _, vertex_id_1 = find_maximum(vertex -> vertex[2], vertices_ba)
     max_penetration_1 = half_height_a + value_1
 
-    value_2, _, vertex_id_2 = findmin(vertex -> vertex[1], vertices_ba)
+    value_2, _, vertex_id_2 = find_minimum(vertex -> vertex[1], vertices_ba)
     max_penetration_2 = half_width_a - value_2
 
-    value_3, _, vertex_id_3 = findmin(vertex -> vertex[2], vertices_ba)
+    value_3, _, vertex_id_3 = find_minimum(vertex -> vertex[2], vertices_ba)
     max_penetration_3 = half_height_a - value_3
 
-    value_4, _, vertex_id_4 = findmax(vertex -> vertex[1], vertices_ba)
+    value_4, _, vertex_id_4 = find_maximum(vertex -> vertex[1], vertices_ba)
     max_penetration_4 = half_width_a + value_4
 
-    penetration, (_, vertex_id), edge_id = findmin(x -> x[1], ((max_penetration_1, vertex_id_1),
+    penetration, (_, vertex_id), edge_id = find_minimum(x -> x[1], ((max_penetration_1, vertex_id_1),
                                           (max_penetration_2, vertex_id_2),
                                           (max_penetration_3, vertex_id_3),
                                           (max_penetration_4, vertex_id_4)))
