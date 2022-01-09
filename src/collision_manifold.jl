@@ -39,8 +39,8 @@ function get_closest_edge_from_inside(rect::StdRect{T}, pos::Vector2D{T}) where 
     half_width = get_half_width(rect)
     half_height = get_half_height(rect)
 
-    x = get_x(pos)
-    y = get_y(pos)
+    x = pos[1]
+    y = pos[2]
 
     penetration, edge_id = findmin((y + half_height, half_width - x, half_height - y, x + half_width))
 
@@ -100,8 +100,8 @@ function Manifold(a::StdRect{T}, b::StdRect{T}, pos_ba::Vector2D{T}) where {T}
     top_right = min.(get_top_right(a), get_top_right(b, pos_ba))
 
     contact = (top_right + bottom_left) / 2
-    x_contact = get_x(contact)
-    y_contact = get_y(contact)
+    x_contact = contact[1]
+    y_contact = contact[2]
 
     half_widths_intersection = (top_right - bottom_left) / 2
     half_width_intersection = half_widths_intersection[1]

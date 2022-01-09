@@ -1,6 +1,3 @@
-get_x(vec::Vector2D) = vec[1]
-get_y(vec::Vector2D) = vec[2]
-
 rotate_plus_90(vec::Vector2D) = typeof(vec)(-vec[2], vec[1])
 rotate_minus_90(vec::Vector2D) = typeof(vec)(vec[2], -vec[1])
 rotate_180(vec::Vector2D) = -vec

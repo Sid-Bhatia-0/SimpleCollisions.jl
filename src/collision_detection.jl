@@ -3,9 +3,9 @@
 #####
 
 function is_colliding(a::StdLine{T}, b::StdLine{T}, pos_ba::Vector2D{T}) where {T}
-    y = get_y(pos_ba)
+    y = pos_ba[2]
     if iszero(y)
-        x = get_x(pos_ba)
+        x = pos_ba[1]
         half_length_a = get_half_length(a)
         half_length_b = get_half_length(b)
         return !((x + half_length_b <= -half_length_a) || (x - half_length_b >= half_length_a))
@@ -56,7 +56,7 @@ is_colliding(point::StdPoint{T}, circle::StdCircle{T}, pos::Vector2D{T}, dir::Ve
 
 function get_projection(line::StdLine{T}, pos::Vector2D{T}) where {T}
     half_length = get_half_length(line)
-    x = get_x(pos)
+    x = pos[1]
     if x < -half_length
         return get_tail(line)
     elseif x > half_length
@@ -99,8 +99,8 @@ function is_inside(rect::StdRect{T}, pos::Vector2D{T}) where {T}
     half_width = get_half_width(rect)
     half_height = get_half_height(rect)
 
-    x = get_x(pos)
-    y = get_y(pos)
+    x = pos[1]
+    y = pos[2]
 
     return (-half_width < x < half_width) && (-half_height < y < half_height)
 end
@@ -119,8 +119,8 @@ function separating_axis_exists(rect::StdRect{T}, line::StdLine{T}, pos::Vector2
     half_height = get_half_height(rect)
     half_width = get_half_width(rect)
 
-    x = get_x(pos)
-    y = get_y(pos)
+    x = pos[1]
+    y = pos[2]
     half_length = get_half_length(line)
 
     return (y <= -half_height) || (y >= half_height) || (x + half_length <= -half_width) || (x - half_length >= half_width)
@@ -184,8 +184,8 @@ function separating_axis_exists(r1::StdRect{T}, r2::StdRect{T}, pos::Vector2D{T}
     half_width_r2 = get_half_width(r2)
     half_height_r2 = get_half_height(r2)
 
-    x = get_x(pos)
-    y = get_y(pos)
+    x = pos[1]
+    y = pos[2]
 
     return (x + half_width_r2 <= -half_width_r1) || (x - half_width_r2 >= half_width_r1) || (y + half_height_r2 <= -half_height_r1) || (y - half_height_r2 >= half_height_r1)
 end
