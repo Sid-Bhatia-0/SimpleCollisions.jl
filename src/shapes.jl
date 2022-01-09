@@ -1,16 +1,16 @@
-abstract type AbstractStandardShape{T} end
+abstract type AbstractStandardShape end
 
 #####
 # StandardPoint
 #####
 
-struct StandardPoint{T} <: AbstractStandardShape{T} end
+struct StandardPoint{T} <: AbstractStandardShape end
 
 #####
 # StandardLine
 #####
 
-struct StandardLine{T} <: AbstractStandardShape{T}
+struct StandardLine{T} <: AbstractStandardShape
     half_length::T
 end
 
@@ -35,7 +35,7 @@ get_vertices(line::StandardLine{T}, pos::Vector2D{T}, dir::Vector2D{T}) where {T
 # StandardCircle
 #####
 
-struct StandardCircle{T} <: AbstractStandardShape{T}
+struct StandardCircle{T} <: AbstractStandardShape
     radius::T
 end
 
@@ -50,7 +50,7 @@ end
 # StandardRect
 #####
 
-struct StandardRect{T} <: AbstractStandardShape{T}
+struct StandardRect{T} <: AbstractStandardShape
     half_width::T
     half_height::T
 end
