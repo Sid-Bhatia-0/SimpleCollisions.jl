@@ -37,7 +37,7 @@ This package provides the following shapes: `StandardPoint`, `StandardLine`, `St
 ### StandardPoint
 
 ```
-struct StandardPoint{T} <: AbstractStandardShape end
+struct StandardPoint{T} <: AbstractShape end
 ```
 
 `StandardPoint` is a point placed at the origin. It doesn't require any fields.
@@ -47,7 +47,7 @@ struct StandardPoint{T} <: AbstractStandardShape end
 ### StandardLine
 
 ```
-struct StandardLine{T} <: AbstractStandardShape
+struct StandardLine{T} <: AbstractShape
     half_length::T
 end
 ```
@@ -59,7 +59,7 @@ end
 ### StandardCircle
 
 ```
-struct StandardCircle{T} <: AbstractStandardShape
+struct StandardCircle{T} <: AbstractShape
     radius::T
 end
 ```
@@ -71,7 +71,7 @@ end
 ### StandardRect
 
 ```
-struct StandardRect{T} <: AbstractStandardShape
+struct StandardRect{T} <: AbstractShape
     half_width::T
     half_height::T
 end
