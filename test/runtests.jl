@@ -19,48 +19,48 @@ Test.@testset "SimpleCollisions.jl" begin
     theta_45 = convert(T, π / 4)
     unit_45 = (i_cap + j_cap) / convert(T, sqrt(2))
 
-    point = SC.StdPoint{T}()
+    point = SC.StandardPoint{T}()
 
     half_length_l1 = one(T)
-    l1 = SC.StdLine(half_length_l1)
+    l1 = SC.StandardLine(half_length_l1)
     p1_l1 = SC.get_tail(l1)
     p2_l1 = SC.get_head(l1)
 
     half_length_l2 = convert(T, 2)
-    l2 = SC.StdLine(half_length_l2)
+    l2 = SC.StandardLine(half_length_l2)
     p1_l2 = SC.get_tail(l2)
     p2_l2 = SC.get_head(l2)
 
     r_c1 = one(T)
-    c1 = SC.StdCircle(r_c1)
+    c1 = SC.StandardCircle(r_c1)
 
     r_c2 = convert(T, 2)
-    c2 = SC.StdCircle(r_c2)
+    c2 = SC.StandardCircle(r_c2)
 
     half_width_r1 = one(T)
     half_height_r1 = convert(T, 0.5)
-    r1 = SC.StdRect(half_width_r1, half_height_r1)
+    r1 = SC.StandardRect(half_width_r1, half_height_r1)
     top_right_r1 = SC.get_top_right(r1)
     theta_r1 = atan(half_height_r1, half_width_r1)
 
     half_width_r2 = convert(T, 2)
     half_height_r2 = one(T)
-    r2 = SC.StdRect(half_width_r2, half_height_r2)
+    r2 = SC.StandardRect(half_width_r2, half_height_r2)
     top_right_r2 = SC.get_top_right(r2)
     theta_r2 = atan(half_height_r2, half_width_r2)
 
     Test.@testset "Area" begin
-        Test.@testset "StdRect" begin
+        Test.@testset "StandardRect" begin
             Test.@test SC.get_area(r2) == convert(T, 8)
         end
 
-        Test.@testset "StdCircle" begin
+        Test.@testset "StandardCircle" begin
             Test.@test SC.get_area(c1) ≈ convert(T, π)
         end
     end
 
     Test.@testset "Collision detection" begin
-        Test.@testset "StdLine vs. StdLine" begin
+        Test.@testset "StandardLine vs. StandardLine" begin
             Test.@testset "no dir" begin
                 Test.@test SC.is_colliding(l1, l2, origin) == true
                 Test.@test SC.is_colliding(l1, l2, (half_length_l1 + half_length_l2 + d) * -i_cap) == false
@@ -100,7 +100,7 @@ Test.@testset "SimpleCollisions.jl" begin
             end
         end
 
-        Test.@testset "StdCircle vs. StdPoint" begin
+        Test.@testset "StandardCircle vs. StandardPoint" begin
             Test.@testset "std_dir" begin
                 Test.@test SC.is_colliding(c1, point, origin, std_dir) == true
                 Test.@test SC.is_colliding(c1, point, (r_c1 + d) * -i_cap, std_dir) == false
@@ -158,7 +158,7 @@ Test.@testset "SimpleCollisions.jl" begin
             end
         end
 
-        Test.@testset "StdCircle vs. StdLine" begin
+        Test.@testset "StandardCircle vs. StandardLine" begin
             Test.@testset "std_dir" begin
                 Test.@test SC.is_colliding(l1, c2, origin, std_dir) == true
                 Test.@test SC.is_colliding(l2, c1, origin, std_dir) == true
@@ -225,7 +225,7 @@ Test.@testset "SimpleCollisions.jl" begin
             end
         end
 
-        Test.@testset "StdCircle vs. StdCircle" begin
+        Test.@testset "StandardCircle vs. StandardCircle" begin
             Test.@testset "std_dir" begin
                 Test.@test SC.is_colliding(c1, c2, origin, std_dir) == true
                 Test.@test SC.is_colliding(c1, c2, (r_c1 + r_c2 + d) * -i_cap, std_dir) == false
@@ -255,7 +255,7 @@ Test.@testset "SimpleCollisions.jl" begin
             end
         end
 
-        Test.@testset "StdRect vs. StdPoint" begin
+        Test.@testset "StandardRect vs. StandardPoint" begin
             Test.@testset "std_dir" begin
                 Test.@test SC.is_colliding(r1, point, origin, std_dir) == true
                 Test.@test SC.is_colliding(r1, point, (half_width_r1 + d) * -i_cap, std_dir) == false
@@ -325,7 +325,7 @@ Test.@testset "SimpleCollisions.jl" begin
             end
         end
 
-        Test.@testset "StdRect vs. StdLine" begin
+        Test.@testset "StandardRect vs. StandardLine" begin
             Test.@testset "std_dir" begin
                 Test.@test SC.is_colliding(r1, l1, origin, std_dir) == true
                 Test.@test SC.is_colliding(r1, l2, origin, std_dir) == true
@@ -405,7 +405,7 @@ Test.@testset "SimpleCollisions.jl" begin
             end
         end
 
-        Test.@testset "StdRect vs. StdCircle" begin
+        Test.@testset "StandardRect vs. StandardCircle" begin
             Test.@testset "std_dir" begin
                 Test.@test SC.is_colliding(r1, c1, origin, std_dir) == true
                 Test.@test SC.is_colliding(r1, c1, (half_width_r1 + r_c1 + d) * -i_cap, std_dir) == false
@@ -519,7 +519,7 @@ Test.@testset "SimpleCollisions.jl" begin
     end
 
     Test.@testset "Manifold generation" begin
-        Test.@testset "StdCircle vs. StdCircle" begin
+        Test.@testset "StandardCircle vs. StandardCircle" begin
             Test.@testset "std_dir" begin
                 manifold_calculated = SC.Manifold(c1, c2, (r_c1 + r_c2 - d) * -i_cap, std_dir)
                 manifold_ground_truth = SC.Manifold(d, -i_cap, (r_c1 - d / 2) * -i_cap)
@@ -583,7 +583,7 @@ Test.@testset "SimpleCollisions.jl" begin
             end
         end
 
-        Test.@testset "StdRect vs. StdCircle" begin
+        Test.@testset "StandardRect vs. StandardCircle" begin
             Test.@testset "no dir" begin
                 manifold_calculated = SC.Manifold(r1, c1, (half_width_r1 + r_c1 - d) * -i_cap)
                 manifold_ground_truth = SC.Manifold(d, -i_cap, (half_width_r1 - d / 2) * -i_cap)
