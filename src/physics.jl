@@ -1,5 +1,5 @@
 # dynamic body vs. dynamic body
-function get_normal_impulse(inv_mass_a, inv_mass_b, initial_velocity_ao::Vector2D, initial_velocity_bo::Vector2D, e, normal_o::Vector2D)
+function get_normal_impulse(inv_mass_a, inv_mass_b, initial_velocity_ao, initial_velocity_bo, e, normal_o)
     initial_velocity_ba = initial_velocity_bo .- initial_velocity_ao
     initial_velocity_ba_normal_o = LA.dot(initial_velocity_ba, normal_o)
     final_velocity_ba_normal_o = -e * initial_velocity_ba_normal_o
@@ -10,12 +10,12 @@ function get_normal_impulse(inv_mass_a, inv_mass_b, initial_velocity_ao::Vector2
 end
 
 # dynamic body vs. kinematic body
-get_normal_impulse(inv_mass_b, initial_velocity_ao::Vector2D, initial_velocity_bo::Vector2D, e, normal_o::Vector2D) = get_normal_impulse(zero(inv_mass_b), inv_mass_b, initial_velocity_ao, initial_velocity_bo, e, normal_o)
+get_normal_impulse(inv_mass_b, initial_velocity_ao, initial_velocity_bo, e, normal_o) = get_normal_impulse(zero(inv_mass_b), inv_mass_b, initial_velocity_ao, initial_velocity_bo, e, normal_o)
 
 # dynamic body vs. static body
-get_normal_impulse(inv_mass_b, initial_velocity_bo::Vector2D, e, normal_o::Vector2D) = get_normal_impulse(zero(inv_mass_b), inv_mass_b, zero(Vector2D), initial_velocity_bo, e, normal_o)
+get_normal_impulse(inv_mass_b, initial_velocity_bo, e, normal_o) = get_normal_impulse(zero(inv_mass_b), inv_mass_b, zero(Vector2D), initial_velocity_bo, e, normal_o)
 
-function get_tangential_impulse(inv_mass_a, inv_mass_b, initial_velocity_ao::Vector2D, initial_velocity_ba::Vector2D, tangent_o::Vector2D, mu_s, mu_k, j_ao_normal_o)
+function get_tangential_impulse(inv_mass_a, inv_mass_b, initial_velocity_ao, initial_velocity_ba, tangent_o, mu_s, mu_k, j_ao_normal_o)
     initial_velocity_ba = initial_velocity_bo .- initial_velocity_ao
     initial_velocity_ba_tangent_o = LA.dot(initial_velocity_ba, tangent_o)
 
