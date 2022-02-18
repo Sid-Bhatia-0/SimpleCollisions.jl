@@ -1,7 +1,7 @@
 struct Manifold{T}
     penetration::T
-    normal::Vector2D{T}
-    contact::Vector2D{T}
+    normal::Vector2D
+    contact::Vector2D
 end
 
 get_penetration(manifold::Manifold) = manifold.penetration
@@ -13,9 +13,10 @@ get_contact(manifold::Manifold) = manifold.contact
 # StandardCircle vs. StandardCircle
 #####
 
-function Manifold(a::StandardCircle{T}, b::StandardCircle{T}, pos_ba::Vector2D{T}) where {T}
+function Manifold(a::StandardCircle, b::StandardCircle, pos_ba)
     r_a = get_radius(a)
     r_b = get_radius(b)
+    T = typeof(r_a)
     normal = LA.normalize(pos_ba)
     if all(isfinite.(normal))
         penetration = r_a + r_b - LA.norm(pos_ba)
@@ -29,13 +30,13 @@ function Manifold(a::StandardCircle{T}, b::StandardCircle{T}, pos_ba::Vector2D{T
     end
 end
 
-Manifold(a::StandardCircle{T}, b::StandardCircle{T}, pos_ba::Vector2D{T}, dir_ba::Vector2D{T}) where {T} = Manifold(a, b, pos_ba)
+Manifold(a::StandardCircle, b::StandardCircle, pos_ba, dir_ba) = Manifold(a, b, pos_ba)
 
 #####
 # HyperRectangle vs. HyperSphere
 #####
 
-function get_closest_edge_from_inside(rect::StandardRect{T}, pos::Vector2D{T}) where {T}
+function get_closest_edge_from_inside(rect::StandardRect, pos)
     half_width = get_half_width(rect)
     half_height = get_half_height(rect)
 
@@ -47,7 +48,7 @@ function get_closest_edge_from_inside(rect::StandardRect{T}, pos::Vector2D{T}) w
     return (penetration, edge_id)
 end
 
-function Manifold(a::StandardRect{T}, b::StandardCircle{T}, pos_ba::Vector2D{T}) where {T}
+function Manifold(a::StandardRect, b::StandardCircle, pos_ba)
     r_b = get_radius(b)
     projection = get_projection(a, pos_ba)
     vec = pos_ba - projection
@@ -65,7 +66,7 @@ function Manifold(a::StandardRect{T}, b::StandardCircle{T}, pos_ba::Vector2D{T})
     end
 end
 
-function Manifold(a::StandardCircle{T}, b::StandardRect{T}, pos_ba::Vector2D{T}) where {T}
+function Manifold(a::StandardCircle, b::StandardRect, pos_ba)
     pos_ab = -pos_ba
     manifold_ab = Manifold(b, a, pos_ab)
 
@@ -75,9 +76,9 @@ function Manifold(a::StandardCircle{T}, b::StandardRect{T}, pos_ba::Vector2D{T})
     return Manifold(penetration, normal, contact)
 end
 
-Manifold(a::StandardRect{T}, b::StandardCircle{T}, pos_ba::Vector2D{T}, dir_ba::Vector2D{T}) where {T} = Manifold(a, b, pos_ba)
+Manifold(a::StandardRect, b::StandardCircle, pos_ba, dir_ba) = Manifold(a, b, pos_ba)
 
-function Manifold(a::StandardCircle{T}, b::StandardRect{T}, pos_ba::Vector2D{T}, dir_ba::Vector2D{T}) where {T}
+function Manifold(a::StandardCircle, b::StandardRect, pos_ba, dir_ba)
     dir_ab = invert_relative_direction(dir_ba)
     pos_ab = -rotate(pos_ba, dir_ab)
     manifold_ab = Manifold(b, a, pos_ab, dir_ab)
@@ -92,7 +93,7 @@ end
 # StandardRect vs. StandardRect
 #####
 
-function Manifold(a::StandardRect{T}, b::StandardRect{T}, pos_ba::Vector2D{T}) where {T}
+function Manifold(a::StandardRect, b::StandardRect, pos_ba)
     half_width_a = get_half_width(a)
     half_height_a = get_half_height(a)
 
@@ -118,7 +119,7 @@ function Manifold(a::StandardRect{T}, b::StandardRect{T}, pos_ba::Vector2D{T}) w
     return Manifold(penetration, normal, contact)
 end
 
-function get_clipped_vertices(a::StandardRect{T}, b::StandardRect{T}, pos_ba::Vector2D{T}, dir_ba::Vector2D{T}) where {T}
+function get_clipped_vertices(a::StandardRect, b::StandardRect, pos_ba, dir_ba)
     half_width_a = get_half_width(a)
     half_height_a = get_half_height(a)
 
@@ -280,8 +281,9 @@ function get_clipped_vertices(a::StandardRect{T}, b::StandardRect{T}, pos_ba::Ve
     return final_vertices
 end
 
-function get_centroid(vertices::Vararg{Vector2D{T}}) where {T}
+function get_centroid(vertices::Vararg{Vector2D})
     VecType = typeof(vertices[1])
+    T = eltype(vertices[1])
     area = zero(T)
     c_x_num = zero(T)
     c_y_num = zero(T)
@@ -318,12 +320,12 @@ function get_centroid(vertices::Vararg{Vector2D{T}}) where {T}
     end
 end
 
-function get_contact(a::StandardRect{T}, b::StandardRect{T}, pos_ba::Vector2D{T}, dir_ba::Vector2D{T}) where {T}
+function get_contact(a::StandardRect, b::StandardRect, pos_ba, dir_ba)
     clipped_vertices = get_clipped_vertices(a, b, pos_ba, dir_ba)
     return get_centroid(clipped_vertices...)
 end
 
-function get_candidate_support(a::StandardRect{T}, b::StandardRect{T}, pos_ba::Vector2D{T}, dir_ba::Vector2D{T}) where {T}
+function get_candidate_support(a::StandardRect, b::StandardRect, pos_ba, dir_ba)
     half_width_a = get_half_width(a)
     half_height_a = get_half_height(a)
 
@@ -349,7 +351,7 @@ function get_candidate_support(a::StandardRect{T}, b::StandardRect{T}, pos_ba::V
     return penetration, vertex_id, edge_id
 end
 
-function Manifold(a::StandardRect{T}, b::StandardRect{T}, pos_ba::Vector2D{T}, dir_ba::Vector2D{T}) where {T}
+function Manifold(a::StandardRect, b::StandardRect, pos_ba, dir_ba)
     penetration_ba, vertex_id_b, edge_id_a = get_candidate_support(a, b, pos_ba, dir_ba)
 
     pos_ab, dir_ab = invert(pos_ba, dir_ba)
