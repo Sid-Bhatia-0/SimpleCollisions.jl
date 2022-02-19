@@ -6,8 +6,8 @@ function is_colliding(a::StandardLine, b::StandardLine, pos_ba)
     y = pos_ba[2]
     if iszero(y)
         x = pos_ba[1]
-        half_length_a = get_half_length(a)
-        half_length_b = get_half_length(b)
+        half_length_a = a.half_length
+        half_length_b = b.half_length
         return !((x + half_length_b <= -half_length_a) || (x - half_length_b >= half_length_a))
     else
         return false
@@ -15,7 +15,7 @@ function is_colliding(a::StandardLine, b::StandardLine, pos_ba)
 end
 
 function is_colliding(l1::StandardLine, l2::StandardLine, pos, dir)
-    half_length = get_half_length(l1)
+    half_length = l1.half_length
 
     tail_l2, head_l2 = get_vertices(l2, pos, dir)
 
@@ -55,7 +55,7 @@ is_colliding(point::StandardPoint, circle::StandardCircle, pos, dir) = is_inside
 #####
 
 function get_projection(line::StandardLine, pos)
-    half_length = get_half_length(line)
+    half_length = line.half_length
     x = pos[1]
     if x < -half_length
         return get_tail(line)
@@ -121,7 +121,7 @@ function separating_axis_exists(rect::StandardRect, line::StandardLine, pos)
 
     x = pos[1]
     y = pos[2]
-    half_length = get_half_length(line)
+    half_length = line.half_length
 
     return (y <= -half_height) || (y >= half_height) || (x + half_length <= -half_width) || (x - half_length >= half_width)
 end
@@ -142,7 +142,7 @@ function separating_axis_exists(rect::StandardRect, line::StandardLine, pos, dir
 end
 
 function separating_axis_exists(line::StandardLine, rect::StandardRect, pos, dir)
-    half_length = get_half_length(line)
+    half_length = line.half_length
 
     bottom_left, bottom_right, top_right, top_left = get_vertices(rect, pos, dir)
 

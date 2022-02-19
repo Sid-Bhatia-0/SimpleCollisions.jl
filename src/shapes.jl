@@ -14,11 +14,9 @@ struct StandardLine{T} <: AbstractShape
     half_length::T
 end
 
-get_half_length(line::StandardLine) = line.half_length
-
 # head, tail, and vertices for StandardLine
-get_head(line::StandardLine) = Vector2D(get_half_length(line), zero(get_half_length(line)))
-get_tail(line::StandardLine) = Vector2D(-get_half_length(line), zero(get_half_length(line)))
+get_head(line::StandardLine) = Vector2D(line.half_length, zero(line.half_length))
+get_tail(line::StandardLine) = Vector2D(-line.half_length, zero(line.half_length))
 get_vertices(line::StandardLine) = (get_tail(line), get_head(line))
 
 # head, tail, and vertices for StandardLine at arbitrary position
@@ -27,8 +25,8 @@ get_tail(line::StandardLine, pos) = pos + get_tail(line)
 get_vertices(line::StandardLine, pos) = (get_tail(line, pos), get_head(line, pos))
 
 # head, tail, and vertices for StandardLine at arbitrary position and orientation
-get_head(line::StandardLine, pos, dir) = pos + get_half_length(line) * dir
-get_tail(line::StandardLine, pos, dir) = pos - get_half_length(line) * dir
+get_head(line::StandardLine, pos, dir) = pos + line.half_length * dir
+get_tail(line::StandardLine, pos, dir) = pos - line.half_length * dir
 get_vertices(line::StandardLine, pos, dir) = (get_tail(line, pos, dir), get_head(line, pos, dir))
 
 #####
